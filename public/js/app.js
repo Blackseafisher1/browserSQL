@@ -144,24 +144,40 @@ function initMobileToggles() {
 }
 
 function pinToolbarToKeyboard() {
-  const toolbar = document.getElementById('sql-keyboard');
-  if (!toolbar) return;
+  if (!window.visualViewport) return;
   if (!window.matchMedia('(max-width: 768px)').matches) return;
-  window.visualViewport?.addEventListener('resize', () => {
+  let toolbar = null;
+  function buildToolbar() {
+    const el = document.createElement('div');
+    el.className = 'sql-keyboard';
+    el.style.cssText = 'position:fixed;left:0;right:0;z-index:50;display:flex;gap:4px;padding:6px 12px;background:var(--color-bg-surface);border-top:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
+    '; , ( ) * = \''.split(' ').forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-kbd';
+      btn.dataset.char = c;
+      btn.textContent = c;
+      btn.style.cssText = 'flex:0 0 auto;width:40px;height:40px;padding:0;font-size:1.1rem;font-weight:600;font-family:var(--font-mono);border-radius:2px;border:1px solid var(--color-border);background:var(--color-bg-hover);color:var(--color-text);-webkit-tap-highlight-color:transparent;touch-action:manipulation';
+      btn.addEventListener('click', () => {
+        const v = state.editorView;
+        if (!v) return;
+        const sel = v.state.selection.main;
+        v.dispatch({ changes: { from: sel.from, to: sel.to, insert: c }, selection: { anchor: sel.from + c.length } });
+        v.focus();
+      });
+      el.appendChild(btn);
+    });
+    return el;
+  }
+  window.visualViewport.addEventListener('resize', () => {
     const kbHeight = window.innerHeight - window.visualViewport.height;
     if (kbHeight > 150) {
-      toolbar.style.position = 'fixed';
+      if (!toolbar) {
+        toolbar = buildToolbar();
+        document.body.appendChild(toolbar);
+      }
       toolbar.style.bottom = kbHeight + 'px';
-      toolbar.style.left = '0';
-      toolbar.style.right = '0';
-      toolbar.style.zIndex = '50';
-      toolbar.style.display = 'flex';
     } else {
-      toolbar.style.position = '';
-      toolbar.style.bottom = '';
-      toolbar.style.left = '';
-      toolbar.style.right = '';
-      toolbar.style.zIndex = '';
+      if (toolbar) { toolbar.remove(); toolbar = null; }
     }
   });
 }

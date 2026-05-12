@@ -118,12 +118,6 @@
     transform: scale(0.95);
   }
 
-  @media (min-width: 769px) {
-    .sql-keyboard {
-      display: none;
-    }
-  }
-
   .cm-editor.cm-wordwrap .cm-content {
     white-space: pre-wrap !important;
     word-break: break-word !important;
