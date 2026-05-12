@@ -144,17 +144,44 @@ function initMobileToggles() {
   });
 }
 
+function getKbdSettings() {
+  try {
+    const raw = localStorage.getItem('browsersql-settings');
+    if (!raw) return { kbdEnabled: true, kbdHeight: 40, kbdForce: false };
+    const s = JSON.parse(raw);
+    return { kbdEnabled: s.kbdEnabled !== false, kbdHeight: s.kbdHeight || 40, kbdForce: s.kbdForce || false };
+  } catch { return { kbdEnabled: true, kbdHeight: 40, kbdForce: false }; }
+}
+
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar || !window.visualViewport) return;
-  const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  if (!isMobile) return;
-  window.visualViewport.addEventListener('resize', () => {
+  function update() {
+    const kbd = getKbdSettings();
+    if (kbd.kbdForce) {
+      toolbar.style.display = 'flex';
+      toolbar.style.position = '';
+      return;
+    }
+    const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    if (!isMobile) { toolbar.style.display = 'none'; return; }
     const kbHeight = window.innerHeight - window.visualViewport.height;
-    toolbar.style.position = kbHeight > 150 ? 'fixed' : '';
-    toolbar.style.bottom = kbHeight > 150 ? kbHeight + 'px' : '';
-    if (kbHeight > 150) { toolbar.style.left = '0'; toolbar.style.right = '0'; toolbar.style.zIndex = '50'; }
-  });
+    if (kbHeight > 150 && kbd.kbdEnabled) {
+      toolbar.style.position = 'fixed';
+      toolbar.style.bottom = kbHeight + 'px';
+      toolbar.style.left = '0';
+      toolbar.style.right = '0';
+      toolbar.style.zIndex = '50';
+      toolbar.style.display = 'flex';
+      toolbar.style.setProperty('--kbd-height', kbd.kbdHeight + 'px');
+    } else {
+      toolbar.style.display = 'none';
+      toolbar.style.position = '';
+    }
+  }
+  window.visualViewport.addEventListener('resize', update);
+  window.addEventListener('storage', update);
+  update();
 }
 
 function wireSchemaToolbar() {

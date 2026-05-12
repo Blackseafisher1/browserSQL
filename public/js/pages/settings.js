@@ -5,7 +5,7 @@ import { setWordWrap } from './editorView.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { wordwrap: true, fontSize: 14 };
+  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdForce: false };
 }
 
 let settings = loadSettings();
@@ -26,12 +26,21 @@ function saveSettings() {
 export function applySettings() {
   setWordWrap(settings.wordwrap);
   document.documentElement.style.setProperty('--editor-font-size', settings.fontSize + 'px');
-  const display = $('#setting-fontsize-value');
-  if (display) display.textContent = settings.fontSize;
+  document.documentElement.style.setProperty('--kbd-height', settings.kbdHeight + 'px');
   const cb = $('#setting-wordwrap');
   if (cb) cb.checked = settings.wordwrap;
   const slider = $('#setting-fontsize');
   if (slider) slider.value = settings.fontSize;
+  const display = $('#setting-fontsize-value');
+  if (display) display.textContent = settings.fontSize;
+  const kbdCb = $('#setting-kbd');
+  if (kbdCb) kbdCb.checked = settings.kbdEnabled;
+  const kbdForceCb = $('#setting-kbdforce');
+  if (kbdForceCb) kbdForceCb.checked = settings.kbdForce;
+  const kbdSlider = $('#setting-kbdheight');
+  if (kbdSlider) kbdSlider.value = settings.kbdHeight;
+  const kbdDisplay = $('#setting-kbdheight-value');
+  if (kbdDisplay) kbdDisplay.textContent = settings.kbdHeight;
 }
 
 export function initSettings() {
@@ -56,6 +65,24 @@ export function initSettings() {
 
   $('#setting-fontsize')?.addEventListener('input', (e) => {
     settings.fontSize = parseInt(e.target.value);
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-kbd')?.addEventListener('change', (e) => {
+    settings.kbdEnabled = e.target.checked;
+    saveSettings();
+  });
+
+  $('#setting-kbdforce')?.addEventListener('change', (e) => {
+    settings.kbdForce = e.target.checked;
+    saveSettings();
+    applySettings();
+    window.dispatchEvent(new Event('storage'));
+  });
+
+  $('#setting-kbdheight')?.addEventListener('input', (e) => {
+    settings.kbdHeight = parseInt(e.target.value);
     saveSettings();
     applySettings();
   });
