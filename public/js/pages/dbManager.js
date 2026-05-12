@@ -1,6 +1,8 @@
 import { $ } from '../utils.js';
 import { state, resetState } from '../state.js';
 
+const LAST_DB_KEY = 'browsersql-lastdb';
+
 const fileInput = $('#file-input');
 const btnNew = $('#btn-new-db');
 const btnOpen = $('#btn-open-db');
@@ -115,6 +117,7 @@ function newDatabase() {
   updateDBName('untitled');
   if (state.renderSchema) state.renderSchema();
   showReadyInResults();
+  localStorage.removeItem(LAST_DB_KEY);
 }
 
 function updateDBName(name) {
@@ -163,6 +166,7 @@ async function loadDBState(bytes, name) {
   state.dbName = name;
   if (state.renderSchema) state.renderSchema();
   showReadyInResults();
+  localStorage.setItem(LAST_DB_KEY, name);
 }
 
 async function handleFileOpen(e) {
@@ -228,6 +232,7 @@ export async function loadTestSchema() {
     dbNameInput.value = 'test_data';
     state.db.exec(sql, { rowMode: 'object' });
     await saveCurrentToLocal();
+    localStorage.setItem(LAST_DB_KEY, 'test_data');
     if (state.renderSchema) state.renderSchema();
     showReadyInResults();
   } catch (err) {
@@ -329,4 +334,13 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+export async function openLastDB() {
+  const name = localStorage.getItem(LAST_DB_KEY);
+  if (!name) return;
+  try {
+    const data = await loadFromLocal(name);
+    if (data) await loadDBState(data, name);
+  } catch (_) {}
 }

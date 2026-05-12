@@ -72,7 +72,47 @@
   .schema-table-name.active {
     background: var(--color-bg-active);
     border-left-color: var(--color-accent);
+  }
+
+  .schema-table-name.active .schema-table-label {
     color: var(--color-accent);
+  }
+
+  .schema-table-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .schema-table-name:hover .schema-table-actions {
+    opacity: 1;
+  }
+
+  .btn-schema-ddl,
+  .btn-schema-drop {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-hover);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .btn-schema-ddl:hover {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    border-color: var(--color-accent);
+  }
+
+  .btn-schema-drop:hover {
+    background: var(--color-error);
+    color: var(--color-text-inverse);
+    border-color: var(--color-error);
   }
 
   .schema-table-name .expand-icon {
@@ -119,6 +159,12 @@
 
   .schema-column .col-pk {
     color: var(--color-warning);
+    font-weight: 700;
+    font-size: 10px;
+  }
+
+  .schema-column .col-fk {
+    color: #a855f7;
     font-weight: 700;
     font-size: 10px;
   }

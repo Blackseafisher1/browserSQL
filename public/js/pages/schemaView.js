@@ -31,10 +31,16 @@ async function renderSchema() {
         `PRAGMA table_info(${escId(t.name)})`,
         { rowMode: 'object' }
       );
+      const fks = state.db.exec(
+        `PRAGMA foreign_key_list(${escId(t.name)})`,
+        { rowMode: 'object' }
+      );
+      const fkCols = new Set(fks.map(f => f.from));
       const columns = cols.map(c => ({
         name: c.name,
         type: c.type || 'TEXT',
         pk: c.pk === 1 || c.pk === true,
+        fk: fkCols.has(c.name),
       }));
       tableList.push({ name: t.name, columns });
     }
@@ -65,16 +71,20 @@ function renderTree(tables) {
     html += `<div class="schema-table" data-table="${esc(t.name)}">`;
     html += `<div class="schema-table-name ${active}" data-table-name="${esc(t.name)}">`;
     html += `<span class="expand-icon ${expanded}">${arrow}</span>`;
-    html += `<span>${esc(t.name)}</span>`;
+    html += `<span class="schema-table-label">${esc(t.name)}</span>`;
+    html += `<span class="schema-table-actions">`;
+    html += `<button class="btn-schema-ddl" data-ddl="${esc(t.name)}" title="View DDL">DDL</button>`;
+    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="Drop table">Del</button>`;
+    html += `</span>`;
     html += `</div>`;
     if (state.tableExpanded.has(t.name)) {
       html += `<div class="schema-columns">`;
       for (const c of t.columns) {
-        const pk = c.pk ? '<span class="col-pk">PK</span>' : '';
         html += `<div class="schema-column">`;
         html += `<span>${esc(c.name)}</span>`;
         html += `<span class="col-type">${esc(c.type)}</span>`;
-        html += pk;
+        if (c.pk) html += '<span class="col-pk">PK</span>';
+        if (c.fk) html += '<span class="col-fk">FK</span>';
         html += `</div>`;
       }
       html += `</div>`;
@@ -85,6 +95,21 @@ function renderTree(tables) {
 }
 
 function handleTreeClick(e) {
+  const ddlBtn = e.target.closest('[data-ddl]');
+  if (ddlBtn) {
+    showDDLModal(ddlBtn.dataset.ddl);
+    return;
+  }
+  const dropBtn = e.target.closest('[data-drop]');
+  if (dropBtn) {
+    const name = dropBtn.dataset.drop;
+    if (confirm(`Drop table "${name}"? This cannot be undone.`)) {
+      state.db.exec(`DROP TABLE IF EXISTS ${escId(name)}`);
+      if (state.renderSchema) state.renderSchema();
+      import('./dbManager.js').then(m => m.saveCurrentToLocal());
+    }
+    return;
+  }
   const tableEl = e.target.closest('[data-table-name]');
   if (!tableEl) return;
   const tableName = tableEl.dataset.tableName;
@@ -95,7 +120,6 @@ function handleTreeClick(e) {
     return;
   }
   state.activeTable = tableName;
-  showDDLModal(tableName);
   updateActiveState(tableName);
 }
 
