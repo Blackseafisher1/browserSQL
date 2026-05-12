@@ -85,6 +85,7 @@ export function insertAtCursor(text) {
   view.dispatch({
     changes: { from: sel.from, to: sel.to, insert: text },
     selection: { anchor: sel.from + text.length },
+    userEvent: 'input.type',
   });
   view.focus();
 }
