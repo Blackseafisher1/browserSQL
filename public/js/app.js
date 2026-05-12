@@ -158,22 +158,23 @@ function pinToolbarToKeyboard() {
   if (!toolbar || !window.visualViewport) return;
   function update() {
     const kbd = getKbdSettings();
-    if (kbd.kbdForce) {
-      toolbar.style.display = 'flex';
-      toolbar.style.position = '';
-      return;
-    }
-    const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-    if (!isMobile) { toolbar.style.display = 'none'; return; }
     const kbHeight = window.innerHeight - window.visualViewport.height;
-    if (kbHeight > 150 && kbd.kbdEnabled) {
-      toolbar.style.position = 'fixed';
-      toolbar.style.bottom = kbHeight + 'px';
-      toolbar.style.left = '0';
-      toolbar.style.right = '0';
-      toolbar.style.zIndex = '50';
+    const keyboardOpen = kbHeight > 150;
+    if (kbd.kbdForce || (keyboardOpen && kbd.kbdEnabled)) {
       toolbar.style.display = 'flex';
-      toolbar.style.setProperty('--kbd-height', kbd.kbdHeight + 'px');
+      if (keyboardOpen) {
+        toolbar.style.position = 'fixed';
+        toolbar.style.bottom = kbHeight + 'px';
+        toolbar.style.left = '0';
+        toolbar.style.right = '0';
+        toolbar.style.zIndex = '50';
+      } else {
+        toolbar.style.position = '';
+        toolbar.style.bottom = '';
+        toolbar.style.left = '';
+        toolbar.style.right = '';
+        toolbar.style.zIndex = '';
+      }
     } else {
       toolbar.style.display = 'none';
       toolbar.style.position = '';
