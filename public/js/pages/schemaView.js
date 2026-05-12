@@ -74,7 +74,7 @@ function renderTree(tables) {
     html += `<span class="schema-table-label">${esc(t.name)}</span>`;
     html += `<span class="schema-table-actions">`;
     html += `<button class="btn-schema-ddl" data-ddl="${esc(t.name)}" title="View DDL">DDL</button>`;
-    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="Drop table">Del</button>`;
+    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="Drop table">Drop</button>`;
     html += `</span>`;
     html += `</div>`;
     if (state.tableExpanded.has(t.name)) {
