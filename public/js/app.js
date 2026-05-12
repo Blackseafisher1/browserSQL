@@ -47,6 +47,7 @@ async function main() {
   wireSchemaToolbar();
   initSidebarResize();
   initMobileToggles();
+  pinToolbarToKeyboard();
 
   showReady();
   if (state.renderSchema) {
@@ -138,6 +139,29 @@ function initMobileToggles() {
     }
     if (!e.target.closest('#mobile-menu-panel') && !e.target.closest('#btn-mobile-menu')) {
       mobileMenu.classList.remove('open');
+    }
+  });
+}
+
+function pinToolbarToKeyboard() {
+  const toolbar = document.getElementById('sql-keyboard');
+  if (!toolbar) return;
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  window.visualViewport?.addEventListener('resize', () => {
+    const kbHeight = window.innerHeight - window.visualViewport.height;
+    if (kbHeight > 150) {
+      toolbar.style.position = 'fixed';
+      toolbar.style.bottom = kbHeight + 'px';
+      toolbar.style.left = '0';
+      toolbar.style.right = '0';
+      toolbar.style.zIndex = '50';
+      toolbar.style.display = 'flex';
+    } else {
+      toolbar.style.position = '';
+      toolbar.style.bottom = '';
+      toolbar.style.left = '';
+      toolbar.style.right = '';
+      toolbar.style.zIndex = '';
     }
   });
 }
