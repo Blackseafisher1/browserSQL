@@ -1,0 +1,90 @@
+@layer components {
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10vh;
+    z-index: 2000;
+  }
+
+  .modal {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .modal-title {
+    font-weight: 600;
+    font-size: var(--size-fluid-2);
+  }
+
+  .modal-content {
+    padding: var(--space-4);
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    line-height: 1.6;
+    white-space: pre;
+    color: var(--color-text);
+  }
+
+  .settings-body {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--size-fluid-2);
+    cursor: pointer;
+  }
+
+  .settings-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+  }
+
+  .settings-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--color-accent);
+  }
+
+  .settings-value {
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    color: var(--color-text-muted);
+    min-width: 24px;
+    text-align: center;
+  }
+}

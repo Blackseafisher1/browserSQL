@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>browserSQL</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js",
+      "@codemirror/lang-sql": "https://cdn.jsdelivr.net/npm/@codemirror/lang-sql@6.8.0/dist/index.js",
+      "@codemirror/state": "https://cdn.jsdelivr.net/npm/@codemirror/state@6.5.0/dist/index.js",
+      "@codemirror/view": "https://cdn.jsdelivr.net/npm/@codemirror/view@6.35.3/dist/index.js",
+      "@codemirror/language": "https://cdn.jsdelivr.net/npm/@codemirror/language@6.10.8/dist/index.js",
+      "@codemirror/commands": "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.8.0/dist/index.js",
+      "@codemirror/autocomplete": "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.18.6/dist/index.js",
+      "@codemirror/lint": "https://cdn.jsdelivr.net/npm/@codemirror/lint@6.8.5/dist/index.js",
+      "@codemirror/search": "https://cdn.jsdelivr.net/npm/@codemirror/search@6.5.8/dist/index.js",
+      "@lezer/common": "https://cdn.jsdelivr.net/npm/@lezer/common@1.2.3/dist/index.js",
+      "@lezer/highlight": "https://cdn.jsdelivr.net/npm/@lezer/highlight@1.2.1/dist/index.js",
+      "@lezer/lr": "https://cdn.jsdelivr.net/npm/@lezer/lr@1.4.2/dist/index.js",
+      "crelt": "https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.js",
+      "style-mod": "https://cdn.jsdelivr.net/npm/style-mod@4.1.2/src/style-mod.js",
+      "w3c-keyname": "https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.js",
+      "@marijn/find-cluster-break": "https://cdn.jsdelivr.net/npm/@marijn/find-cluster-break@1.0.2/src/index.js"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layouts.css">
+  <link rel="stylesheet" href="css/components/editor.css">
+  <link rel="stylesheet" href="css/components/schema.css">
+  <link rel="stylesheet" href="css/components/results.css">
+  <link rel="stylesheet" href="css/components/modal.css">
+  <link rel="stylesheet" href="css/components/dbmanager.css">
+  <link rel="stylesheet" href="css/states.css">
+  <link rel="stylesheet" href="css/utilities.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    <header id="header" class="app-header">
+      <div class="header-left">
+        <button id="btn-schema-toggle" class="btn btn-sm schema-toggle" title="Toggle schema panel">&#9776;</button>
+        <span class="app-logo">browserSQL</span>
+        <input id="db-name-input" class="db-name" value="untitled" spellcheck="false">
+      </div>
+      <div class="header-right">
+        <button id="btn-new-db" class="btn btn-sm" data-action="new-db" title="New Database (Ctrl+N)">New</button>
+        <button id="btn-open-db" class="btn btn-sm" data-action="open-db" title="Open Database (Ctrl+O)">Open</button>
+        <button id="btn-export-db" class="btn btn-sm" title="Export as .sqlite file (Ctrl+S)">Export</button>
+        <button id="btn-delete-db" class="btn btn-sm btn-danger" title="Delete current database from local storage">Del</button>
+        <button id="btn-test-schema" class="btn btn-sm" title="Load test schema with sample data">Test</button>
+        <div class="recent-wrap">
+          <button id="btn-recent-dbs" class="btn btn-sm" title="Recent databases">Recent &#9662;</button>
+          <div id="recent-dbs-dropdown" class="dropdown-menu hidden"></div>
+        </div>
+        <button id="btn-theme-toggle" class="btn btn-sm" title="Toggle theme">&#9790;</button>
+        <button id="btn-settings" class="btn btn-sm" title="Settings">&#9881;</button>
+        <button id="btn-mobile-menu" class="btn btn-sm mobile-menu-btn" title="Menu">&#8942;</button>
+      </div>
+    </header>
+    <aside id="schema-panel" class="schema-panel">
+      <div class="schema-header">
+        <span class="schema-header-title">Schema</span>
+        <span class="schema-header-file">File</span>
+        <button id="btn-schema-close" class="btn btn-close schema-close" title="Close schema panel">&times;</button>
+      </div>
+      <div id="schema-toolbar" class="schema-toolbar">
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-new" title="New">New</button>
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-open" title="Open">Open</button>
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-export" title="Export">Export</button>
+        <button class="btn btn-sm btn-danger schema-toolbar-btn" id="btn-schema-delete" title="Delete">Del</button>
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-test" title="Test Data">Test</button>
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-recent" title="Recent">Recent</button>
+        <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-settings" title="Settings">&#9881;</button>
+      </div>
+      <div id="schema-tree" class="schema-tree">
+        <div class="schema-empty">No tables</div>
+      </div>
+      <div id="schema-resize-handle" class="schema-resize-handle"></div>
+    </aside>
+    <div id="mobile-menu-panel" class="mobile-menu-panel hidden">
+      <div class="mobile-menu-header">
+        <span>Menu</span>
+        <button id="btn-mobile-menu-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="mobile-menu-actions">
+        <button class="btn" data-action="new-db">New</button>
+        <button class="btn" data-action="open-db">Open</button>
+        <button id="btn-mobile-export" class="btn">Export</button>
+        <button id="btn-mobile-delete" class="btn btn-danger">Delete</button>
+        <button id="btn-mobile-test" class="btn">Test Data</button>
+        <button id="btn-mobile-recent" class="btn">Recent</button>
+      </div>
+    </div>
+    <main id="main-content" class="main-content">
+      <div id="editor-container" class="editor-container"></div>
+      <div id="sql-keyboard" class="sql-keyboard">
+        <button class="btn btn-kbd" data-char=";">;</button>
+        <button class="btn btn-kbd" data-char=",">,</button>
+        <button class="btn btn-kbd" data-char="(">(</button>
+        <button class="btn btn-kbd" data-char=")">)</button>
+        <button class="btn btn-kbd" data-char="*">*</button>
+        <button class="btn btn-kbd" data-char="=">=</button>
+        <button class="btn btn-kbd" data-char="'">'</button>
+      </div>
+      <div class="execute-bar">
+        <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
+        <span class="execute-hint">Ctrl+Enter</span>
+      </div>
+      <div id="results-container" class="results-container">
+        <div class="results-header">
+          <span id="results-info" class="results-info">Ready</span>
+        </div>
+        <div id="results-output" class="results-output"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="ddl-modal-overlay" class="modal-overlay hidden">
+    <div id="ddl-modal" class="modal">
+      <div class="modal-header">
+        <span id="ddl-modal-title" class="modal-title">Table</span>
+        <div class="modal-header-actions">
+          <button id="btn-drop-table" class="btn btn-sm btn-danger">Drop Table</button>
+          <button id="ddl-modal-close" class="btn btn-close">&times;</button>
+        </div>
+      </div>
+      <pre id="ddl-modal-content" class="modal-content"></pre>
+    </div>
+  </div>
+
+  <div id="context-menu" class="context-menu hidden"></div>
+
+  <div id="settings-modal-overlay" class="modal-overlay hidden">
+    <div id="settings-modal" class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Settings</span>
+        <button id="settings-modal-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body settings-body">
+        <label class="settings-row">
+          <span>Word wrap</span>
+          <input type="checkbox" id="setting-wordwrap">
+        </label>
+        <label class="settings-row">
+          <span>Font size</span>
+          <input type="range" id="setting-fontsize" min="10" max="24" step="1">
+          <span id="setting-fontsize-value" class="settings-value">14</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept=".sqlite,.db" class="hidden">
+
+  <script type="module" src="js/utils.js"></script>
+  <script type="module" src="js/state.js"></script>
+  <script type="module" src="js/pages/ddlModal.js"></script>
+  <script type="module" src="js/pages/resultsView.js"></script>
+  <script type="module" src="js/pages/editorView.js"></script>
+  <script type="module" src="js/pages/schemaView.js"></script>
+  <script type="module" src="js/pages/dbManager.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

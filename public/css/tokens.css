@@ -1,0 +1,61 @@
+@layer tokens {
+  :root {
+    --space-0: 0;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    --size-fluid-1: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    --size-fluid-2: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+    --size-fluid-3: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+    --radius-sm: 2px;
+    --radius-md: 3px;
+    --radius-lg: 4px;
+
+    --color-bg: light-dark(#f8f9fa, #1a1b1e);
+    --color-bg-surface: light-dark(#ffffff, #25262b);
+    --color-bg-hover: light-dark(#f1f3f5, #2c2e33);
+    --color-bg-active: light-dark(#e9ecef, #373a40);
+    --color-bg-header: light-dark(#f1f3f5, #1e1f23);
+    --color-text: light-dark(#212529, #c1c2c5);
+    --color-text-muted: light-dark(#868e96, #909296);
+    --color-text-inverse: light-dark(#ffffff, #1a1b1e);
+    --color-border: light-dark(#dee2e6, #373a40);
+    --color-border-light: light-dark(#e9ecef, #2c2e33);
+    --color-accent: light-dark(#228be6, #4c9aff);
+    --color-accent-hover: light-dark(#1c7ed6, #3b8df5);
+    --color-accent-text: light-dark(#ffffff, #ffffff);
+    --color-success: light-dark(#2f9e44, #69db7c);
+    --color-warning: light-dark(#e67700, #ffc078);
+    --color-error: light-dark(#e03131, #ff6b6b);
+    --color-syntax-keyword: light-dark(#d63384, #ff79c6);
+    --color-syntax-string: light-dark(#2f9e44, #69db7c);
+    --color-syntax-function: light-dark(#1c7ed6, #61afef);
+    --color-syntax-comment: light-dark(#868e96, #5c6370);
+    --color-scrollbar: light-dark(#dee2e6, #373a40);
+    --color-scrollbar-hover: light-dark(#adb5bd, #4a4d52);
+
+    --sidebar-width: 260px;
+    --header-height: 44px;
+    --template-bar-height: 36px;
+    --execute-bar-height: 36px;
+
+    --editor-min-height: 120px;
+    --editor-font-size: 14px;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+  }
+}
