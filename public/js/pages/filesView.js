@@ -4,10 +4,11 @@ import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, e
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
+const MAX_TABS = 5;
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
-let activeFile = null;
+const MAX_TABS = 5; // or keep at 5
 let tabFiles = [];
 
 export function getFiles() {
@@ -48,13 +49,13 @@ export function switchFile(name, targetTab) {
   ensureEditor(pos);
   setEditorContentFor(pos, files[name]);
   // Update tab list
-  if (tabFiles.length < 2) {
+  if (tabFiles.length < MAX_TABS) {
     tabFiles = [...new Set([...tabFiles, name])];
   } else {
     tabFiles[pos] = name;
   }
   switchEditor(pos);
-  showEditors(tabFiles.length);
+  showEditors(Math.min(tabFiles.length, 2));
   renderTabs();
   renderTree();
 }
