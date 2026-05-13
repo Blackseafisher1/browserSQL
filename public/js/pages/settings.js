@@ -5,7 +5,7 @@ import { setWordWrap } from './editorView.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40 };
+  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0 };
 }
 
 let settings = loadSettings();
@@ -39,6 +39,11 @@ export function applySettings() {
   if (kbdSlider) kbdSlider.value = settings.kbdHeight;
   const kbdDisplay = $('#setting-kbdheight-value');
   if (kbdDisplay) kbdDisplay.textContent = settings.kbdHeight;
+  document.body.style.paddingTop = settings.topMargin + 'px';
+  const tmSlider = $('#setting-topmargin');
+  if (tmSlider) tmSlider.value = settings.topMargin;
+  const tmDisplay = $('#setting-topmargin-value');
+  if (tmDisplay) tmDisplay.textContent = settings.topMargin;
 }
 
 export function initSettings() {
@@ -76,6 +81,12 @@ export function initSettings() {
 
   $('#setting-kbdheight')?.addEventListener('input', (e) => {
     settings.kbdHeight = parseInt(e.target.value);
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-topmargin')?.addEventListener('input', (e) => {
+    settings.topMargin = parseInt(e.target.value);
     saveSettings();
     applySettings();
   });
