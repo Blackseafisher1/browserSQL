@@ -1,5 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
+import { Compartment } from '@codemirror/state';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -9,13 +10,15 @@ const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
 
 let view = null;
+let currentSqlConfig = null;
 
 function makeEditor(doc) {
-  return new EditorView({
+  const sqlConfig = new Compartment();
+  const editor = new EditorView({
     doc: doc || '',
     extensions: [
       basicSetup,
-      sql({ dialect: SQLite }),
+      sqlConfig.of(sql({ dialect: SQLite })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -41,6 +44,8 @@ function makeEditor(doc) {
     ],
     parent: container,
   });
+  editor._sqlConfig = sqlConfig;
+  return editor;
 }
 
 export function initEditor() {
@@ -63,6 +68,7 @@ export function setActiveEditor(editor) {
   view = editor;
   view.dom.style.display = '';
   state.editorView = view;
+  currentSqlConfig = editor._sqlConfig || null;
 }
 
 export function getCurrentEditor() {
@@ -70,8 +76,14 @@ export function getCurrentEditor() {
 }
 
 export function updateEditorSchema(tables) {
-  // Multi-editor: schema completion requires per-view reconfigure
-  // Placeholder for future implementation
+  if (!currentSqlConfig || !view) return;
+  const schema = {};
+  for (const t of tables) {
+    schema[t.name] = t.columns.map(c => c.name);
+  }
+  view.dispatch({
+    effects: currentSqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
+  });
 }
 
 export function setWordWrap(enabled) {
