@@ -8,6 +8,7 @@ const MAX_TABS = 5;
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
+let activeFile = null;
 let tabFiles = [];
 
 export function getFiles() {
