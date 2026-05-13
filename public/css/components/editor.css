@@ -150,24 +150,14 @@
     animation: none !important;
     opacity: 1 !important;
     visibility: visible !important;
-    position: relative;
-  }
-
-  .cm-editor .cm-cursor::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--color-text);
-    display: none;
   }
 
   html.no-blink .cm-editor .cm-cursor,
   @media (prefers-reduced-motion: reduce) {
     .cm-editor .cm-cursor {
-      border-left: none;
-    }
-    .cm-editor .cm-cursor::after {
-      display: block;
+      border-left: 2px solid var(--color-text) !important;
+      background: var(--color-text) !important;
+      width: 2px !important;
     }
   }
 
