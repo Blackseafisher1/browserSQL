@@ -238,12 +238,5 @@ export function initFilesView() {
         arrow.textContent = '▸';
       }
     });
-    document.addEventListener('keydown', (e) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !e.target.closest('.cm-editor')) {
-        e.preventDefault();
-        const name = activeFile;
-        if (name && !name.endsWith('.gitkeep') && confirm(`Delete "${name}"?`)) deleteFile(name);
-      }
-    });
   }
 }
