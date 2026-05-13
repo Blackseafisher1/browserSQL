@@ -6,7 +6,6 @@ import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, b
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { sql, SQLite } from '@codemirror/lang-sql';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
