@@ -134,4 +134,8 @@
     white-space: pre-wrap !important;
     word-break: break-word !important;
   }
+
+  .cm-editor .cm-cursor {
+    animation-duration: 1.2s !important;
+  }
 }
