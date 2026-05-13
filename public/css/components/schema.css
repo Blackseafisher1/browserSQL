@@ -12,55 +12,61 @@
     justify-content: space-between;
   }
 
-  .schema-tabs {
+  .panel-section-header {
     display: flex;
-  }
-
-  .schema-tab {
+    align-items: center;
+    justify-content: space-between;
     padding: var(--space-2) var(--space-3);
-    cursor: pointer;
-    border: none;
-    background: none;
-    color: var(--color-text-muted);
     font-size: var(--size-fluid-1);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 2px solid transparent;
-    transition: color 0.1s, border-color 0.1s;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-shrink: 0;
   }
 
-  .schema-tab:hover {
-    color: var(--color-text);
-  }
-
-  .schema-tab-active {
-    color: var(--color-accent);
-    border-bottom-color: var(--color-accent);
-  }
-
-  .files-panel {
-    padding: var(--space-2);
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .files-toolbar {
-    margin-bottom: var(--space-2);
-  }
-
-  .files-list {
+  .panel-section-actions {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
   }
 
-  .file-item {
+  .btn-section-add {
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-hover);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .btn-section-add:hover {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    border-color: var(--color-accent);
+  }
+
+  .files-tree {
+    padding: var(--space-1) 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+    max-height: 40%;
+  }
+
+  .panel-empty {
+    padding: var(--space-4) var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--size-fluid-1);
+    font-style: italic;
+  }
+
+  .file-tree-item {
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
     cursor: pointer;
     font-size: var(--size-fluid-1);
     font-family: var(--font-mono);
@@ -71,47 +77,65 @@
     width: 100%;
   }
 
-  .file-item:hover {
+  .file-tree-item:hover {
     background: var(--color-bg-hover);
   }
 
-  .file-item-active {
+  .file-tree-item.active {
     background: var(--color-bg-active);
     color: var(--color-accent);
   }
 
-  .file-item .file-name {
+  .file-tree-item .file-icon {
+    flex-shrink: 0;
+    font-size: 12px;
+    width: 16px;
+    text-align: center;
+  }
+
+  .file-tree-item .file-name {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .file-item .file-del {
-    font-size: 10px;
+  .file-tree-item .file-del {
+    font-size: 12px;
     color: var(--color-text-muted);
-    padding: 2px 4px;
+    padding: 2px 6px;
     border-radius: var(--radius-sm);
     border: none;
     background: none;
     cursor: pointer;
+    opacity: 0;
   }
 
-  .file-item .file-del:hover {
+  .file-tree-item:hover .file-del {
+    opacity: 1;
+  }
+
+  .file-tree-item .file-del:hover {
     color: var(--color-error);
     background: color-mix(in srgb, var(--color-error) 15%, transparent);
   }
 
-  .file-rename-input {
-    font-family: var(--font-mono);
-    font-size: var(--size-fluid-1);
-    padding: var(--space-1) var(--space-2);
-    border: 1px solid var(--color-accent);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg);
+  .folder-toggle {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .folder-toggle:hover {
     color: var(--color-text);
-    outline: none;
-    width: 100%;
+  }
+
+  .folder-children {
+    overflow: hidden;
   }
 
   .schema-header-title {

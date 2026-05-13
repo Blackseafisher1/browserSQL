@@ -23,16 +23,14 @@ function ensureDefault() {
     saveFiles(files);
     setActiveFileName(DEFAULT_FILE);
   }
-  const cur = getActiveFileName();
-  if (!(cur in getFiles())) setActiveFileName(DEFAULT_FILE);
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(DEFAULT_FILE);
 }
 
 export function saveCurrentFile() {
-  const content = getEditorContent();
-  if (content === null) return;
+  const c = getEditorContent();
+  if (c === null) return;
   const files = getFiles();
-  const name = activeFile || getActiveFileName();
-  files[name] = content;
+  files[activeFile || getActiveFileName()] = c;
   saveFiles(files);
 }
 
@@ -43,7 +41,7 @@ export function switchFile(name) {
   saveCurrentFile();
   setActiveFileName(name);
   setEditorContent(files[name]);
-  updateFileListDOM();
+  renderTree();
 }
 
 export function createFile(name) {
@@ -61,45 +59,67 @@ export function deleteFile(name) {
   delete files[name];
   saveFiles(files);
   if (activeFile === name) {
-    const remaining = Object.keys(files);
-    switchFile(remaining[0]);
+    const rem = Object.keys(files);
+    switchFile(rem[0]);
   }
-  updateFileListDOM();
+  renderTree();
   return true;
 }
 
-function updateFileListDOM() {
-  const list = $('#files-list');
-  if (!list) return;
+function buildTree(paths) {
+  const root = {};
+  for (const p of paths) {
+    const parts = p.split('/');
+    let node = root;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i === parts.length - 1) {
+        node['__files__'] = node['__files__'] || [];
+        node['__files__'].push(p);
+      } else {
+        node[part] = node[part] || {};
+        node = node[part];
+      }
+    }
+  }
+  return root;
+}
+
+let expandedFolders = new Set();
+
+export function renderTree() {
+  const el = $('#files-tree');
+  if (!el) return;
   const files = getFiles();
   const active = activeFile || getActiveFileName();
   const names = Object.keys(files).sort();
-  let items = list.children;
-  let i = 0;
-  for (const name of names) {
-    if (i < items.length && items[i].dataset.name === name) {
-      items[i].className = 'file-item' + (name === active ? ' file-item-active' : '');
-    } else {
-      const item = document.createElement('div');
-      item.className = 'file-item' + (name === active ? ' file-item-active' : '');
-      item.dataset.name = name;
-      const span = document.createElement('span');
-      span.className = 'file-name';
-      span.textContent = name;
-      span.addEventListener('click', () => switchFile(name));
-      item.appendChild(span);
-      const del = document.createElement('button');
-      del.className = 'file-del';
-      del.textContent = '\u00d7';
-      del.title = 'Delete file';
-      del.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`Delete "${name}"?`)) deleteFile(name); });
-      item.appendChild(del);
-      if (i < items.length) list.insertBefore(item, items[i]);
-      else list.appendChild(item);
-    }
-    i++;
+  if (names.length === 0) {
+    el.innerHTML = '<div class="panel-empty">No files</div>';
+    return;
   }
-  while (items.length > names.length) items[items.length - 1].remove();
+  const tree = buildTree(names);
+  el.innerHTML = renderNode(tree, '', active);
+}
+
+function renderNode(node, prefix, active) {
+  let html = '';
+  const folders = Object.keys(node).filter(k => k !== '__files__').sort();
+  const fileList = (node['__files__'] || []).sort();
+  for (const folder of folders) {
+    const fullPrefix = prefix ? prefix + '/' + folder : folder;
+    const expanded = expandedFolders.has(fullPrefix);
+    const arrow = expanded ? '▾' : '▸';
+    html += `<div class="file-tree-item" data-folder="${fullPrefix}"><span class="folder-toggle">${arrow}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span></div>`;
+    if (expanded) {
+      html += `<div class="folder-children">${renderNode(node[folder], fullPrefix, active)}</div>`;
+    }
+  }
+  for (const fp of fileList) {
+    const label = prefix ? fp.split('/').pop() : fp;
+    const isActive = fp === active;
+    html += `<div class="file-tree-item${isActive ? ' active' : ''}" data-file="${fp}"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
+  }
+  return html;
 }
 
 export function initFilesView() {
@@ -108,33 +128,37 @@ export function initFilesView() {
   const name = getActiveFileName();
   activeFile = name;
   setEditorContent(files[name]);
-  updateFileListDOM();
+  renderTree();
 
-  $('#tab-tables')?.addEventListener('click', () => {
-    $('#tab-tables')?.classList.add('schema-tab-active');
-    $('#tab-files')?.classList.remove('schema-tab-active');
-    $('#schema-tree')?.classList.remove('hidden');
-    $('#files-panel')?.classList.add('hidden');
-    $('#schema-toolbar')?.classList.remove('hidden');
-    saveCurrentFile();
+  const tree = $('#files-tree');
+  if (!tree) return;
+
+  tree.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      e.stopPropagation();
+      const name = del.dataset.del;
+      if (confirm(`Delete "${name}"?`)) deleteFile(name);
+      return;
+    }
+    const toggle = e.target.closest('.folder-toggle');
+    if (toggle) {
+      const item = toggle.closest('[data-folder]');
+      if (item) {
+        const f = item.dataset.folder;
+        if (expandedFolders.has(f)) expandedFolders.delete(f);
+        else expandedFolders.add(f);
+        renderTree();
+      }
+      return;
+    }
+    const item = e.target.closest('[data-file]');
+    if (item) switchFile(item.dataset.file);
   });
 
-  $('#tab-files')?.addEventListener('click', () => {
-    $('#tab-files')?.classList.add('schema-tab-active');
-    $('#tab-tables')?.classList.remove('schema-tab-active');
-    $('#files-panel')?.classList.remove('hidden');
-    $('#schema-tree')?.classList.add('hidden');
-    $('#schema-toolbar')?.classList.add('hidden');
-    updateFileListDOM();
-  });
-
-  $('#btn-file-new')?.addEventListener('click', () => {
-    const name = prompt('File name:', 'query.sql');
+  document.getElementById('btn-file-new')?.addEventListener('click', () => {
+    const hint = activeFile && activeFile.includes('/') ? activeFile.substring(0, activeFile.lastIndexOf('/') + 1) : '';
+    const name = prompt('File name:', hint);
     if (name) createFile(name);
-  });
-
-  // Save current file when switching to Tables tab or executing
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('#btn-execute, #tab-tables')) saveCurrentFile();
   });
 }
