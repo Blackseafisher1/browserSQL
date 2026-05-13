@@ -1,5 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
+import { Compartment, Annotation } from '@codemirror/state';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -7,16 +8,16 @@ import { saveCurrentToLocal } from './dbManager.js';
 
 const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
-
 let view = null;
 let currentSchema = {};
+const sqlConfig = new Compartment();
 
-function makeEditor(doc) {
-  return new EditorView({
-    doc: doc || '',
+export function initEditor() {
+  view = new EditorView({
+    doc: '',
     extensions: [
       basicSetup,
-      sql({ dialect: SQLite, schema: currentSchema }),
+      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -40,10 +41,6 @@ function makeEditor(doc) {
     ],
     parent: container,
   });
-}
-
-export function initEditor() {
-  view = makeEditor('SELECT * FROM sqlite_master;');
   state.editorView = view;
   setupExecuteShortcut();
   setupExecuteButton();
@@ -51,21 +48,18 @@ export function initEditor() {
   setupKeyboardButtons();
 }
 
-export function createEditor(doc) {
-  const editor = makeEditor(doc);
-  editor.dom.style.display = 'none';
-  return editor;
+export function setEditorContent(doc) {
+  if (!view) return;
+  const cur = view.state.doc.toString();
+  if (cur === doc) return;
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
+    annotations: [Annotation.define().of(true)],
+  });
 }
 
-export function setActiveEditor(editor) {
-  if (view && view !== editor) view.dom.style.display = 'none';
-  view = editor;
-  view.dom.style.display = '';
-  state.editorView = view;
-}
-
-export function getCurrentEditor() {
-  return view;
+export function getEditorContent() {
+  return view ? view.state.doc.toString() : '';
 }
 
 export function getCurrentSchema() {
@@ -76,14 +70,10 @@ export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-}
-
-export function replaceEditor(editor, doc) {
-  const isHidden = editor.dom.style.display === 'none';
-  editor.destroy();
-  const newEditor = makeEditor(doc);
-  newEditor.dom.style.display = isHidden ? 'none' : '';
-  return newEditor;
+  if (!view) return;
+  view.dispatch({
+    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
+  });
 }
 
 export function setWordWrap(enabled) {

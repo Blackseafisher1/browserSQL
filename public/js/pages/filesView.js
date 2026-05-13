@@ -1,14 +1,12 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
-import { createEditor, setActiveEditor, getCurrentEditor, insertAtCursor, replaceEditor, getCurrentSchema } from './editorView.js';
+import { setEditorContent, getEditorContent } from './editorView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
-const editors = {};
-const editorSchemas = {};
 let activeFile = null;
 
 export function getFiles() {
@@ -25,42 +23,49 @@ function ensureDefault() {
     saveFiles(files);
     setActiveFileName(DEFAULT_FILE);
   }
-  const curName = getActiveFileName();
-  if (!(curName in files)) {
-    setActiveFileName(DEFAULT_FILE);
-  }
+  const cur = getActiveFileName();
+  if (!(cur in getFiles())) setActiveFileName(DEFAULT_FILE);
 }
 
-function getOrCreateEditor(name, content) {
-  const oldEditor = editors[name];
-  if (oldEditor) {
-    const oldSchema = editorSchemas[name] || 0;
-    const curSchema = getSchemaKey();
-    if (oldSchema !== curSchema) {
-      const doc = oldEditor.state.doc.toString();
-      editors[name] = replaceEditor(oldEditor, doc);
-      editorSchemas[name] = curSchema;
-    }
-    return editors[name];
-  }
-  editors[name] = createEditor(content);
-  editorSchemas[name] = getSchemaKey();
-  return editors[name];
-}
-
-function getSchemaKey() {
-  return Object.keys(getCurrentSchema()).length;
-}
-
-function saveCurrentContent() {
-  const v = getCurrentEditor();
-  if (!v) return;
+export function saveCurrentFile() {
+  const content = getEditorContent();
+  if (content === null) return;
   const files = getFiles();
   const name = activeFile || getActiveFileName();
-  if (name) {
-    files[name] = v.state.doc.toString();
-    saveFiles(files);
+  files[name] = content;
+  saveFiles(files);
+}
+
+export function switchFile(name) {
+  if (name === activeFile) return;
+  const files = getFiles();
+  if (!(name in files)) return;
+  saveCurrentFile();
+  setActiveFileName(name);
+  setEditorContent(files[name]);
+  updateFileListDOM();
+}
+
+export function createFile(name) {
+  const files = getFiles();
+  if (name in files) return false;
+  files[name] = '';
+  saveFiles(files);
+  switchFile(name);
+  return true;
+}
+
+export function deleteFile(name) {
+  const files = getFiles();
+  if (!(name in files) || Object.keys(files).length <= 1) return false;
+  delete files[name];
+  saveFiles(files);
+  if (activeFile === name) {
+    const remaining = Object.keys(files);
+    switchFile(remaining[0]);
   }
+  updateFileListDOM();
+  return true;
 }
 
 function updateFileListDOM() {
@@ -97,47 +102,12 @@ function updateFileListDOM() {
   while (items.length > names.length) items[items.length - 1].remove();
 }
 
-export function switchFile(name) {
-  if (name === activeFile) return;
-  const files = getFiles();
-  if (!(name in files)) return;
-  saveCurrentContent();
-  const editor = getOrCreateEditor(name, files[name]);
-  setActiveEditor(editor);
-  setActiveFileName(name);
-  updateFileListDOM();
-}
-
-export function createFile(name) {
-  const files = getFiles();
-  if (name in files) return false;
-  files[name] = '';
-  saveFiles(files);
-  switchFile(name);
-  return true;
-}
-
-export function deleteFile(name) {
-  const files = getFiles();
-  if (!(name in files) || Object.keys(files).length <= 1) return false;
-  delete editors[name];
-  delete files[name];
-  saveFiles(files);
-  if (activeFile === name) {
-    const remaining = Object.keys(files);
-    switchFile(remaining[0]);
-  }
-  updateFileListDOM();
-  return true;
-}
-
 export function initFilesView() {
   ensureDefault();
   const files = getFiles();
   const name = getActiveFileName();
-  const editor = getOrCreateEditor(name, files[name]);
-  setActiveEditor(editor);
-  setActiveFileName(name);
+  activeFile = name;
+  setEditorContent(files[name]);
   updateFileListDOM();
 
   $('#tab-tables')?.addEventListener('click', () => {
@@ -146,6 +116,7 @@ export function initFilesView() {
     $('#schema-tree')?.classList.remove('hidden');
     $('#files-panel')?.classList.add('hidden');
     $('#schema-toolbar')?.classList.remove('hidden');
+    saveCurrentFile();
   });
 
   $('#tab-files')?.addEventListener('click', () => {
@@ -154,12 +125,16 @@ export function initFilesView() {
     $('#files-panel')?.classList.remove('hidden');
     $('#schema-tree')?.classList.add('hidden');
     $('#schema-toolbar')?.classList.add('hidden');
-    saveCurrentContent();
     updateFileListDOM();
   });
 
   $('#btn-file-new')?.addEventListener('click', () => {
     const name = prompt('File name:', 'query.sql');
     if (name) createFile(name);
+  });
+
+  // Save current file when switching to Tables tab or executing
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-execute, #tab-tables')) saveCurrentFile();
   });
 }
