@@ -179,9 +179,12 @@ export function initFilesView() {
     renderTree();
   });
 
-  // Section collapse/expand
-  document.querySelectorAll('.section-header').forEach(hdr => {
-    hdr.addEventListener('click', () => {
+  // Section collapse/expand via delegation
+  const panel = document.getElementById('schema-panel');
+  if (panel) {
+    panel.addEventListener('click', (e) => {
+      const hdr = e.target.closest('.section-header');
+      if (!hdr) return;
       const section = hdr.dataset.section;
       const body = document.getElementById('section-' + section);
       const arrow = hdr.querySelector('.section-arrow');
@@ -192,22 +195,20 @@ export function initFilesView() {
       arrow.textContent = collapsed ? '▸' : '▾';
       const node = hdr.closest('.section-node');
       if (node) {
-        if (collapsed) {
-          node.style.flex = '0 0 auto';
-        } else {
-          node.style.flex = '';
-        }
+        node.style.flex = collapsed ? '0 0 auto' : '';
       }
     });
-    const section = hdr.dataset.section;
-    const body = document.getElementById('section-' + section);
-    const arrow = hdr.querySelector('.section-arrow');
-    if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
-      body.classList.add('collapsed');
-      body.style.flex = '';
-      const node = hdr.closest('.section-node');
-      if (node) node.style.flex = '0 0 auto';
-      arrow.textContent = '▸';
-    }
-  });
+    // Init collapse state from localStorage
+    document.querySelectorAll('.section-header').forEach(hdr => {
+      const section = hdr.dataset.section;
+      const body = document.getElementById('section-' + section);
+      const arrow = hdr.querySelector('.section-arrow');
+      if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
+        body.classList.add('collapsed');
+        const node = hdr.closest('.section-node');
+        if (node) node.style.flex = '0 0 auto';
+        arrow.textContent = '▸';
+      }
+    });
+  }
 }
