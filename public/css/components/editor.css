@@ -139,4 +139,10 @@
     animation: none !important;
     border-left: 1.2px solid var(--color-text);
   }
+
+  .cm-editor {
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    overscroll-behavior: none;
+  }
 }
