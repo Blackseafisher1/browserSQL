@@ -1,4 +1,5 @@
-import { EditorView, minimalSetup, rectangularSelection, crosshairCursor, highlightActiveLine, highlightSelectionMatches, drawSelection, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, Compartment, EditorState, history, defaultKeymap, historyKeymap, syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap, autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, searchKeymap } from 'codemirror';
+import { EditorView, minimalSetup, rectangularSelection, crosshairCursor, highlightActiveLine, highlightSelectionMatches, drawSelection, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, history, defaultKeymap, historyKeymap, syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap, autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, searchKeymap } from 'codemirror';
+import { Compartment, EditorState } from '@codemirror/state';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
