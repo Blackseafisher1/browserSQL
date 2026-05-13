@@ -80,19 +80,6 @@ function renderTabs() {
     });
   });
 }
-  // Close button handler via delegation
-  bar.querySelectorAll('[data-tabclose]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const name = el.dataset.tabclose;
-      if (confirm(`Close "${name}"?`)) {
-        tabFiles = tabFiles.filter(f => f !== name);
-        if (name === activeFile && tabFiles.length > 0) switchFile(tabFiles[0]);
-        renderTabs();
-      }
-    });
-  });
-}
 
 export function createFile(name) {
   const files = getFiles();
