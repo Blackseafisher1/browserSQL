@@ -2,12 +2,22 @@ import { state } from '../state.js';
 
 // Expose db globally for browser console usage
 Object.defineProperty(window, 'db', {
-  get: () => state.db,
+  get: () => {
+    const d = state.db;
+    return d ? d : null;
+  },
   configurable: true,
 });
 
-// Expose input() for console usage (uses native prompt)
 window.input = async (msg) => prompt(msg || '');
+
+// Helper: run SQL and get values array directly
+window.sql = (query) => {
+  const d = state.db;
+  if (!d) return [];
+  const rows = d.exec(query, { rowMode: 'object' });
+  return rows;
+};
 
 export async function executeJS(code) {
   const logs = [];

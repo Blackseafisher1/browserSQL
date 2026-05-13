@@ -53,7 +53,7 @@ export function showJSReady() {
   const info = $('#results-info');
   if (!output) return;
   if (info) info.textContent = 'JS Shell';
-  output.innerHTML = '<div class="shell-output"><div class="shell-line shell-log">// JS Shell — console.log output appears here</div><div class="shell-line shell-log">// For interactive programs (input()), use F12 browser console</div></div>';
+  output.innerHTML = '<div class="shell-output"><div class="shell-line shell-log">// JS Shell — console.log output appears here</div><div class="shell-line shell-log">// For interactive programs with input(), use F12 browser console</div><div class="shell-line shell-log">// Note: db.exec() returns [{columns:[], values:[[]]}] — use results[0].values for data</div></div>';
 }
 
 function esc(s) {
