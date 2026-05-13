@@ -4,7 +4,9 @@
     grid-template-columns: var(--sidebar-width, 260px) 1fr;
     grid-template-rows: var(--header-height) 1fr;
     height: 100vh;
+    height: calc(100vh - env(safe-area-inset-bottom, 0));
     width: 100vw;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .app-header {
@@ -13,8 +15,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 var(--space-4);
+    padding-top: env(safe-area-inset-top, 0);
     background: var(--color-bg-header);
     border-bottom: 1px solid var(--color-border);
+    min-height: calc(var(--header-height) + env(safe-area-inset-top, 0));
   }
 
   .header-left,
