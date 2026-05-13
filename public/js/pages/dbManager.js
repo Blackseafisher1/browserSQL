@@ -211,7 +211,6 @@ export async function saveCurrentToLocal() {
   try {
     const byteArray = exportDB();
     await saveToLocal(state.dbName || 'database', byteArray);
-    refreshRecentDBsList();
   } catch (_) {}
 }
 
