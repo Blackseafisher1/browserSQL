@@ -130,7 +130,9 @@ function startInlineRename(oldName) {
   input.style.width = el.offsetWidth + 'px';
   el.replaceWith(input);
   input.focus();
-  input.select();
+  // Cursor before the extension if it's .sql
+  const extPos = oldName.lastIndexOf('.sql');
+  input.setSelectionRange(extPos > 0 ? extPos : oldName.length, extPos > 0 ? extPos : oldName.length);
   const finish = () => {
     const newName = input.value.trim();
     if (newName && newName !== oldName) {
