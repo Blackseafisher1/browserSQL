@@ -121,6 +121,50 @@ function switchToTab(name) {
   renderTree();
 }
 
+function startInlineRename(oldName) {
+  const el = document.querySelector(`[data-file="${escAttr(oldName)}"] .file-name`);
+  if (!el) return;
+  const input = document.createElement('input');
+  input.className = 'file-rename-input';
+  input.value = oldName;
+  input.style.width = el.offsetWidth + 'px';
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const finish = () => {
+    const newName = input.value.trim();
+    if (newName && newName !== oldName) {
+      const files = getFiles();
+      if (files[newName]) { alert('File already exists'); input.focus(); return; }
+      files[newName] = files[oldName];
+      delete files[oldName];
+      saveFiles(files);
+      // Update pane tabs
+      for (let p = 0; p < 2; p++) {
+        const idx = paneTabs[p].indexOf(oldName);
+        if (idx >= 0) paneTabs[p][idx] = newName;
+      }
+      if (activeFile === oldName) { activeFile = newName; localStorage.setItem(ACTIVE_KEY, newName); }
+      renderTree();
+      renderTabs();
+    } else if (!newName) {
+      // Revert
+      renderTree();
+    }
+  };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') { renderTree(); }
+  });
+  input.addEventListener('blur', finish);
+}
+
+function escAttr(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML.replace(/"/g, '&quot;');
+}
+
 function openInPane(name, pane) {
   // Don't open in pane 1 if already open in pane 0
   if (pane === 1 && paneTabs[0].includes(name)) return;
@@ -224,7 +268,7 @@ export function initFilesView() {
     e.preventDefault();
     const name = item.dataset.file;
     const menu = document.getElementById('context-menu');
-    menu.innerHTML = `<button class="context-menu-item" data-action="open-side" data-file="${esc(name)}">Open to the Side</button>`;
+    menu.innerHTML = `<button class="context-menu-item" data-action="open-side" data-file="${esc(name)}">Open to the Side</button><button class="context-menu-item" data-action="rename" data-file="${esc(name)}">Rename</button>`;
     const rect = menu.getBoundingClientRect();
     const maxX = window.innerWidth - rect.width; const maxY = window.innerHeight - rect.height;
     menu.style.left = Math.min(e.clientX, maxX) + 'px'; menu.style.top = Math.min(e.clientY, maxY) + 'px';
@@ -241,6 +285,7 @@ export function initFilesView() {
     if (!item) return;
     const name = item.dataset.file || document.getElementById('context-menu')?.dataset.contextFile;
     if (item.dataset.action === 'open-side' && name) openInPane(name, 1);
+    if (item.dataset.action === 'rename' && name) startInlineRename(name);
     document.getElementById('context-menu')?.classList.add('hidden');
   });
 
