@@ -1,4 +1,4 @@
-import { EditorView, minimalSetup } from 'codemirror';
+import { EditorView } from '@codemirror/view';
 import { Compartment, EditorState } from '@codemirror/state';
 import { drawSelection, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
