@@ -1,12 +1,13 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
-import { setEditorContent, getEditorContent } from './editorView.js';
+import { createEditor, setActiveEditor, getCurrentEditor, destroyEditor } from './editorView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
+const editors = {};
 let activeFile = null;
 
 export function getFiles() {
@@ -28,11 +29,11 @@ function ensureDefault() {
 }
 
 export function saveCurrentFile() {
-  const content = getEditorContent();
-  if (content === null) return;
+  const v = getCurrentEditor();
+  if (!v) return;
   const files = getFiles();
   const name = activeFile || getActiveFileName();
-  files[name] = content;
+  files[name] = v.state.doc.toString();
   saveFiles(files);
 }
 
@@ -42,7 +43,13 @@ export function switchFile(name) {
   if (!(name in files)) return;
   saveCurrentFile();
   setActiveFileName(name);
-  setEditorContent(files[name]);
+  if (!editors[name]) {
+    editors[name] = createEditor(files[name]);
+  }
+  setActiveEditor(editors[name]);
+  if (!editors[name].parentElement && getCurrentEditor) {
+    document.getElementById('editor-container')?.appendChild(editors[name].dom);
+  }
   updateFileListDOM();
 }
 
@@ -58,6 +65,7 @@ export function createFile(name) {
 export function deleteFile(name) {
   const files = getFiles();
   if (!(name in files) || Object.keys(files).length <= 1) return false;
+  delete editors[name];
   delete files[name];
   saveFiles(files);
   if (activeFile === name) {
@@ -107,7 +115,8 @@ export function initFilesView() {
   const files = getFiles();
   const name = getActiveFileName();
   activeFile = name;
-  setEditorContent(files[name]);
+  editors[name] = createEditor(files[name]);
+  setActiveEditor(editors[name]);
   updateFileListDOM();
 
   $('#tab-tables')?.addEventListener('click', () => {
@@ -133,7 +142,6 @@ export function initFilesView() {
     if (name) createFile(name);
   });
 
-  // Save current file when switching to Tables tab or executing
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-execute, #tab-tables')) saveCurrentFile();
   });

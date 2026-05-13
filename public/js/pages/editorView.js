@@ -10,14 +10,15 @@ const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
 let view = null;
 let currentSchema = {};
-const sqlConfig = new Compartment();
+const allSqlConfigs = new Set();
 
-export function initEditor() {
-  view = new EditorView({
-    doc: '',
+function makeEditor(doc) {
+  const sc = new Compartment();
+  const editor = new EditorView({
+    doc: doc || '',
     extensions: [
       basicSetup,
-      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
+      sc.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -41,6 +42,13 @@ export function initEditor() {
     ],
     parent: container,
   });
+  editor._sqlConfig = sc;
+  allSqlConfigs.add(sc);
+  return editor;
+}
+
+export function initEditor() {
+  view = makeEditor('SELECT * FROM sqlite_master;');
   state.editorView = view;
   setupExecuteShortcut();
   setupExecuteButton();
@@ -48,19 +56,29 @@ export function initEditor() {
   setupKeyboardButtons();
 }
 
-export function setEditorContent(doc) {
-  if (!view) return;
-  const cur = view.state.doc.toString();
-  if (cur === doc) return;
-  view.dom.style.opacity = '0';
-  view.dispatch({
-    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
-  });
-  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
+export function createEditor(doc) {
+  const editor = makeEditor(doc);
+  editor.dom.style.display = 'none';
+  return editor;
 }
 
-export function getEditorContent() {
-  return view ? view.state.doc.toString() : '';
+export function setActiveEditor(editor) {
+  if (view && view !== editor) view.dom.style.display = 'none';
+  view = editor;
+  view.dom.style.display = '';
+  state.editorView = view;
+  reconfigureCurrentSchema();
+}
+
+function reconfigureCurrentSchema() {
+  if (!view || !view._sqlConfig) return;
+  view.dispatch({
+    effects: view._sqlConfig.reconfigure(sql({ dialect: SQLite, schema: currentSchema })),
+  });
+}
+
+export function getCurrentEditor() {
+  return view;
 }
 
 export function getCurrentSchema() {
@@ -71,10 +89,15 @@ export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-  if (!view) return;
-  view.dispatch({
-    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
-  });
+  for (const sc of allSqlConfigs) {
+    // Find any editor using this compartment and reconfigure
+  }
+  reconfigureCurrentSchema();
+}
+
+export function destroyEditor(editor) {
+  if (editor._sqlConfig) allSqlConfigs.delete(editor._sqlConfig);
+  editor.destroy();
 }
 
 export function setWordWrap(enabled) {
