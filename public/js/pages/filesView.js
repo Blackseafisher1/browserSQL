@@ -156,9 +156,45 @@ export function initFilesView() {
     if (item) switchFile(item.dataset.file);
   });
 
-  document.getElementById('btn-file-new')?.addEventListener('click', () => {
+  document.getElementById('btn-file-new')?.addEventListener('click', (e) => {
+    e.stopPropagation();
     const hint = activeFile && activeFile.includes('/') ? activeFile.substring(0, activeFile.lastIndexOf('/') + 1) : '';
     const name = prompt('File name:', hint);
     if (name) createFile(name);
+  });
+
+  document.getElementById('btn-folder-new')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const name = prompt('Folder path (e.g. "myfolder" or "parent/child"):');
+    if (!name) return;
+    const dummyFile = name + '/.gitkeep';
+    const files = getFiles();
+    if (dummyFile in files) return;
+    files[dummyFile] = '';
+    saveFiles(files);
+    const folder = name.split('/')[0];
+    expandedFolders.add(folder);
+    renderTree();
+  });
+
+  // Section collapse/expand
+  document.querySelectorAll('.section-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const section = hdr.dataset.section;
+      const body = document.getElementById('section-' + section);
+      const arrow = hdr.querySelector('.section-arrow');
+      if (!body || !arrow) return;
+      const key = 'browsersql-section-' + section;
+      const collapsed = body.classList.toggle('collapsed');
+      localStorage.setItem(key, collapsed ? '1' : '');
+      arrow.textContent = collapsed ? '▸' : '▾';
+    });
+    const section = hdr.dataset.section;
+    const body = document.getElementById('section-' + section);
+    const arrow = hdr.querySelector('.section-arrow');
+    if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
+      body.classList.add('collapsed');
+      arrow.textContent = '▸';
+    }
   });
 }

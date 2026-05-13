@@ -67,26 +67,42 @@
       </div>
     </header>
     <aside id="schema-panel" class="schema-panel">
-      <div class="panel-section-header">
-        <span>Files</span>
-        <button id="btn-file-new" class="btn btn-sm btn-section-add" title="New file">+</button>
-      </div>
-      <div id="files-tree" class="files-tree">
-        <div class="panel-empty">No files</div>
-      </div>
-      <div class="panel-section-header">
-        <span>Schema</span>
-        <div class="panel-section-actions">
-          <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-new" title="New">New</button>
-          <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-open" title="Open">Open</button>
-          <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-export" title="Export">Export</button>
-          <button class="btn btn-sm btn-danger schema-toolbar-btn" id="btn-schema-delete" title="Delete">Del</button>
-          <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-test" title="Test Data">Test</button>
-          <button class="btn btn-sm schema-toolbar-btn" id="btn-schema-settings" title="Settings">&#9881;</button>
+      <div class="section-node">
+        <div class="section-header" data-section="ops">
+          <span class="section-arrow">▾</span><span class="section-label">Operations</span>
+        </div>
+        <div class="section-body" id="section-ops">
+          <div class="ops-bar">
+            <button class="btn btn-sm" id="btn-schema-new" title="New">New</button>
+            <button class="btn btn-sm" id="btn-schema-open" title="Open">Open</button>
+            <button class="btn btn-sm" id="btn-schema-export" title="Export">Export</button>
+            <button class="btn btn-sm btn-danger" id="btn-schema-delete" title="Delete">Del</button>
+            <button class="btn btn-sm" id="btn-schema-test" title="Test Data">Test</button>
+            <button class="btn btn-sm" id="btn-schema-settings" title="Settings">&#9881;</button>
+          </div>
         </div>
       </div>
-      <div id="schema-tree" class="schema-tree">
-        <div class="schema-empty">No tables</div>
+      <div class="section-node">
+        <div class="section-header" data-section="files">
+          <span class="section-arrow">▾</span><span class="section-label">Files</span>
+          <button class="btn btn-sm section-add-btn" id="btn-file-new" title="New file">+</button>
+          <button class="btn btn-sm section-add-btn" id="btn-folder-new" title="New folder">+F</button>
+        </div>
+        <div class="section-body" id="section-files">
+          <div id="files-tree" class="files-tree">
+            <div class="panel-empty">No files</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-node">
+        <div class="section-header" data-section="schema">
+          <span class="section-arrow">▾</span><span class="section-label">Schema</span>
+        </div>
+        <div class="section-body" id="section-schema">
+          <div id="schema-tree" class="schema-tree">
+            <div class="schema-empty">No tables</div>
+          </div>
+        </div>
       </div>
       <div id="schema-resize-handle" class="schema-resize-handle"></div>
     </aside>
