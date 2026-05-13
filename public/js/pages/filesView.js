@@ -111,7 +111,7 @@ export function createFile(name) {
   if (name in files) return false;
   files[name] = '';
   saveFiles(files);
-  switchFile(name);
+  switchFile(name, 0);
   return true;
 }
 
@@ -200,7 +200,7 @@ export function initFilesView() {
       }
       return;
     }
-    if (item) { e.stopPropagation(); switchFile(item.dataset.file); }
+    if (item) { e.stopPropagation(); switchFile(item.dataset.file, 0); }
   });
 
   tree.addEventListener('contextmenu', (e) => {
