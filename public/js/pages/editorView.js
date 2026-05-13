@@ -1,12 +1,12 @@
 import { EditorView, minimalSetup, rectangularSelection, crosshairCursor, highlightActiveLine, highlightSelectionMatches } from 'codemirror';
-import { drawSelection, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars } from '@codemirror/view';
+import { drawSelection, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars } from '@codemirror/view';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { Compartment, EditorState } from '@codemirror/state';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
+import { searchKeymap } from '@codemirror/search';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
