@@ -1,6 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { Compartment } from '@codemirror/state';
+import { autocompletion, CompletionContext } from '@codemirror/autocomplete';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -10,15 +11,39 @@ const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
 let view = null;
 let currentSchema = {};
-const allSqlConfigs = new Set();
+const sqlConfig = new Compartment();
 
-function makeEditor(doc) {
-  const sc = new Compartment();
-  const editor = new EditorView({
-    doc: doc || '',
+function customCompletion(context) {
+  const word = context.matchBefore(/[\w.]+/);
+  const prefix = word ? word.text.toLowerCase() : '';
+  const options = [];
+  const added = new Set();
+  function add(label, type) {
+    const key = label.toUpperCase();
+    if (!added.has(key)) { added.add(key); options.push({ label, type }); }
+  }
+  // SQL keywords
+  const kws = 'SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE CREATE TABLE DROP ALTER ADD COLUMN INDEX PRIMARY KEY FOREIGN REFERENCES NOT NULL DEFAULT UNIQUE CHECK AND OR IN LIKE BETWEEN JOIN LEFT RIGHT INNER OUTER ON AS ORDER BY GROUP HAVING LIMIT OFFSET UNION ALL DISTINCT COUNT SUM AVG MIN MAX EXISTS CASE WHEN THEN ELSE END CAST IS AUTOINCREMENT INTEGER TEXT REAL BLOB BOOLEAN DATE TIMESTAMP'.split(' ');
+  for (const kw of kws) { if (kw.toLowerCase().startsWith(prefix) || !word) add(kw, 'keyword'); }
+  // Table + column names
+  for (const tbl of Object.keys(currentSchema)) {
+    if (tbl.toLowerCase().startsWith(prefix) || !word) add(tbl, 'type');
+    if (prefix.endsWith('.')) {
+      const tblName = prefix.slice(0, -1);
+      const matchTbl = currentSchema[tblName] || currentSchema[Object.keys(currentSchema).find(k => k.toLowerCase() === tblName)];
+      if (matchTbl) for (const col of matchTbl) add(col, 'property');
+    }
+  }
+  return { from: word ? word.from : context.pos, options, validFor: /^[\w.]+$/ };
+}
+
+export function initEditor() {
+  view = new EditorView({
+    doc: '',
     extensions: [
       basicSetup,
-      sc.of(sql({ dialect: SQLite, schema: currentSchema })),
+      autocompletion({ override: [customCompletion] }),
+      sqlConfig.of(sql({ dialect: SQLite })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -42,13 +67,6 @@ function makeEditor(doc) {
     ],
     parent: container,
   });
-  editor._sqlConfig = sc;
-  allSqlConfigs.add(sc);
-  return editor;
-}
-
-export function initEditor() {
-  view = makeEditor('SELECT * FROM sqlite_master;');
   state.editorView = view;
   setupExecuteShortcut();
   setupExecuteButton();
@@ -56,29 +74,19 @@ export function initEditor() {
   setupKeyboardButtons();
 }
 
-export function createEditor(doc) {
-  const editor = makeEditor(doc);
-  editor.dom.style.display = 'none';
-  return editor;
-}
-
-export function setActiveEditor(editor) {
-  if (view && view !== editor) view.dom.style.display = 'none';
-  view = editor;
-  view.dom.style.display = '';
-  state.editorView = view;
-  reconfigureCurrentSchema();
-}
-
-function reconfigureCurrentSchema() {
-  if (!view || !view._sqlConfig) return;
+export function setEditorContent(doc) {
+  if (!view) return;
+  const cur = view.state.doc.toString();
+  if (cur === doc) return;
+  view.dom.style.opacity = '0';
   view.dispatch({
-    effects: view._sqlConfig.reconfigure(sql({ dialect: SQLite, schema: currentSchema })),
+    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
   });
+  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
 }
 
-export function getCurrentEditor() {
-  return view;
+export function getEditorContent() {
+  return view ? view.state.doc.toString() : '';
 }
 
 export function getCurrentSchema() {
@@ -89,15 +97,12 @@ export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-  for (const sc of allSqlConfigs) {
-    // Find any editor using this compartment and reconfigure
-  }
-  reconfigureCurrentSchema();
-}
-
-export function destroyEditor(editor) {
-  if (editor._sqlConfig) allSqlConfigs.delete(editor._sqlConfig);
-  editor.destroy();
+  if (!view) return;
+  view.dispatch({
+    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
+  });
+  // Force completion source re-evaluation
+  view.dispatch({});
 }
 
 export function setWordWrap(enabled) {
