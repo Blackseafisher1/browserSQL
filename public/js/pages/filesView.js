@@ -92,7 +92,7 @@ export function renderTree() {
   if (!el) return;
   const files = getFiles();
   const active = activeFile || getActiveFileName();
-  const names = Object.keys(files).filter(n => !n.endsWith('/.gitkeep')).sort();
+  const names = Object.keys(files).sort();
   if (names.length === 0) {
     el.innerHTML = '<div class="panel-empty">No files</div>';
     return;
@@ -116,6 +116,7 @@ function renderNode(node, prefix, active, depth) {
     }
   }
   for (const fp of fileList) {
+    if (fp.endsWith('/.gitkeep')) continue;
     const label = prefix ? fp.split('/').pop() : fp;
     const isActive = fp === active;
     html += `<div class="file-tree-item${isActive ? ' active' : ''}" data-file="${fp}" style="padding-left:${12 + pad}px"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
