@@ -5,7 +5,7 @@ import { setWordWrap } from './editorView.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, blinkCursor: true };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, blinkCursor: true };
 }
 
 let settings = loadSettings();
@@ -24,11 +24,8 @@ function saveSettings() {
 }
 
 export function applySettings() {
-  setWordWrap(settings.wordwrap);
   document.documentElement.style.setProperty('--editor-font-size', settings.fontSize + 'px');
   document.documentElement.style.setProperty('--kbd-height', settings.kbdHeight + 'px');
-  const cb = $('#setting-wordwrap');
-  if (cb) cb.checked = settings.wordwrap;
   const slider = $('#setting-fontsize');
   if (slider) slider.value = settings.fontSize;
   const display = $('#setting-fontsize-value');
@@ -63,12 +60,6 @@ export function initSettings() {
   closeBtn?.addEventListener('click', () => overlay.classList.add('hidden'));
   overlay?.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.classList.add('hidden');
-  });
-
-  $('#setting-wordwrap')?.addEventListener('change', (e) => {
-    settings.wordwrap = e.target.checked;
-    saveSettings();
-    applySettings();
   });
 
   $('#setting-fontsize')?.addEventListener('input', (e) => {
