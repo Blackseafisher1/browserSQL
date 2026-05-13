@@ -14,7 +14,7 @@ export function getFiles() {
 }
 function saveFiles(files) { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
 export function getActiveFileName() { return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE; }
-function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); }
+function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
 
 function ensureDefault() {
   const files = getFiles();
@@ -41,7 +41,6 @@ export function switchFile(name) {
   saveCurrentFile();
   setActiveFileName(name);
   setEditorContent(files[name]);
-  setLanguage(name.endsWith('.js') ? 'js' : 'sql');
   renderTree();
 }
 
@@ -132,7 +131,8 @@ export function initFilesView() {
   const name = getActiveFileName();
   activeFile = name;
   state.activeFileIsJS = name.endsWith('.js');
-  setLanguage(state.activeFileIsJS ? 'js' : 'sql');
+  state.activeFileIsMD = name.endsWith('.md');
+  setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql');
   setEditorContent(files[name]);
   renderTree();
 

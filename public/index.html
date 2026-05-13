@@ -10,6 +10,11 @@
       "codemirror": "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js",
       "@codemirror/lang-sql": "https://cdn.jsdelivr.net/npm/@codemirror/lang-sql@6.8.0/dist/index.js",
       "@codemirror/lang-javascript": "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/dist/index.js",
+      "@codemirror/lang-markdown": "https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6.3.1/dist/index.js",
+      "@codemirror/lang-html": "https://cdn.jsdelivr.net/npm/@codemirror/lang-html@6.4.9/dist/index.js",
+      "@codemirror/lang-css": "https://cdn.jsdelivr.net/npm/@codemirror/lang-css@6.3.1/dist/index.js",
+      "@lezer/markdown": "https://cdn.jsdelivr.net/npm/@lezer/markdown@1.4.2/dist/index.js",
+      "@lezer/html": "https://cdn.jsdelivr.net/npm/@lezer/html@1.3.10/dist/index.js",
       "@codemirror/state": "https://cdn.jsdelivr.net/npm/@codemirror/state@6.5.0/dist/index.js",
       "@codemirror/view": "https://cdn.jsdelivr.net/npm/@codemirror/view@6.35.3/dist/index.js",
       "@codemirror/language": "https://cdn.jsdelivr.net/npm/@codemirror/language@6.10.8/dist/index.js",
@@ -127,6 +132,7 @@
       <div id="editor-container" class="editor-container"></div>
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
+        <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>
         <span class="execute-hint">Ctrl+Enter</span>
         <span class="execute-spacer"></span>
         <span class="results-zoom-label">Zoom</span>

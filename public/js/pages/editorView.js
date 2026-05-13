@@ -6,6 +6,8 @@ import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } 
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { javascript } from '@codemirror/lang-javascript';
+import { markdown } from '@codemirror/lang-markdown';
+import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
@@ -67,6 +69,7 @@ export function initEditor() {
   state.editorView = view;
   setupExecuteShortcut();
   setupExecuteButton();
+  setupPreviewButton();
   setupTemplateButtons();
   setupKeyboardButtons();
 }
@@ -114,8 +117,16 @@ export function setWordWrap(enabled) {
 
 export function setLanguage(lang) {
   if (!view || !langConfig) return;
-  const ext = lang === 'js' ? javascript() : sql({ dialect: SQLite, schema: currentSchema });
-  view.dispatch({ effects: langConfig.reconfigure(ext) });
+  const map = {
+    js: javascript(),
+    md: markdown(),
+    sql: sql({ dialect: SQLite, schema: currentSchema }),
+  };
+  view.dispatch({ effects: langConfig.reconfigure(map[lang] || map.sql) });
+  const pb = document.getElementById('btn-preview');
+  if (pb) pb.classList.toggle('hidden', lang !== 'md');
+  const eb = document.getElementById('btn-execute');
+  if (eb) eb.textContent = lang === 'md' ? 'Render' : 'Execute';
 }
 
 export function insertAtCursor(text) {
@@ -139,7 +150,25 @@ function setupExecuteShortcut() {
 }
 
 function setupExecuteButton() {
-  executeBtn.addEventListener('click', executeQuery);
+  executeBtn.addEventListener('click', () => {
+    if (state.activeFileIsJS || state.activeFileIsMD) {
+      executeQuery();
+    } else {
+      executeQuery();
+    }
+  });
+}
+
+function setupPreviewButton() {
+  document.getElementById('btn-preview')?.addEventListener('click', () => {
+    if (!view) return;
+    const md = view.state.doc.toString();
+    const html = renderMarkdown(md);
+    const out = $('#results-output');
+    const info = $('#results-info');
+    if (out) out.innerHTML = '<div class="markdown-preview">' + html + '</div>';
+    if (info) info.textContent = 'Preview';
+  });
 }
 
 function setupTemplateButtons() {

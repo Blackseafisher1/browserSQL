@@ -9,6 +9,7 @@ export const state = {
   activeTable: null,
   renderSchema: null,
   activeFileIsJS: false,
+  activeFileIsMD: false,
 };
 
 export function resetState() {
