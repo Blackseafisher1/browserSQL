@@ -203,7 +203,9 @@
       overflow-y: auto;
     }
 
-    input, select, textarea, button, .btn, .dropdown-item, .schema-table-name {
+    input, select, textarea, button, .btn, .dropdown-item, .schema-table-name,
+    .schema-toggle, #btn-schema-close, .btn-schema-ddl, .btn-schema-drop,
+    .btn-kbd, .btn-tpl, .btn-close, .btn-primary, .btn-danger, .btn-sm {
       font-size: 16px !important;
     }
 
@@ -217,14 +219,9 @@
 
     .header-right .btn {
       padding: var(--space-1) var(--space-1);
-      font-size: 13px;
     }
 
     .header-right .recent-wrap .btn {
-      font-size: 16px !important;
-    }
-
-    .schema-toggle {
       font-size: 16px !important;
     }
 

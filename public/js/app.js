@@ -157,12 +157,19 @@ function getKbdSettings() {
 function initEditorResize() {
   const handle = document.getElementById('editor-resize-handle');
   if (!handle) return;
-  let startY, startEditor, startResults;
   const editor = document.getElementById('editor-container');
   const results = document.getElementById('results-container');
   if (!editor || !results) return;
-  function onMouseMove(e) {
-    const dy = e.clientY - startY;
+  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+  function startResize(e) {
+    const y = getY(e);
+    const total = editor.parentElement.clientHeight;
+    startY = y;
+    startEditor = editor.getBoundingClientRect().height;
+    startResults = results.getBoundingClientRect().height;
+  }
+  function moveResize(e) {
+    const dy = getY(e) - startY;
     const total = editor.parentElement.clientHeight;
     let edPct = ((startEditor + dy) / total * 100);
     let rsPct = ((startResults - dy) / total * 100);
@@ -171,22 +178,17 @@ function initEditorResize() {
     editor.style.flex = `1 1 ${edPct}%`;
     results.style.flex = `1 1 ${rsPct}%`;
   }
-  function onMouseUp() {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
+  function endResize() {
+    document.removeEventListener('mousemove', moveResize);
+    document.removeEventListener('mouseup', endResize);
+    document.removeEventListener('touchmove', moveResize);
+    document.removeEventListener('touchend', endResize);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }
-  handle.addEventListener('mousedown', (e) => {
-    startY = e.clientY;
-    startEditor = editor.getBoundingClientRect().height;
-    startResults = results.getBoundingClientRect().height;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-  });
+  let startY, startEditor, startResults;
+  handle.addEventListener('mousedown', (e) => { startResize(e); document.addEventListener('mousemove', moveResize); document.addEventListener('mouseup', endResize); document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); });
+  handle.addEventListener('touchstart', (e) => { startResize(e); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); e.preventDefault(); }, { passive: false });
 }
 
 function pinToolbarToKeyboard() {
