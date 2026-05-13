@@ -98,26 +98,27 @@ export function renderTree() {
     return;
   }
   const tree = buildTree(names);
-  el.innerHTML = renderNode(tree, '', active);
+  el.innerHTML = renderNode(tree, '', active, 0);
 }
 
-function renderNode(node, prefix, active) {
+function renderNode(node, prefix, active, depth) {
   let html = '';
   const folders = Object.keys(node).filter(k => k !== '__files__').sort();
   const fileList = (node['__files__'] || []).sort();
+  const pad = depth * 16;
   for (const folder of folders) {
     const fullPrefix = prefix ? prefix + '/' + folder : folder;
     const expanded = expandedFolders.has(fullPrefix);
     const arrow = expanded ? '▾' : '▸';
-    html += `<div class="file-tree-item" data-folder="${fullPrefix}"><span class="folder-toggle">${arrow}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span></div>`;
+    html += `<div class="file-tree-item" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${arrow}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span></div>`;
     if (expanded) {
-      html += `<div class="folder-children">${renderNode(node[folder], fullPrefix, active)}</div>`;
+      html += renderNode(node[folder], fullPrefix, active, depth + 1);
     }
   }
   for (const fp of fileList) {
     const label = prefix ? fp.split('/').pop() : fp;
     const isActive = fp === active;
-    html += `<div class="file-tree-item${isActive ? ' active' : ''}" data-file="${fp}"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
+    html += `<div class="file-tree-item${isActive ? ' active' : ''}" data-file="${fp}" style="padding-left:${12 + pad}px"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
   }
   return html;
 }

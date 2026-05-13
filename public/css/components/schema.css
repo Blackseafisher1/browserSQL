@@ -31,12 +31,16 @@
     flex-direction: column;
   }
 
+  .section-node + .section-node {
+    border-top: 1px solid var(--color-border);
+  }
+
   .section-header {
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    font-size: var(--size-fluid-1);
+    padding: 3px var(--space-2);
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -92,12 +96,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1);
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-1) var(--space-2);
     border-bottom: 1px solid var(--color-border-light);
   }
 
   .ops-bar .btn {
-    font-size: var(--size-fluid-1);
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
   .files-tree {
@@ -147,9 +152,9 @@
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
+    padding: 2px var(--space-2);
     cursor: pointer;
-    font-size: var(--size-fluid-1);
+    font-size: 12px;
     font-family: var(--font-mono);
     color: var(--color-text);
     border: none;
