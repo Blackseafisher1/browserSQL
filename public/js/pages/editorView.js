@@ -6,8 +6,6 @@ import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } 
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { javascript } from '@codemirror/lang-javascript';
-import { executeJS } from './jsExecutor.js';
-import { showShell, showJSReady } from './shellView.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
