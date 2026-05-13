@@ -1,4 +1,4 @@
-import { EditorView, minimalSetup } from 'codemirror';
+import { EditorView, minimalSetup, rectangularSelection, crosshairCursor, highlightActiveLine, highlightSelectionMatches } from 'codemirror';
 import { drawSelection, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars } from '@codemirror/view';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { Compartment, EditorState } from '@codemirror/state';
