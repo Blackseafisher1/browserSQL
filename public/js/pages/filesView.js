@@ -1,26 +1,21 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
+import { createEditor, setActiveEditor, getCurrentEditor, insertAtCursor } from './editorView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
+const editors = {};
+let activeFile = null;
+
 export function getFiles() {
   try { return JSON.parse(localStorage.getItem(FILES_KEY)) || {}; } catch { return {}; }
 }
-
-function saveFiles(files) {
-  localStorage.setItem(FILES_KEY, JSON.stringify(files));
-}
-
-export function getActiveFileName() {
-  return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE;
-}
-
-function setActiveFileName(name) {
-  localStorage.setItem(ACTIVE_KEY, name);
-}
+function saveFiles(files) { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
+export function getActiveFileName() { return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE; }
+function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; }
 
 function ensureDefault() {
   const files = getFiles();
@@ -29,32 +24,35 @@ function ensureDefault() {
     saveFiles(files);
     setActiveFileName(DEFAULT_FILE);
   }
+  const curName = getActiveFileName();
+  if (!(curName in files)) {
+    setActiveFileName(DEFAULT_FILE);
+  }
+}
+
+function getOrCreateEditor(name, content) {
+  if (!editors[name]) {
+    editors[name] = createEditor(content);
+  }
+  return editors[name];
 }
 
 function saveCurrentContent() {
-  const v = state.editorView;
+  const v = getCurrentEditor();
   if (!v) return;
   const files = getFiles();
-  const name = getActiveFileName();
-  files[name] = v.state.doc.toString();
-  saveFiles(files);
-}
-
-function loadContentIntoEditor(content) {
-  const v = state.editorView;
-  if (!v) return;
-  const cur = v.state.doc.toString();
-  if (cur === content) return;
-  v.dispatch({
-    changes: { from: 0, to: v.state.doc.length, insert: content || '' },
-  });
+  const name = activeFile || getActiveFileName();
+  if (name) {
+    files[name] = v.state.doc.toString();
+    saveFiles(files);
+  }
 }
 
 function updateFileListDOM() {
   const list = $('#files-list');
   if (!list) return;
   const files = getFiles();
-  const active = getActiveFileName();
+  const active = activeFile || getActiveFileName();
   const names = Object.keys(files).sort();
   let items = list.children;
   let i = 0;
@@ -72,7 +70,7 @@ function updateFileListDOM() {
       item.appendChild(span);
       const del = document.createElement('button');
       del.className = 'file-del';
-      del.textContent = '×';
+      del.textContent = '\u00d7';
       del.title = 'Delete file';
       del.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`Delete "${name}"?`)) deleteFile(name); });
       item.appendChild(del);
@@ -85,13 +83,14 @@ function updateFileListDOM() {
 }
 
 export function switchFile(name) {
-  if (name === getActiveFileName()) return;
+  if (name === activeFile) return;
   const files = getFiles();
   if (!(name in files)) return;
   saveCurrentContent();
+  const editor = getOrCreateEditor(name, files[name]);
+  setActiveEditor(editor);
   setActiveFileName(name);
-  loadContentIntoEditor(files[name]);
-  requestAnimationFrame(() => updateFileListDOM());
+  updateFileListDOM();
 }
 
 export function createFile(name) {
@@ -106,9 +105,10 @@ export function createFile(name) {
 export function deleteFile(name) {
   const files = getFiles();
   if (!(name in files) || Object.keys(files).length <= 1) return false;
+  delete editors[name];
   delete files[name];
   saveFiles(files);
-  if (getActiveFileName() === name) {
+  if (activeFile === name) {
     const remaining = Object.keys(files);
     switchFile(remaining[0]);
   }
@@ -118,6 +118,11 @@ export function deleteFile(name) {
 
 export function initFilesView() {
   ensureDefault();
+  const files = getFiles();
+  const name = getActiveFileName();
+  const editor = getOrCreateEditor(name, files[name]);
+  setActiveEditor(editor);
+  setActiveFileName(name);
   updateFileListDOM();
 
   $('#tab-tables')?.addEventListener('click', () => {
