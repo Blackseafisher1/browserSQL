@@ -163,23 +163,42 @@ function getKbdSettings() {
 function initSidebarSectionResize() {
   const handle = document.getElementById('sidebar-resize-handle');
   if (!handle) return;
-  const files = document.getElementById('section-files');
-  const schema = document.getElementById('section-schema');
-  if (!files || !schema) return;
+  const filesNode = handle.previousElementSibling;
+  const schemaNode = handle.nextElementSibling;
+  if (!filesNode || !schemaNode) return;
+  filesNode.style.flex = '1';
+  schemaNode.style.flex = '1';
   function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-  let startY, startFiles;
-  function startResize(e) { startY = getY(e); startFiles = files.getBoundingClientRect().height; document.addEventListener('mousemove', moveResize); document.addEventListener('mouseup', endResize); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); }
+  let startY, startFs;
+  function startResize(e) {
+    startY = getY(e);
+    startFs = filesNode.getBoundingClientRect().height;
+    document.addEventListener('mousemove', moveResize);
+    document.addEventListener('mouseup', endResize);
+    document.addEventListener('touchmove', moveResize, { passive: false });
+    document.addEventListener('touchend', endResize);
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  }
   function moveResize(e) {
     const dy = getY(e) - startY;
-    const total = files.parentElement.getBoundingClientRect().height;
-    let fp = ((startFiles + dy) / total * 100);
+    const total = filesNode.parentElement.getBoundingClientRect().height;
+    let fp = ((startFs + dy) / total * 100);
     let sp = 100 - fp;
     if (fp < 15) { fp = 15; sp = 85; }
     if (sp < 15) { sp = 15; fp = 85; }
-    files.style.flex = fp + '%';
-    schema.style.flex = sp + '%';
+    filesNode.style.flex = '0 0 ' + fp + '%';
+    schemaNode.style.flex = '0 0 ' + sp + '%';
   }
-  function endResize() { document.removeEventListener('mousemove', moveResize); document.removeEventListener('mouseup', endResize); document.removeEventListener('touchmove', moveResize); document.removeEventListener('touchend', endResize); document.body.style.cursor = ''; document.body.style.userSelect = ''; }
+  function endResize() {
+    document.removeEventListener('mousemove', moveResize);
+    document.removeEventListener('mouseup', endResize);
+    document.removeEventListener('touchmove', moveResize);
+    document.removeEventListener('touchend', endResize);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
   handle.addEventListener('mousedown', startResize);
   handle.addEventListener('touchstart', startResize, { passive: false });
 }
