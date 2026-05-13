@@ -163,9 +163,13 @@ function pinToolbarToKeyboard() {
   if (!toolbar) return;
   const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   if (!isMobile) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
+  const kbd = getKbdSettings();
+  if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
+  if (!window.visualViewport) {
+    toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
+    return;
+  }
   function update() {
-    const kbd = getKbdSettings();
-    if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
     const kbHeight = window.innerHeight - window.visualViewport.height;
     if (kbHeight > 80) {
       toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:'+kbHeight+'px;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
@@ -173,9 +177,7 @@ function pinToolbarToKeyboard() {
       toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0';
     }
   }
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', update);
-  }
+  window.visualViewport.addEventListener('resize', update);
   update();
 }
 
