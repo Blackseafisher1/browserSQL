@@ -138,6 +138,15 @@
   .cm-editor .cm-cursor {
     animation: none !important;
     border-left: 1.2px solid var(--color-text);
+    z-index: 1;
+  }
+
+  .cm-editor .cm-content {
+    -webkit-user-modify: read-write-plaintext-only;
+  }
+
+  .cm-editor .cm-content:focus {
+    caret-color: transparent;
   }
 
   .cm-editor {
