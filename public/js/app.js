@@ -166,7 +166,13 @@ function pinToolbarToKeyboard() {
   if (!isMobile) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
   const kbd = getKbdSettings();
   if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
-  toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
+  function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
+  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; }
+  hide();
+  const editorEl = document.querySelector('.cm-editor');
+  if (!editorEl) return;
+  editorEl.addEventListener('focus', show, true);
+  editorEl.addEventListener('blur', (e) => { setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200); }, true);
 }
 
 function initEditorResize() {
