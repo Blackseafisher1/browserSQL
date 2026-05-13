@@ -125,6 +125,29 @@
     color: var(--color-text-muted);
   }
 
+  .execute-spacer {
+    flex: 1;
+  }
+
+  .results-zoom-label {
+    font-size: var(--size-fluid-1);
+    color: var(--color-text-muted);
+    margin-right: var(--space-1);
+  }
+
+  .results-zoom {
+    width: 60px;
+    accent-color: var(--color-accent);
+  }
+
+  .results-zoom-value {
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    color: var(--color-text-muted);
+    min-width: 20px;
+    text-align: center;
+  }
+
   .results-container {
     flex: 1;
     display: flex;

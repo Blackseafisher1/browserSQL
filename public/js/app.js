@@ -49,6 +49,7 @@ async function main() {
   initEditorResize();
   initMobileToggles();
   pinToolbarToKeyboard();
+  initResultsZoom();
 
   showReady();
   if (state.renderSchema) {
@@ -225,6 +226,20 @@ function wireSchemaToolbar() {
       document.getElementById(toId)?.click();
     });
   }
+}
+
+function initResultsZoom() {
+  const slider = document.getElementById('results-zoom');
+  const display = document.getElementById('results-zoom-value');
+  if (!slider || !display) return;
+  const key = 'browsersql-results-zoom';
+  const saved = localStorage.getItem(key);
+  if (saved) { slider.value = saved; display.textContent = saved; document.documentElement.style.setProperty('--results-font-size', saved + 'px'); }
+  slider.addEventListener('input', () => {
+    display.textContent = slider.value;
+    document.documentElement.style.setProperty('--results-font-size', slider.value + 'px');
+    localStorage.setItem(key, slider.value);
+  });
 }
 
 main();
