@@ -35,15 +35,20 @@ export function saveCurrentFile() {
   saveFiles(files);
 }
 
-export function switchFile(name) {
+export function switchFile(name, targetTab) {
   if (name === activeFile) return;
   const files = getFiles();
   if (!(name in files)) return;
   saveCurrentFile();
   setActiveFileName(name);
   setEditorContent(files[name]);
-  // Update tabs: add to front, keep max 2
-  tabFiles = [name, ...tabFiles.filter(f => f !== name)].slice(0, 2);
+  // Update tabs: place in target position (default 0 = left, 1 = right)
+  if (targetTab === undefined || targetTab === null) targetTab = 0;
+  if (tabFiles.length < 2) {
+    tabFiles = [...new Set([...tabFiles, name])];
+  } else {
+    tabFiles[targetTab] = name;
+  }
   renderTabs();
   renderTree();
 }
@@ -52,17 +57,29 @@ function renderTabs() {
   const bar = document.getElementById('tab-bar');
   if (!bar) return;
   bar.innerHTML = '';
-  for (const name of tabFiles) {
+  tabFiles.forEach((name, idx) => {
+    if (!name) return;
     const tab = document.createElement('div');
     tab.className = 'tab-item' + (name === activeFile ? ' active' : '');
     const label = name.includes('/') ? name.split('/').pop() : name;
     tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="${name}">✕</span>`;
     tab.addEventListener('click', (e) => {
       if (e.target.closest('[data-tabclose]')) return;
-      switchFile(name);
+      switchFile(name, idx);
     });
     bar.appendChild(tab);
-  }
+  });
+  bar.querySelectorAll('[data-tabclose]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = el.dataset.tabclose;
+      tabFiles = tabFiles.filter(f => f !== name);
+      if (tabFiles.length === 0) tabFiles.push('scratch.sql');
+      if (!tabFiles.includes(activeFile)) switchFile(tabFiles[0], 0);
+      renderTabs();
+    });
+  });
+}
   // Close button handler via delegation
   bar.querySelectorAll('[data-tabclose]').forEach(el => {
     el.addEventListener('click', (e) => {
@@ -210,7 +227,10 @@ export function initFilesView() {
       return;
     }
     const item = e.target.closest('[data-file]');
-    if (item) switchFile(item.dataset.file);
+    if (item) {
+      const target = tabFiles.indexOf(activeFile);
+      switchFile(item.dataset.file, target >= 0 ? target : 0);
+    }
   });
 
   document.getElementById('btn-file-new')?.addEventListener('click', (e) => {

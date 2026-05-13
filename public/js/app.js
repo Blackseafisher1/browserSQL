@@ -283,7 +283,8 @@ function wireSchemaToolbar() {
     'btn-schema-delete': 'btn-delete-db',
     'btn-schema-test': 'btn-test-schema',
      'btn-schema-theme': 'btn-theme-toggle',
-    'btn-schema-settings': 'btn-settings',
+     'btn-schema-recent': 'btn-recent-dbs',
+     'btn-schema-settings': 'btn-settings',
   };
   for (const [fromId, toId] of Object.entries(map)) {
     document.getElementById(fromId)?.addEventListener('click', () => {
