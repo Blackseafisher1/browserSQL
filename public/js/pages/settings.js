@@ -41,6 +41,7 @@ export function applySettings() {
   if (kbdDisplay) kbdDisplay.textContent = settings.kbdHeight;
   document.body.style.paddingTop = '';
   document.getElementById('app').style.paddingTop = settings.topMargin + 'px';
+  document.getElementById('app').style.minHeight = 'calc(100vh - ' + settings.topMargin + 'px)';
   const tmSlider = $('#setting-topmargin');
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
