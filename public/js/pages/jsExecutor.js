@@ -1,5 +1,4 @@
 import { state } from '../state.js';
-import { showInput } from './shellView.js';
 
 export async function executeJS(code) {
   const logs = [];
@@ -9,20 +8,17 @@ export async function executeJS(code) {
   function fakeConsole(...args) {
     const line = args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ');
     logs.push({ type: 'log', text: line });
+    window.console.log(...args);
   }
 
   fakeConsole.log = fakeConsole;
-  fakeConsole.warn = (...args) => logs.push({ type: 'warn', text: args.join(' ') });
-  fakeConsole.error = (...args) => logs.push({ type: 'error', text: args.join(' ') });
-  fakeConsole.table = (data) => logs.push({ type: 'log', text: typeof data === 'object' ? JSON.stringify(data, null, 2) : String(data) });
+  fakeConsole.warn = (...args) => { logs.push({ type: 'warn', text: args.join(' ') }); window.console.warn(...args); };
+  fakeConsole.error = (...args) => { logs.push({ type: 'error', text: args.join(' ') }); window.console.error(...args); };
+  fakeConsole.table = (data) => { logs.push({ type: 'log', text: typeof data === 'object' ? JSON.stringify(data, null, 2) : String(data) }); window.console.table(data); };
 
   async function input(promptText) {
-    if (!code.includes('await input')) {
-      logs.push({ type: 'warn', text: 'Tip: use await input() to wait for user input (e.g. const name = await input("?"))' });
-    }
-    return new Promise((resolve) => {
-      showInput(promptText || '', resolve);
-    });
+    logs.push({ type: 'warn', text: 'input() not supported in this shell. Open F12 console and run your code there for interactive input.' });
+    return '';
   }
 
   try {
