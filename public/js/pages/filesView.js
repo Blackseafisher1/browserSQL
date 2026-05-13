@@ -111,7 +111,7 @@ function renderNode(node, prefix, active, depth) {
     const fullPrefix = prefix ? prefix + '/' + folder : folder;
     const expanded = expandedFolders.has(fullPrefix);
     const arrow = expanded ? '▾' : '▸';
-    html += `<div class="file-tree-item" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${arrow}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span></div>`;
+    html += `<div class="file-tree-item" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${arrow}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span><span class="file-del" data-delfolder="${fullPrefix}">✕</span></div>`;
     if (expanded) {
       html += renderNode(node[folder], fullPrefix, active, depth + 1);
     }
@@ -144,6 +144,22 @@ export function initFilesView() {
       e.stopPropagation();
       const name = del.dataset.del;
       if (confirm(`Delete "${name}"?`)) deleteFile(name);
+      return;
+    }
+    const delf = e.target.closest('[data-delfolder]');
+    if (delf) {
+      e.stopPropagation();
+      const folder = delf.dataset.delfolder;
+      if (confirm(`Delete folder "${folder}" and all files inside?`)) {
+        const files = getFiles();
+        for (const k of Object.keys(files)) {
+          if (k === folder || k.startsWith(folder + '/')) delete files[k];
+        }
+        if (Object.keys(files).length === 0) files['scratch.sql'] = '';
+        saveFiles(files);
+        if (activeFile && !(activeFile in files)) switchFile(Object.keys(files)[0]);
+        renderTree();
+      }
       return;
     }
     const toggle = e.target.closest('.folder-toggle');
@@ -219,6 +235,13 @@ export function initFilesView() {
         const node = hdr.closest('.section-node');
         if (node) node.style.flex = '0 0 auto';
         arrow.textContent = '▸';
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement?.closest('.cm-editor')) return;
+        const name = activeFile;
+        if (name && !name.endsWith('.gitkeep') && confirm(`Delete "${name}"?`)) deleteFile(name);
       }
     });
   }
