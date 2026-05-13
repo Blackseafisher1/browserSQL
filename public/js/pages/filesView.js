@@ -92,7 +92,7 @@ export function renderTree() {
   if (!el) return;
   const files = getFiles();
   const active = activeFile || getActiveFileName();
-  const names = Object.keys(files).sort();
+  const names = Object.keys(files).filter(n => !n.endsWith('/.gitkeep')).sort();
   if (names.length === 0) {
     el.innerHTML = '<div class="panel-empty">No files</div>';
     return;
