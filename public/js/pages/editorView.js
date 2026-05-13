@@ -17,10 +17,12 @@ const executeBtn = $('#btn-execute');
 let view = null;
 let currentSchema = {};
 let sqlConfig = null;
+let wrapConfig = null;
 
 export function initEditor() {
   sqlConfig = new Compartment();
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  wrapConfig = new Compartment();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || !getBlinkSetting();
   view = new EditorView({
     doc: '',
     extensions: [
@@ -41,6 +43,7 @@ export function initEditor() {
       highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
+      wrapConfig.of(EditorView.contentAttributes.of({ class: 'cm-lineWrapping' })),
       sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
@@ -91,6 +94,15 @@ export function getCurrentSchema() {
   return currentSchema;
 }
 
+function getBlinkSetting() {
+  try {
+    const raw = localStorage.getItem('browsersql-settings');
+    if (!raw) return true;
+    const s = JSON.parse(raw);
+    return s.blinkCursor !== false;
+  } catch { return true; }
+}
+
 export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
@@ -102,7 +114,12 @@ export function updateEditorSchema(tables) {
 }
 
 export function setWordWrap(enabled) {
-  container.classList.toggle('cm-wordwrap', enabled);
+  if (!view || !wrapConfig) return;
+  view.dispatch({
+    effects: wrapConfig.reconfigure(
+      enabled ? EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }) : []
+    ),
+  });
 }
 
 export function insertAtCursor(text) {
