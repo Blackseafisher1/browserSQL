@@ -165,20 +165,16 @@ function pinToolbarToKeyboard() {
   if (!isMobile) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
   const kbd = getKbdSettings();
   if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
-  if (!window.visualViewport) {
+  const editorEl = document.getElementById('editor-container');
+  if (!editorEl) return;
+  function show() {
     toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
-    return;
   }
-  function update() {
-    const kbHeight = window.innerHeight - window.visualViewport.height;
-    if (kbHeight > 80) {
-      toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:'+kbHeight+'px;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
-    } else {
-      toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0';
-    }
+  function hide() {
+    toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0';
   }
-  window.visualViewport.addEventListener('resize', update);
-  update();
+  editorEl.addEventListener('focusin', show);
+  editorEl.addEventListener('focusout', () => setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200));
 }
 
 function initEditorResize() {
