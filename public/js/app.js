@@ -201,16 +201,21 @@ function pinToolbarToKeyboard() {
   function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
   function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; }
   if (kbd.kbdForce) { show(); return; }
-  let wasInput = false;
-  setInterval(() => {
+  const container = document.getElementById('editor-container');
+  if (!container) return;
+  let focusTimeout;
+  container.addEventListener('focusin', (e) => {
+    if (!e.target.closest('.cm-editor')) return;
+    clearTimeout(focusTimeout);
     const s = getKbdSettings();
-    if (s.kbdForce) { show(); return; }
-    if (!s.kbdEnabled) { hide(); wasInput = false; return; }
-    const a = document.activeElement;
-    const isInput = a && (a.closest('.cm-editor') || a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && /text|search/.test(a.type)));
-    if (isInput && !wasInput) { show(); wasInput = true; }
-    else if (!isInput && wasInput) { hide(); wasInput = false; }
-  }, 150);
+    if (s.kbdEnabled) show();
+  });
+  container.addEventListener('focusout', (e) => {
+    clearTimeout(focusTimeout);
+    focusTimeout = setTimeout(() => {
+      if (!container.contains(document.activeElement)) hide();
+    }, 200);
+  });
 }
 
 function wireSchemaToolbar() {
