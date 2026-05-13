@@ -1,6 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { Compartment, Annotation } from '@codemirror/state';
+import { Compartment } from '@codemirror/state';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -52,10 +52,11 @@ export function setEditorContent(doc) {
   if (!view) return;
   const cur = view.state.doc.toString();
   if (cur === doc) return;
+  view.dom.style.opacity = '0';
   view.dispatch({
     changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
-    annotations: [Annotation.define().of(true)],
   });
+  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
 }
 
 export function getEditorContent() {
