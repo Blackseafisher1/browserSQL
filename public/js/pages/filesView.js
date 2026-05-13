@@ -59,28 +59,71 @@ function renderTabs() {
   const bar = document.getElementById('tab-bar');
   if (!bar) return;
   bar.innerHTML = '';
-  const tabs = paneTabs[activePane] || [];
-  for (const name of tabs) {
+  // Left pane tabs
+  for (const name of paneTabs[0]) {
     const tab = document.createElement('div');
-    tab.className = 'tab-item' + (name === activeFile ? ' active' : '');
+    tab.className = 'tab-item' + (name === activeFile && activePane === 0 ? ' active' : '');
     const label = name.includes('/') ? name.split('/').pop() : name;
-    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="${name}">✕</span>`;
+    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="0:${name}">✕</span>`;
     tab.addEventListener('click', (e) => {
       if (e.target.closest('[data-tabclose]')) return;
-      if (name !== activeFile) switchToTab(name);
+      if (name !== activeFile || activePane !== 0) switchToTab(name);
+      activePane = 0;
+      switchEditor(0);
+      renderTabs();
     });
     bar.appendChild(tab);
   }
+  // Separator between panes
+  if (paneTabs[1].length > 0) {
+    const sep = document.createElement('div');
+    sep.className = 'tab-separator';
+    bar.appendChild(sep);
+  }
+  // Right pane tabs
+  for (const name of paneTabs[1]) {
+    const tab = document.createElement('div');
+    tab.className = 'tab-item' + (name === activeFile && activePane === 1 ? ' active' : '');
+    const label = name.includes('/') ? name.split('/').pop() : name;
+    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="1:${name}">✕</span>`;
+    tab.addEventListener('click', (e) => {
+      if (e.target.closest('[data-tabclose]')) return;
+      if (name !== activeFile || activePane !== 1) {
+        ensureEditor(1);
+        setActiveFileName(name);
+        setEditorContentFor(1, (getFiles())[name]);
+        activePane = 1;
+        switchEditor(1);
+        renderTabs();
+      }
+    });
+    bar.appendChild(tab);
+  }
+  // Close button handler
   bar.querySelectorAll('[data-tabclose]').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
-      const name = el.dataset.tabclose;
-      paneTabs[activePane] = paneTabs[activePane].filter(f => f !== name);
-      if (paneTabs[activePane].length > 0) {
-        switchToTab(paneTabs[activePane][paneTabs[activePane].length - 1]);
+      const [paneStr, name] = el.dataset.tabclose.split(':');
+      const pane = parseInt(paneStr);
+      paneTabs[pane] = paneTabs[pane].filter(f => f !== name);
+      if (paneTabs[pane].length > 0) {
+        // Switch to last tab in pane
+        const last = paneTabs[pane][paneTabs[pane].length - 1];
+        if (pane === 0) switchToTab(last);
+        else {
+          ensureEditor(1);
+          setActiveFileName(last);
+          setEditorContentFor(1, (getFiles())[last]);
+          if (activePane === 1) switchEditor(1);
+        }
+      } else if (pane === 1) {
+        // Close second editor
+        showEditors(1);
+        activePane = 0;
+        switchEditor(0);
       } else {
-        // Pane stays open but empty — show empty editor
-        setEditorContentFor(activePane, '');
+        // Pane 0 empty: blank editor
+        setEditorContentFor(0, '');
       }
       renderTabs();
     });

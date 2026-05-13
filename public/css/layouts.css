@@ -141,6 +141,13 @@
     color: var(--color-error);
   }
 
+  .tab-separator {
+    width: 1px;
+    background: var(--color-border);
+    margin: 4px 2px;
+    flex-shrink: 0;
+  }
+
   .editor-split {
     flex: 1 1 var(--editor-size, 1fr);
     display: flex;
