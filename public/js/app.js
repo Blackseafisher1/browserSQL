@@ -205,17 +205,6 @@ function initEditorResize() {
   handle.addEventListener('touchstart', (e) => { startResize(e); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); e.preventDefault(); }, { passive: false });
 }
 
-function pinToolbarToKeyboard() {
-  const toolbar = document.getElementById('sql-keyboard');
-  if (!toolbar) return;
-  const kbd = getKbdSettings();
-  if (kbd.kbdForce || kbd.kbdEnabled) {
-    toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
-  } else {
-    toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0';
-  }
-}
-
 function wireSchemaToolbar() {
   const map = {
     'btn-schema-new': 'btn-new-db',
