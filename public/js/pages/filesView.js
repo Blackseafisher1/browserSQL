@@ -1,6 +1,7 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { setEditorContent, getEditorContent } from './editorView.js';
+import { showJSReady } from './shellView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
@@ -41,6 +42,7 @@ export function switchFile(name) {
   saveCurrentFile();
   setActiveFileName(name);
   setEditorContent(files[name]);
+  if (name.endsWith('.js')) showJSReady();
   renderTree();
 }
 

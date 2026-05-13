@@ -7,7 +7,6 @@ export function showShell(logs) {
   const info = $('#results-info');
   if (!output) return;
   if (info) info.textContent = 'JS Shell';
-
   let html = '<div class="shell-output">';
   for (const log of logs) {
     const cls = log.type === 'error' ? 'shell-error' : log.type === 'warn' ? 'shell-warn' : 'shell-log';
@@ -15,6 +14,7 @@ export function showShell(logs) {
   }
   html += '</div>';
   output.innerHTML = html;
+  setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
 }
 
 export function showInput(promptText, resolve) {
@@ -24,22 +24,36 @@ export function showInput(promptText, resolve) {
   if (!output) return;
   if (info) info.textContent = 'JS Shell (input)';
   const inputId = 'shell-input-' + Date.now();
-  const html = `<div class="shell-input-line"><span class="shell-prompt">${esc(promptText || '> ')}</span><input type="text" id="${inputId}" class="shell-input" autofocus></div>`;
-  output.insertAdjacentHTML('beforeend', html);
-  const field = document.getElementById(inputId);
-  if (field) {
-    field.focus();
-    field.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const val = field.value;
-        field.disabled = true;
-        field.insertAdjacentHTML('afterend', `<span class="shell-input-done">${esc(val)}</span>`);
-        field.remove();
-        if (inputCallback) inputCallback(val);
-        inputCallback = null;
-      }
-    });
-  }
+  const line = document.createElement('div');
+  line.className = 'shell-input-line';
+  line.innerHTML = `<span class="shell-prompt">${esc(promptText || '> ')}</span>`;
+  const field = document.createElement('input');
+  field.type = 'text';
+  field.id = inputId;
+  field.className = 'shell-input';
+  field.autofocus = true;
+  line.appendChild(field);
+  output.appendChild(line);
+  field.focus();
+  setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
+  field.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = field.value;
+      const done = document.createElement('span');
+      done.className = 'shell-input-done';
+      done.textContent = val;
+      field.replaceWith(done);
+      if (inputCallback) { const cb = inputCallback; inputCallback = null; cb(val); }
+    }
+  });
+}
+
+export function showJSReady() {
+  const output = $('#results-output');
+  const info = $('#results-info');
+  if (!output) return;
+  if (info) info.textContent = 'JS Shell';
+  output.innerHTML = '<div class="shell-output"><div class="shell-line shell-log">// JS Shell ready — write code and press Execute</div></div>';
 }
 
 function esc(s) {
