@@ -7,7 +7,6 @@ const fileInput = $('#file-input');
 const btnNew = $('#btn-new-db');
 const btnOpen = $('#btn-open-db');
 const btnExport = $('#btn-export-db');
-const btnDelete = $('#btn-delete-db');
 const btnRecent = $('#btn-recent-dbs');
 const recentDropdown = $('#recent-dbs-dropdown');
 const dbNameInput = $('#db-name-input');
@@ -70,7 +69,6 @@ export function initDBManager() {
   btnNew.addEventListener('click', newDatabase);
   btnOpen.addEventListener('click', () => fileInput.click());
   btnExport.addEventListener('click', exportDatabase);
-  btnDelete.addEventListener('click', deleteCurrentFromLocal);
   btnRecent.addEventListener('click', refreshRecentDBsList);
   fileInput.addEventListener('change', handleFileOpen);
   document.addEventListener('keydown', handleShortcuts);
@@ -278,24 +276,6 @@ async function handleRecentClick(e) {
     await loadDBState(data, name);
   } catch (err) {
     showErrorInResults(`Failed to open from local: ${err.message || String(err)}`);
-  }
-}
-
-async function deleteCurrentFromLocal() {
-  const name = state.dbName;
-  if (!name || name === 'untitled') {
-    showErrorInResults('No saved database to delete.');
-    return;
-  }
-  const confirmed = confirm(`Delete "${name}" from local storage? This cannot be undone.`);
-  if (!confirmed) return;
-  try {
-    await deleteFromLocal(name);
-    newDatabase();
-    refreshRecentDBsList();
-    showReadyInResults();
-  } catch (err) {
-    showErrorInResults(`Delete failed: ${err.message || String(err)}`);
   }
 }
 

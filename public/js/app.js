@@ -128,11 +128,6 @@ function initMobileToggles() {
     mobileMenu.classList.remove('open');
   });
 
-  document.getElementById('btn-mobile-delete')?.addEventListener('click', () => {
-    document.getElementById('btn-delete-db')?.click();
-    mobileMenu.classList.remove('open');
-  });
-
   document.getElementById('btn-mobile-test')?.addEventListener('click', () => {
     document.getElementById('btn-test-schema')?.click();
     mobileMenu.classList.remove('open');
@@ -279,9 +274,8 @@ function wireSchemaToolbar() {
   const map = {
     'btn-schema-new': 'btn-new-db',
     'btn-schema-open': 'btn-open-db',
-    'btn-schema-export': 'btn-export-db',
-    'btn-schema-delete': 'btn-delete-db',
-    'btn-schema-test': 'btn-test-schema',
+     'btn-schema-export': 'btn-export-db',
+     'btn-schema-test': 'btn-test-schema',
      'btn-schema-theme': 'btn-theme-toggle',
     'btn-schema-settings': 'btn-settings',
   };
