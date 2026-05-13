@@ -50,7 +50,8 @@ export function switchFile(name, targetPane) {
   }
   activePane = pane;
   switchEditor(pane);
-  showEditors(2);
+  if (pane === 1 || paneTabs[1].length > 0) showEditors(2);
+  else showEditors(1);
   renderTabs();
   renderTree();
 }
