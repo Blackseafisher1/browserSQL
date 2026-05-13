@@ -1,7 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { Compartment } from '@codemirror/state';
-import { autocompletion, CompletionContext } from '@codemirror/autocomplete';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -9,46 +8,91 @@ import { saveCurrentToLocal } from './dbManager.js';
 
 const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
+
 let view = null;
 let currentSchema = {};
-const sqlConfig = new Compartment();
-
-function customCompletion(context) {
-  const word = context.matchBefore(/[\w.]+/);
-  const prefix = word ? word.text : '';
-  const opts = [];
-  const seen = new Set();
-  function add(label, type) {
-    const k = label.toUpperCase();
-    if (!seen.has(k)) { seen.add(k); opts.push({ label, type }); }
-  }
-  const kws = 'SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE CREATE TABLE DROP ALTER ADD COLUMN INDEX PRIMARY KEY FOREIGN REFERENCES NOT NULL DEFAULT UNIQUE CHECK AND OR IN LIKE BETWEEN JOIN LEFT RIGHT INNER OUTER ON AS ORDER BY GROUP HAVING LIMIT OFFSET UNION ALL DISTINCT COUNT SUM AVG MIN MAX EXISTS CASE WHEN THEN ELSE END CAST IS AUTOINCREMENT INTEGER TEXT REAL BLOB BOOLEAN DATE TIMESTAMP'.split(' ');
-  if (!word || !prefix) {
-    for (const kw of kws) add(kw, 'keyword');
-    for (const tbl of Object.keys(currentSchema)) add(tbl, 'type');
-    return { from: context.pos, options: opts, validFor: /^[\w.]+$/ };
-  }
-  const lower = prefix.toLowerCase();
-  for (const kw of kws) { if (kw.toLowerCase().startsWith(lower)) add(kw, 'keyword'); }
-  for (const tbl of Object.keys(currentSchema)) {
-    if (tbl.toLowerCase().startsWith(lower)) add(tbl, 'type');
-  }
-  if (lower.endsWith('.')) {
-    const t = lower.slice(0, -1);
-    const mt = currentSchema[t] || currentSchema[Object.keys(currentSchema).find(k => k.toLowerCase() === t)];
-    if (mt) mt.forEach(c => add(c, 'property'));
-  }
-  return { from: word.from, options: opts, validFor: /^[\w.]+$/ };
-}
+let sqlConfig = null;
 
 export function initEditor() {
+  sqlConfig = new Compartment();
   view = new EditorView({
     doc: '',
     extensions: [
       basicSetup,
-      autocompletion({ override: [customCompletion] }),
-      sqlConfig.of(sql({ dialect: SQLite })),
+      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
+      EditorView.theme({
+        '&': { height: '100%' },
+        '.cm-scroller': { overflow: 'auto' },
+        '.cm-gutters': {
+          background: 'var(--color-bg)',
+          color: 'var(--color-text-muted)',
+          borderRight: '1px solid var(--color-border-light)',
+        },
+        '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
+        '.cm-tooltip-autocomplete': {
+          background: 'var(--color-bg-surface)',
+          color: 'var(--color-text)',
+          border: '1px solid var(--color-border)',
+        },
+        '.cm-tooltip-autocomplete ul li[aria-selected]': {
+          background: 'var(--color-accent)',
+          color: 'var(--color-accent-text)',
+        },
+      }),
+    ],
+    parent: container,
+  });
+  state.editorView = view;
+  setupExecuteShortcut();
+  setupExecuteButton();
+  setupTemplateButtons();
+  setupKeyboardButtons();
+}
+
+export function setEditorContent(doc) {
+  if (!view) return;
+  const cur = view.state.doc.toString();
+  if (cur === doc) return;
+  view.dom.style.opacity = '0';
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
+  });
+  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
+}
+
+export function getEditorContent() {
+  return view ? view.state.doc.toString() : '';
+}
+
+export function getCurrentSchema() {
+  return currentSchema;
+}
+
+export function updateEditorSchema(tables) {
+  const schema = {};
+  for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
+  currentSchema = schema;
+  if (!view || !sqlConfig) return;
+  view.dispatch({
+    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
+  });
+}
+
+export function setWordWrap(enabled) {
+  container.classList.toggle('cm-wordwrap', enabled);
+}
+
+export function insertAtCursor(text) {
+  if (!view) return;
+  const sel = view.state.selection.main;
+  view.dispatch({
+    changes: { from: sel.from, to: sel.to, insert: text },
+    selection: { anchor: sel.from + text.length },
+    userEvent: 'input.type',
+  });
+  view.focus();
+}
       EditorView.theme({
         '&': { height: '100%' },
         '.cm-scroller': { overflow: 'auto' },
