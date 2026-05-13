@@ -56,78 +56,54 @@ export function switchFile(name, targetPane) {
 }
 
 function renderTabs() {
-  const bar = document.getElementById('tab-bar');
-  if (!bar) return;
-  bar.innerHTML = '';
-  // Left pane tabs
-  for (const name of paneTabs[0]) {
-    const tab = document.createElement('div');
-    tab.className = 'tab-item' + (name === activeFile && activePane === 0 ? ' active' : '');
-    const label = name.includes('/') ? name.split('/').pop() : name;
-    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="0:${name}">✕</span>`;
-    tab.addEventListener('click', (e) => {
-      if (e.target.closest('[data-tabclose]')) return;
-      if (name !== activeFile || activePane !== 0) switchToTab(name);
-      activePane = 0;
-      switchEditor(0);
-      renderTabs();
-    });
-    bar.appendChild(tab);
-  }
-  // Separator between panes
-  if (paneTabs[1].length > 0) {
-    const sep = document.createElement('div');
-    sep.className = 'tab-separator';
-    bar.appendChild(sep);
-  }
-  // Right pane tabs
-  for (const name of paneTabs[1]) {
-    const tab = document.createElement('div');
-    tab.className = 'tab-item' + (name === activeFile && activePane === 1 ? ' active' : '');
-    const label = name.includes('/') ? name.split('/').pop() : name;
-    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="1:${name}">✕</span>`;
-    tab.addEventListener('click', (e) => {
-      if (e.target.closest('[data-tabclose]')) return;
-      if (name !== activeFile || activePane !== 1) {
-        ensureEditor(1);
-        setActiveFileName(name);
-        setEditorContentFor(1, (getFiles())[name]);
-        activePane = 1;
-        switchEditor(1);
-        renderTabs();
-      }
-    });
-    bar.appendChild(tab);
-  }
-  // Close button handler
-  bar.querySelectorAll('[data-tabclose]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const [paneStr, name] = el.dataset.tabclose.split(':');
-      const pane = parseInt(paneStr);
-      paneTabs[pane] = paneTabs[pane].filter(f => f !== name);
-      if (paneTabs[pane].length > 0) {
-        // Switch to last tab in pane
-        const last = paneTabs[pane][paneTabs[pane].length - 1];
-        if (pane === 0) switchToTab(last);
-        else {
-          ensureEditor(1);
-          setActiveFileName(last);
-          setEditorContentFor(1, (getFiles())[last]);
-          if (activePane === 1) switchEditor(1);
+  for (let p = 0; p < 2; p++) {
+    const bar = document.getElementById(p === 0 ? 'tab-bar-0' : 'tab-bar-1');
+    if (!bar) continue;
+    bar.innerHTML = '';
+    if (p === 1 && paneTabs[1].length === 0) { bar.style.display = 'none'; continue; }
+    bar.style.display = 'flex';
+    for (const name of paneTabs[p]) {
+      const tab = document.createElement('div');
+      tab.className = 'tab-item' + (name === activeFile && activePane === p ? ' active' : '');
+      const label = name.includes('/') ? name.split('/').pop() : name;
+      tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="${p}:${name}">✕</span>`;
+      tab.addEventListener('click', (e) => {
+        if (e.target.closest('[data-tabclose]')) return;
+        if (name !== activeFile || activePane !== p) {
+          ensureEditor(p);
+          setActiveFileName(name);
+          setEditorContentFor(p, (getFiles())[name]);
+          activePane = p;
+          switchEditor(p);
+          renderTabs();
         }
-      } else if (pane === 1) {
-        // Close second editor
-        showEditors(1);
-        activePane = 0;
-        switchEditor(0);
-      } else {
-        // Pane 0 empty: blank editor
-        setEditorContentFor(0, '');
-      }
-      renderTabs();
+      });
+      bar.appendChild(tab);
+    }
+    // Close handler
+    bar.querySelectorAll('[data-tabclose]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const [paneStr, name] = el.dataset.tabclose.split(':');
+        const pane = parseInt(paneStr);
+        paneTabs[pane] = paneTabs[pane].filter(f => f !== name);
+        if (paneTabs[pane].length > 0) {
+          const last = paneTabs[pane][paneTabs[pane].length - 1];
+          ensureEditor(pane);
+          setActiveFileName(last);
+          setEditorContentFor(pane, (getFiles())[last]);
+          if (activePane === pane) switchEditor(pane);
+        } else if (pane === 1) {
+          showEditors(1);
+          activePane = 0;
+          switchEditor(0);
+        } else {
+          setEditorContentFor(0, '');
+        }
+        renderTabs();
+      });
     });
-  });
+  }
 }
 
 function switchToTab(name) {

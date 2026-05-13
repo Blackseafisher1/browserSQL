@@ -132,11 +132,16 @@
       </div>
     </div>
     <main id="main-content" class="main-content">
-      <div id="tab-bar" class="tab-bar"></div>
+      <div id="tab-bar-0" class="tab-bar"></div>
       <div id="editor-split" class="editor-split">
-        <div id="editor-container-0" class="editor-container editor-pane"></div>
+        <div class="editor-pane-wrap">
+          <div id="editor-container-0" class="editor-container editor-pane"></div>
+        </div>
         <div id="editor-divider" class="editor-divider hidden"></div>
-        <div id="editor-container-1" class="editor-container editor-pane"></div>
+        <div class="editor-pane-wrap">
+          <div id="tab-bar-1" class="tab-bar"></div>
+          <div id="editor-container-1" class="editor-container editor-pane"></div>
+        </div>
       </div>
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
