@@ -291,17 +291,52 @@ export function initFilesView() {
 
   document.getElementById('btn-file-new')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const hint = activeFile && activeFile.includes('/') ? activeFile.substring(0, activeFile.lastIndexOf('/') + 1) : '';
-    const n = prompt('File name:', hint); if (n) createFile(n);
+    const list = document.getElementById('files-tree');
+    const input = document.createElement('input');
+    input.className = 'file-rename-input';
+    input.value = '.sql';
+    input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
+    list.insertBefore(input, list.firstChild);
+    input.focus();
+    input.setSelectionRange(0, 0); // cursor before .sql
+    const finish = () => {
+      let name = input.value.trim();
+      if (!name || name === '.sql') { input.remove(); return; }
+      if (!name.includes('.')) name += '.sql';
+      if (getFiles()[name]) { alert('File exists'); input.focus(); return; }
+      createFile(name);
+      input.remove();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Escape') { input.remove(); }
+    });
+    input.addEventListener('blur', finish);
   });
 
   document.getElementById('btn-folder-new')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const name = prompt('Folder path:'); if (!name) return;
-    const files = getFiles();
-    if (name + '/.gitkeep' in files) return;
-    files[name + '/.gitkeep'] = ''; saveFiles(files);
-    expandedFolders.add(name.split('/')[0]); renderTree();
+    const list = document.getElementById('files-tree');
+    const input = document.createElement('input');
+    input.className = 'file-rename-input';
+    input.placeholder = 'folder name';
+    input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
+    list.insertBefore(input, list.firstChild);
+    input.focus();
+    const finish = () => {
+      const name = input.value.trim();
+      input.remove();
+      if (!name) return;
+      const files = getFiles();
+      if (name + '/.gitkeep' in files) return;
+      files[name + '/.gitkeep'] = ''; saveFiles(files);
+      expandedFolders.add(name.split('/')[0]); renderTree();
+    };
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Escape') { input.remove(); }
+    });
+    input.addEventListener('blur', finish);
   });
 
   // Section collapse
