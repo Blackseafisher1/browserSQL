@@ -5,6 +5,9 @@ import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, b
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
+import { executeJS } from './jsExecutor.js';
+import { showShell } from './shellView.js';
+import { getActiveFileName } from './filesView.js';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -174,15 +177,24 @@ function sqlesc(name) {
 }
 
 export async function executeQuery() {
+  if (!view) return;
+  const isJS = getActiveFileName().endsWith('.js');
+  const sel = view.state.selection.main;
+  let code = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
+  code = code.trim();
+  if (!code) return;
+
+  if (isJS) {
+    const result = await executeJS(code);
+    showShell(result.logs);
+    return;
+  }
+
   if (!state.db) {
     showError('No database loaded. Create or open a database first.');
     return;
   }
-  if (!view) return;
-  const sel = view.state.selection.main;
-  let sqlText = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
-  sqlText = sqlText.trim();
-  if (!sqlText) return;
+  const sqlText = code;
   const startTime = performance.now();
   try {
     const rows = state.db.exec(sqlText, { rowMode: 'object' });

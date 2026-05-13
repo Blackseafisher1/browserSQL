@@ -73,4 +73,63 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
+
+  .shell-output {
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    line-height: 1.6;
+  }
+
+  .shell-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .shell-log {
+    color: var(--color-text);
+  }
+
+  .shell-warn {
+    color: var(--color-warning);
+  }
+
+  .shell-error {
+    color: var(--color-error);
+  }
+
+  .shell-input-line {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+  }
+
+  .shell-prompt {
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .shell-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    outline: none;
+    padding: var(--space-1) 0;
+  }
+
+  .shell-input:focus {
+    border-bottom-color: var(--color-accent);
+  }
+
+  .shell-input-done {
+    color: var(--color-text-muted);
+    padding: var(--space-1) 0;
+  }
 }
