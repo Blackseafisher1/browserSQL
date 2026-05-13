@@ -11,6 +11,7 @@ const executeBtn = $('#btn-execute');
 
 let view = null;
 let currentSqlConfig = null;
+let currentSchema = {};
 
 function makeEditor(doc) {
   const sqlConfig = new Compartment();
@@ -18,7 +19,7 @@ function makeEditor(doc) {
     doc: doc || '',
     extensions: [
       basicSetup,
-      sqlConfig.of(sql({ dialect: SQLite })),
+      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -76,11 +77,12 @@ export function getCurrentEditor() {
 }
 
 export function updateEditorSchema(tables) {
-  if (!currentSqlConfig || !view) return;
   const schema = {};
   for (const t of tables) {
     schema[t.name] = t.columns.map(c => c.name);
   }
+  currentSchema = schema;
+  if (!currentSqlConfig || !view) return;
   view.dispatch({
     effects: currentSqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
   });
