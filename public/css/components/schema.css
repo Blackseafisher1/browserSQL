@@ -94,6 +94,7 @@
 
   .section-body.collapsed {
     display: none;
+    flex: 0 0 0 !important;
   }
 
   .ops-bar {

@@ -190,7 +190,14 @@ export function initFilesView() {
       const arrow = hdr.querySelector('.section-arrow');
       if (!body || !arrow) return;
       const key = 'browsersql-section-' + section;
-      const collapsed = body.classList.toggle('collapsed');
+      const collapsed = !body.classList.contains('collapsed');
+      if (collapsed) {
+        body.classList.add('collapsed');
+        body.style.display = 'none';
+      } else {
+        body.classList.remove('collapsed');
+        body.style.display = '';
+      }
       localStorage.setItem(key, collapsed ? '1' : '');
       arrow.textContent = collapsed ? '▸' : '▾';
       const node = hdr.closest('.section-node');
@@ -205,6 +212,7 @@ export function initFilesView() {
       const arrow = hdr.querySelector('.section-arrow');
       if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
         body.classList.add('collapsed');
+        body.style.display = 'none';
         const node = hdr.closest('.section-node');
         if (node) node.style.flex = '0 0 auto';
         arrow.textContent = '▸';
