@@ -200,12 +200,19 @@ function pinToolbarToKeyboard() {
     const kbd = getKbdSettings();
     const kbHeight = window.innerHeight - window.visualViewport.height;
     if (kbd.kbdForce) { show(); return; }
-    if (kbHeight > 150 && kbd.kbdEnabled) { show(); return; }
+    if (kbHeight > 80 && kbd.kbdEnabled) { show(); return; }
     hide();
   }
   window.visualViewport.addEventListener('resize', update);
   window.addEventListener('storage', update);
-  document.addEventListener('focusin', (e) => { if (e.target.closest('.cm-editor')) update(); });
+  document.addEventListener('focusin', (e) => {
+    if (!e.target.closest('.cm-editor')) return;
+    let n = 0;
+    const iv = setInterval(() => {
+      update();
+      if (++n > 20 || window.innerHeight - window.visualViewport.height > 80) clearInterval(iv);
+    }, 80);
+  });
   update();
 }
 
