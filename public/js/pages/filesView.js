@@ -193,7 +193,7 @@ export function initFilesView() {
       const node = hdr.closest('.section-node');
       if (node) {
         if (collapsed) {
-          node.style.flex = '0 0 0';
+          node.style.flex = '0 0 auto';
         } else {
           node.style.flex = '';
         }
@@ -206,7 +206,7 @@ export function initFilesView() {
       body.classList.add('collapsed');
       body.style.flex = '';
       const node = hdr.closest('.section-node');
-      if (node) node.style.flex = '0 0 0';
+      if (node) node.style.flex = '0 0 auto';
       arrow.textContent = '▸';
     }
   });
