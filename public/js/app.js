@@ -358,7 +358,6 @@ function wireSchemaToolbar() {
     });
   }
 }
-}
 
 function initResultsZoom() {
   const slider = document.getElementById('results-zoom');
