@@ -7,7 +7,7 @@ import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { executeJS } from './jsExecutor.js';
 import { showShell } from './shellView.js';
-import { getActiveFileName } from './filesView.js';
+import { state } from './state.js';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -178,7 +178,7 @@ function sqlesc(name) {
 
 export async function executeQuery() {
   if (!view) return;
-  const isJS = getActiveFileName().endsWith('.js');
+  const isJS = state.activeFileIsJS;
   const sel = view.state.selection.main;
   let code = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
   code = code.trim();

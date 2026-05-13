@@ -14,7 +14,7 @@ export function getFiles() {
 }
 function saveFiles(files) { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
 export function getActiveFileName() { return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE; }
-function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; }
+function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); }
 
 function ensureDefault() {
   const files = getFiles();
@@ -129,6 +129,7 @@ export function initFilesView() {
   const files = getFiles();
   const name = getActiveFileName();
   activeFile = name;
+  state.activeFileIsJS = name.endsWith('.js');
   setEditorContent(files[name]);
   renderTree();
 

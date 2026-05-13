@@ -8,6 +8,7 @@ export const state = {
   tableExpanded: new Set(),
   activeTable: null,
   renderSchema: null,
+  activeFileIsJS: false,
 };
 
 export function resetState() {
