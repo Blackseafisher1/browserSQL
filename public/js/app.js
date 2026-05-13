@@ -199,22 +199,29 @@ function pinToolbarToKeyboard() {
     const kbHeight = window.innerHeight - window.visualViewport.height;
     const keyboardOpen = kbHeight > 150;
     if (kbd.kbdForce || (keyboardOpen && kbd.kbdEnabled)) {
-      toolbar.style.display = 'flex';
       if (keyboardOpen) {
         toolbar.style.position = 'fixed';
         toolbar.style.bottom = kbHeight + 'px';
         toolbar.style.left = '0';
         toolbar.style.right = '0';
         toolbar.style.zIndex = '50';
+        toolbar.style.height = 'auto';
+        toolbar.style.visibility = 'visible';
+        toolbar.style.padding = 'var(--space-1) var(--space-3)';
       } else {
         toolbar.style.position = '';
         toolbar.style.bottom = '';
         toolbar.style.left = '';
         toolbar.style.right = '';
         toolbar.style.zIndex = '';
+        toolbar.style.height = '';
+        toolbar.style.visibility = '';
+        toolbar.style.padding = '';
       }
     } else {
-      toolbar.style.display = 'none';
+      toolbar.style.height = '0';
+      toolbar.style.visibility = 'hidden';
+      toolbar.style.padding = '0 var(--space-3)';
       toolbar.style.position = '';
     }
   }
