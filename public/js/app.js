@@ -50,6 +50,7 @@ async function main() {
   wireSchemaToolbar();
   initSidebarResize();
   initEditorResize();
+  initSidebarSectionResize();
   initMobileToggles();
   pinToolbarToKeyboard();
   initResultsZoom();
@@ -157,6 +158,30 @@ function getKbdSettings() {
     const s = JSON.parse(raw);
     return { kbdEnabled: s.kbdEnabled !== false, kbdHeight: s.kbdHeight || 40 };
   } catch { return { kbdEnabled: true, kbdHeight: 40 }; }
+}
+
+function initSidebarSectionResize() {
+  const handle = document.getElementById('sidebar-resize-handle');
+  if (!handle) return;
+  const files = document.getElementById('section-files');
+  const schema = document.getElementById('section-schema');
+  if (!files || !schema) return;
+  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+  let startY, startFiles;
+  function startResize(e) { startY = getY(e); startFiles = files.getBoundingClientRect().height; document.addEventListener('mousemove', moveResize); document.addEventListener('mouseup', endResize); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); }
+  function moveResize(e) {
+    const dy = getY(e) - startY;
+    const total = files.parentElement.getBoundingClientRect().height;
+    let fp = ((startFiles + dy) / total * 100);
+    let sp = 100 - fp;
+    if (fp < 15) { fp = 15; sp = 85; }
+    if (sp < 15) { sp = 15; fp = 85; }
+    files.style.flex = fp + '%';
+    schema.style.flex = sp + '%';
+  }
+  function endResize() { document.removeEventListener('mousemove', moveResize); document.removeEventListener('mouseup', endResize); document.removeEventListener('touchmove', moveResize); document.removeEventListener('touchend', endResize); document.body.style.cursor = ''; document.body.style.userSelect = ''; }
+  handle.addEventListener('mousedown', startResize);
+  handle.addEventListener('touchstart', startResize, { passive: false });
 }
 
 function pinToolbarToKeyboard() {

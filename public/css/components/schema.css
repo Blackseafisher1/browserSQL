@@ -103,15 +103,44 @@
   .files-tree {
     padding: var(--space-1) 0;
     overflow-y: auto;
-    flex-shrink: 0;
-    max-height: 40%;
+    flex: 1;
+    min-height: 60px;
   }
 
-  .panel-empty {
-    padding: var(--space-4) var(--space-3);
-    color: var(--color-text-muted);
-    font-size: var(--size-fluid-1);
-    font-style: italic;
+  #section-files {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  #section-schema {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .schema-tree {
+    padding: var(--space-1) 0;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 60px;
+  }
+
+  .sidebar-resize-handle {
+    height: 4px;
+    cursor: row-resize;
+    background: transparent;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .sidebar-resize-handle:hover,
+  .sidebar-resize-handle:active {
+    background: var(--color-accent);
   }
 
   .file-tree-item {
