@@ -194,47 +194,18 @@ function initEditorResize() {
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar || !window.visualViewport) return;
+  function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:'+(window.innerHeight-window.visualViewport.height)+'px;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
+  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0 var(--space-3)'; }
   function update() {
     const kbd = getKbdSettings();
     const kbHeight = window.innerHeight - window.visualViewport.height;
-    const keyboardOpen = kbHeight > 150;
-    if (kbd.kbdForce || (keyboardOpen && kbd.kbdEnabled)) {
-      if (keyboardOpen) {
-        toolbar.style.position = 'fixed';
-        toolbar.style.bottom = kbHeight + 'px';
-        toolbar.style.left = '0';
-        toolbar.style.right = '0';
-        toolbar.style.zIndex = '50';
-        toolbar.style.height = 'auto';
-        toolbar.style.visibility = 'visible';
-        toolbar.style.padding = 'var(--space-1) var(--space-3)';
-      } else {
-        toolbar.style.position = '';
-        toolbar.style.bottom = '';
-        toolbar.style.left = '';
-        toolbar.style.right = '';
-        toolbar.style.zIndex = '';
-        toolbar.style.height = '';
-        toolbar.style.visibility = '';
-        toolbar.style.padding = '';
-      }
-    } else {
-      toolbar.style.height = '0';
-      toolbar.style.visibility = 'hidden';
-      toolbar.style.padding = '0 var(--space-3)';
-      toolbar.style.position = '';
-    }
+    if (kbd.kbdForce) { show(); return; }
+    if (kbHeight > 150 && kbd.kbdEnabled) { show(); return; }
+    hide();
   }
   window.visualViewport.addEventListener('resize', update);
   window.addEventListener('storage', update);
-  document.addEventListener('focusin', () => {
-    update();
-    let attempts = 0;
-    const iv = setInterval(() => {
-      update();
-      if (++attempts > 10 || window.innerHeight - window.visualViewport.height > 150) clearInterval(iv);
-    }, 100);
-  });
+  document.addEventListener('focusin', (e) => { if (e.target.closest('.cm-editor')) update(); });
   update();
 }
 
