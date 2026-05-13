@@ -39,7 +39,8 @@ export function applySettings() {
   if (kbdSlider) kbdSlider.value = settings.kbdHeight;
   const kbdDisplay = $('#setting-kbdheight-value');
   if (kbdDisplay) kbdDisplay.textContent = settings.kbdHeight;
-  document.body.style.paddingTop = settings.topMargin + 'px';
+  document.body.style.paddingTop = '';
+  document.getElementById('app').style.paddingTop = settings.topMargin + 'px';
   const tmSlider = $('#setting-topmargin');
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
