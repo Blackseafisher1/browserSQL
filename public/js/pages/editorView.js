@@ -7,8 +7,6 @@ import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { executeJS } from './jsExecutor.js';
 import { showShell } from './shellView.js';
-import { state } from './state.js';
-import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
