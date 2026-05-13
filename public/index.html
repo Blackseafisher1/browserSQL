@@ -37,7 +37,8 @@
   <link rel="stylesheet" href="css/components/dbmanager.css">
   <link rel="stylesheet" href="css/states.css">
   <link rel="stylesheet" href="css/utilities.css">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="browserSQL">
@@ -173,6 +174,10 @@
           <span>Top margin</span>
           <input type="range" id="setting-topmargin" min="0" max="100" step="1">
           <span id="setting-topmargin-value" class="settings-value">0</span>
+        </label>
+        <label class="settings-row">
+          <span>Blinking cursor</span>
+          <input type="checkbox" id="setting-blinkcursor" checked>
         </label>
         <label class="settings-row">
           <span>Word wrap</span>

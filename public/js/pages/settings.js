@@ -5,7 +5,7 @@ import { setWordWrap } from './editorView.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0 };
+  return { wordwrap: true, fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, blinkCursor: true };
 }
 
 let settings = loadSettings();
@@ -46,6 +46,9 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
+  document.documentElement.style.setProperty('--cursor-blink', settings.blinkCursor ? '1.2s' : '0s');
+  const bcCb = $('#setting-blinkcursor');
+  if (bcCb) bcCb.checked = settings.blinkCursor;
 }
 
 export function initSettings() {
@@ -89,6 +92,12 @@ export function initSettings() {
 
   $('#setting-topmargin')?.addEventListener('input', (e) => {
     settings.topMargin = parseInt(e.target.value);
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-blinkcursor')?.addEventListener('change', (e) => {
+    settings.blinkCursor = e.target.checked;
     saveSettings();
     applySettings();
   });

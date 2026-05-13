@@ -145,7 +145,7 @@
   }
 
   .cm-editor .cm-cursor {
-    animation: none !important;
+    animation: cm-blink var(--cursor-blink, 1.2s) step-end infinite !important;
     border-left: 1.2px solid var(--color-text);
     z-index: 1;
   }
@@ -168,5 +168,10 @@
     -webkit-overflow-scrolling: touch;
     position: relative;
     overscroll-behavior: none;
+  }
+
+  @keyframes cm-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
   }
 }
