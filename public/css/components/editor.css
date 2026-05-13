@@ -136,6 +136,7 @@
   }
 
   .cm-editor .cm-cursor {
-    animation-duration: 1.2s !important;
+    animation: none !important;
+    border-left: 1.2px solid var(--color-text);
   }
 }
