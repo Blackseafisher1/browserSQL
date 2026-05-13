@@ -22,7 +22,6 @@ let wrapConfig = null;
 export function initEditor() {
   sqlConfig = new Compartment();
   wrapConfig = new Compartment();
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || !getBlinkSetting();
   view = new EditorView({
     doc: '',
     extensions: [
@@ -31,7 +30,7 @@ export function initEditor() {
       highlightSpecialChars(),
       history(),
       foldGutter(),
-      drawSelection({ cursorBlinkRate: reduceMotion ? -1 : 1200 }),
+      drawSelection({ cursorBlinkRate: -1 }),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
@@ -43,7 +42,7 @@ export function initEditor() {
       highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
-      wrapConfig.of(EditorView.contentAttributes.of({ class: 'cm-lineWrapping' })),
+      wrapConfig.of(EditorView.theme({ '.cm-content': { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } })),
       sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
@@ -117,7 +116,7 @@ export function setWordWrap(enabled) {
   if (!view || !wrapConfig) return;
   view.dispatch({
     effects: wrapConfig.reconfigure(
-      enabled ? EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }) : []
+      enabled ? EditorView.theme({ '.cm-content': { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }) : []
     ),
   });
 }

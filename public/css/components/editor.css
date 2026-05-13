@@ -147,12 +147,14 @@
   .cm-editor .cm-cursor {
     border-left: 1.2px solid var(--color-text);
     z-index: 1;
+    animation: cm-blink 1.2s step-end infinite;
   }
 
   html.no-blink .cm-editor .cm-cursor {
     animation: none !important;
-    opacity: 1 !important;
   }
+
+  @keyframes cm-blink { 50% { opacity: 0; } }
 
   .cm-editor .cm-content {
     -webkit-user-modify: read-write-plaintext-only;
