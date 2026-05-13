@@ -164,6 +164,16 @@
       display: inline;
     }
 
+    #schema-recent-dropdown {
+      position: static;
+      width: 100%;
+      box-shadow: none;
+      border-radius: 0;
+      border: 1px solid var(--color-border);
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
     .schema-close {
       display: inline-flex;
     }
