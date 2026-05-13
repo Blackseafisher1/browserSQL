@@ -36,11 +36,38 @@ async function renderSchema() {
         { rowMode: 'object' }
       );
       const fkCols = new Set(fks.map(f => f.from));
+      const idxs = state.db.exec(
+        `PRAGMA index_list(${escId(t.name)})`,
+        { rowMode: 'object' }
+      );
+      const uniqueCols = new Set();
+      for (const idx of idxs) {
+        if (idx.origin === 'u') {
+          const info = state.db.exec(
+            `PRAGMA index_info(${escId(idx.name)})`,
+            { rowMode: 'object' }
+          );
+          for (const i of info) uniqueCols.add(i.name);
+        }
+      }
+      const ddlRows = state.db.exec(
+        `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
+        { bind: [t.name], rowMode: 'object' }
+      );
+      const ddl = ddlRows.length > 0 ? ddlRows[0].sql || '' : '';
+      const autoIncCols = new Set();
+      if (ddl.toUpperCase().includes('AUTOINCREMENT')) {
+        const pkCols = cols.filter(c => c.pk);
+        for (const c of pkCols) autoIncCols.add(c.name);
+      }
       const columns = cols.map(c => ({
         name: c.name,
         type: c.type || 'TEXT',
         pk: c.pk === 1 || c.pk === true,
         fk: fkCols.has(c.name),
+        nn: c.notnull === 1,
+        uq: uniqueCols.has(c.name),
+        ai: autoIncCols.has(c.name),
       }));
       tableList.push({ name: t.name, columns });
     }
@@ -83,8 +110,11 @@ function renderTree(tables) {
         html += `<div class="schema-column">`;
         html += `<span>${esc(c.name)}</span>`;
         html += `<span class="col-type">${esc(c.type)}</span>`;
-        if (c.pk) html += '<span class="col-pk">PK</span>';
-        if (c.fk) html += '<span class="col-fk">FK</span>';
+        if (c.pk) html += '<span class="col-badge col-pk">PK</span>';
+        if (c.fk) html += '<span class="col-badge col-fk">FK</span>';
+        if (c.uq) html += '<span class="col-badge col-uq">UQ</span>';
+        if (c.ai) html += '<span class="col-badge col-ai">AI</span>';
+        if (c.nn) html += '<span class="col-badge col-nn">NN</span>';
         html += `</div>`;
       }
       html += `</div>`;

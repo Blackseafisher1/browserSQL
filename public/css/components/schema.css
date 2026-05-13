@@ -388,17 +388,20 @@
     margin-left: auto;
   }
 
-  .schema-column .col-pk {
-    color: var(--color-warning);
+  .col-badge {
+    font-size: 9px;
     font-weight: 700;
-    font-size: 10px;
+    padding: 0 4px;
+    border-radius: 2px;
+    line-height: 1.4;
+    margin-left: 2px;
   }
 
-  .schema-column .col-fk {
-    color: #a855f7;
-    font-weight: 700;
-    font-size: 10px;
-  }
+  .col-pk { color: #eab308; }
+  .col-fk { color: #a855f7; }
+  .col-uq { color: #22c55e; }
+  .col-ai { color: #f97316; }
+  .col-nn { color: #ef4444; }
 
   .context-menu {
     position: fixed;
