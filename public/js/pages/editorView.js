@@ -10,6 +10,7 @@ import { showShell } from './shellView.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
+import { $ } from '../utils.js';
 
 const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
