@@ -204,20 +204,10 @@ export function initFilesView() {
   if (!tree) return;
 
   tree.addEventListener('click', (e) => {
-    const del = e.target.closest('[data-del]'); const delf = e.target.closest('[data-delfolder]'); const item = e.target.closest('[data-file]');
+    const del = e.target.closest('[data-del]'); const delf = e.target.closest('[data-delfolder]'); const item = e.target.closest('[data-file]'); const folder = e.target.closest('[data-folder]');
     if (del) { e.stopPropagation(); const n = del.dataset.del; if (confirm(`Delete "${n}"?`)) deleteFile(n); return; }
-    if (delf) {
-      e.stopPropagation(); const f = delf.dataset.delfolder;
-      if (confirm(`Delete folder "${f}" and all files inside?`)) {
-        const fls = getFiles();
-        for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; }
-        if (Object.keys(fls).length === 0) fls['scratch.sql'] = '';
-        saveFiles(fls);
-        if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0);
-        renderTree();
-      }
-      return;
-    }
+    if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['scratch.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
+    if (folder) { e.stopPropagation(); const f = folder.dataset.folder; if (expandedFolders.has(f)) expandedFolders.delete(f); else expandedFolders.add(f); renderTree(); return; }
     if (item) { e.stopPropagation(); switchFile(item.dataset.file, 0); }
   });
 
