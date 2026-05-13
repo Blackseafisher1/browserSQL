@@ -133,7 +133,11 @@
     </div>
     <main id="main-content" class="main-content">
       <div id="tab-bar" class="tab-bar"></div>
-      <div id="editor-container" class="editor-container"></div>
+      <div id="editor-split" class="editor-split">
+        <div id="editor-container-0" class="editor-container editor-pane"></div>
+        <div id="editor-divider" class="editor-divider hidden"></div>
+        <div id="editor-container-1" class="editor-container editor-pane"></div>
+      </div>
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
         <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>

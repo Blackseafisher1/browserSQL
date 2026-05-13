@@ -13,59 +13,50 @@ import { showResults, showError, showReady, showNoResults } from './resultsView.
 import { saveCurrentToLocal } from './dbManager.js';
 import { $ } from '../utils.js';
 
-const container = $('#editor-container');
+const container0 = $('#editor-container-0');
+const container1 = $('#editor-container-1');
 const executeBtn = $('#btn-execute');
 
 let view = null;
+let editors = {};
 let currentSchema = {};
 let langConfig = null;
 
-export function initEditor() {
-  langConfig = new Compartment();
-  view = new EditorView({
-    doc: '',
+function makeEditor(doc, parent) {
+  const lc = new Compartment();
+  const ed = new EditorView({
+    doc: doc || '',
     extensions: [
-      lineNumbers(),
-      highlightActiveLineGutter(),
-      highlightSpecialChars(),
-      history(),
-      foldGutter(),
+      lineNumbers(), highlightActiveLineGutter(), highlightSpecialChars(),
+      history(), foldGutter(),
       drawSelection({ cursorBlinkRate: -1 }),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-      bracketMatching(),
-      closeBrackets(),
-      autocompletion(),
-      rectangularSelection(),
-      crosshairCursor(),
-      highlightActiveLine(),
+      bracketMatching(), closeBrackets(), autocompletion(),
+      rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
-      langConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
-      EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
+      lc.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.theme({
         '&': { height: '100%' },
         '.cm-scroller': { overflow: 'auto' },
-        '.cm-gutters': {
-          background: 'var(--color-bg)',
-          color: 'var(--color-text-muted)',
-          borderRight: '1px solid var(--color-border-light)',
-        },
+        '.cm-gutters': { background: 'var(--color-bg)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
         '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
-        '.cm-tooltip-autocomplete': {
-          background: 'var(--color-bg-surface)',
-          color: 'var(--color-text)',
-          border: '1px solid var(--color-border)',
-        },
-        '.cm-tooltip-autocomplete ul li[aria-selected]': {
-          background: 'var(--color-accent)',
-          color: 'var(--color-accent-text)',
-        },
+        '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' },
+        '.cm-tooltip-autocomplete ul li[aria-selected]': { background: 'var(--color-accent)', color: 'var(--color-accent-text)' },
       }),
     ],
-    parent: container,
+    parent: parent,
   });
+  ed._langComp = lc;
+  return ed;
+}
+
+export function initEditor() {
+  langConfig = new Compartment();
+  editors[0] = makeEditor('', container0);
+  view = editors[0];
   state.editorView = view;
   setupExecuteShortcut();
   setupExecuteButton();
@@ -74,60 +65,67 @@ export function initEditor() {
   setupKeyboardButtons();
 }
 
-export function setEditorContent(doc) {
-  if (!view) return;
-  const cur = view.state.doc.toString();
-  if (cur === doc) return;
-  view.dom.style.opacity = '0';
-  view.dispatch({
-    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
-  });
-  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
+export function ensureEditor(idx) {
+  if (!editors[idx]) {
+    editors[idx] = makeEditor('', idx === 0 ? container0 : container1);
+  }
+  return editors[idx];
+}
+
+export function showEditors(count) {
+  container0.style.display = count >= 1 ? 'flex' : 'none';
+  container1.style.display = count >= 2 ? 'flex' : 'none';
+  if (count >= 2) { ensureEditor(0); ensureEditor(1); }
+}
+
+export function switchEditor(idx) {
+  const ed = ensureEditor(idx);
+  if (view && view !== ed) view.dom.style.display = 'none';
+  view = ed;
+  view.dom.style.display = '';
+  state.editorView = view;
 }
 
 export function getEditorContent() {
   return view ? view.state.doc.toString() : '';
 }
 
-export function getCurrentSchema() {
-  return currentSchema;
+export function setEditorContent(doc) {
+  if (!view) return;
+  const cur = view.state.doc.toString();
+  if (cur === doc) return;
+  view.dom.style.opacity = '0';
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: doc || '' } });
+  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
 }
 
-function getBlinkSetting() {
-  try {
-    const raw = localStorage.getItem('browsersql-settings');
-    if (!raw) return true;
-    const s = JSON.parse(raw);
-    return s.blinkCursor !== false;
-  } catch { return true; }
+export function setEditorContentFor(idx, doc) {
+  const ed = ensureEditor(idx);
+  const cur = ed.state.doc.toString();
+  if (cur === doc) return;
+  ed.dispatch({ changes: { from: 0, to: ed.state.doc.length, insert: doc || '' } });
 }
+
+export function getCurrentSchema() { return currentSchema; }
 
 export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-  if (!view || !langConfig) return;
-  view.dispatch({
-    effects: langConfig.reconfigure(sql({ dialect: SQLite, schema })),
-  });
-}
-
-export function setWordWrap(enabled) {
+  if (!view || !view._langComp) return;
+  view.dispatch({ effects: view._langComp.reconfigure(sql({ dialect: SQLite, schema })) });
 }
 
 export function setLanguage(lang) {
-  if (!view || !langConfig) return;
-  const map = {
-    js: javascript(),
-    md: markdown(),
-    sql: sql({ dialect: SQLite, schema: currentSchema }),
-  };
-  view.dispatch({ effects: langConfig.reconfigure(map[lang] || map.sql) });
-  const pb = document.getElementById('btn-preview');
-  if (pb) pb.classList.toggle('hidden', lang !== 'md');
-  const eb = document.getElementById('btn-execute');
-  if (eb) eb.textContent = lang === 'md' ? 'Render' : 'Execute';
+  const map = { js: javascript(), md: markdown(), sql: sql({ dialect: SQLite, schema: currentSchema }) };
+  const ext = map[lang] || map.sql;
+  for (const idx of [0, 1]) {
+    const ed = editors[idx];
+    if (ed && ed._langComp) ed.dispatch({ effects: ed._langComp.reconfigure(ext) });
+  }
 }
+
+export function setWordWrap(enabled) {}
 
 export function insertAtCursor(text) {
   if (!view) return;
@@ -142,21 +140,12 @@ export function insertAtCursor(text) {
 
 function setupExecuteShortcut() {
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      executeQuery();
-    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); executeQuery(); }
   });
 }
 
 function setupExecuteButton() {
-  executeBtn.addEventListener('click', () => {
-    if (state.activeFileIsJS || state.activeFileIsMD) {
-      executeQuery();
-    } else {
-      executeQuery();
-    }
-  });
+  executeBtn.addEventListener('click', executeQuery);
 }
 
 function setupPreviewButton() {
@@ -178,12 +167,7 @@ function setupTemplateButtons() {
     const tpl = btn.dataset.template;
     const tableName = state.activeTable || 'table_name';
     const safeTable = sqlesc(tableName);
-    const texts = {
-      select: `SELECT * FROM ${safeTable} WHERE `,
-      insert: `INSERT INTO ${safeTable} (col1, col2) VALUES (val1, val2);`,
-      update: `UPDATE ${safeTable} SET col1 = val1 WHERE `,
-      delete: `DELETE FROM ${safeTable} WHERE `,
-    };
+    const texts = { select: `SELECT * FROM ${safeTable} WHERE `, insert: `INSERT INTO ${safeTable} (col1, col2) VALUES (val1, val2);`, update: `UPDATE ${safeTable} SET col1 = val1 WHERE `, delete: `DELETE FROM ${safeTable} WHERE ` };
     insertAtCursor(texts[tpl] || '');
   });
 }
@@ -196,41 +180,25 @@ function setupKeyboardButtons() {
   });
 }
 
-function sqlesc(name) {
-  return `"${name.replace(/"/g, '""')}"`;
-}
+function sqlesc(name) { return `"${name.replace(/"/g, '""')}"`; }
 
 export async function executeQuery() {
   if (!view) return;
-  const isJS = state.activeFileIsJS;
   const sel = view.state.selection.main;
   let code = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
   code = code.trim();
   if (!code) return;
-
-  if (isJS) {
-    showError('JS execution is not supported. Use the browser console (F12) to run JavaScript with db and console.');
-    return;
-  }
-
-  if (!state.db) {
-    showError('No database loaded. Create or open a database first.');
-    return;
-  }
-  const sqlText = code;
+  if (state.activeFileIsJS) { showError('JS Shell is not available.'); return; }
+  if (state.activeFileIsMD) { document.getElementById('btn-preview')?.click(); return; }
+  if (!state.db) { showError('No database loaded.'); return; }
   const startTime = performance.now();
   try {
-    const rows = state.db.exec(sqlText, { rowMode: 'object' });
+    const rows = state.db.exec(code, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    if (rows.length > 0) {
-      showResults(rows, elapsed);
-    } else {
+    if (rows.length > 0) showResults(rows, elapsed);
+    else {
       const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer);
-      showNoResults(
-        changes > 0
-          ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`
-          : `0 rows | ${elapsed}ms`
-      );
+      showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();

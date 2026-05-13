@@ -1,6 +1,6 @@
 import { $, esc } from '../utils.js';
 import { state } from '../state.js';
-import { setEditorContent, getEditorContent, setLanguage } from './editorView.js';
+import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, ensureEditor, switchEditor, showEditors } from './editorView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
@@ -39,16 +39,22 @@ export function switchFile(name, targetTab) {
   if (name === activeFile) return;
   const files = getFiles();
   if (!(name in files)) return;
+  const pos = targetTab !== undefined && targetTab !== null ? targetTab : 0;
+  // Save content of current active editor
   saveCurrentFile();
+  // Set new file as active
   setActiveFileName(name);
-  setEditorContent(files[name]);
-  // Update tabs: place in target position (default 0 = left, 1 = right)
-  if (targetTab === undefined || targetTab === null) targetTab = 0;
+  // Ensure editor at this position exists and load content
+  ensureEditor(pos);
+  setEditorContentFor(pos, files[name]);
+  // Update tab list
   if (tabFiles.length < 2) {
     tabFiles = [...new Set([...tabFiles, name])];
   } else {
-    tabFiles[targetTab] = name;
+    tabFiles[pos] = name;
   }
+  switchEditor(pos);
+  showEditors(tabFiles.length);
   renderTabs();
   renderTree();
 }
@@ -172,6 +178,8 @@ export function initFilesView() {
   setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql');
   setEditorContent(files[name]);
   tabFiles = [name];
+  showEditors(1);
+  switchEditor(0);
   renderTabs();
   renderTree();
 

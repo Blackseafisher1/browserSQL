@@ -141,11 +141,40 @@
     color: var(--color-error);
   }
 
-  .editor-container {
+  .editor-split {
     flex: 1 1 var(--editor-size, 1fr);
+    display: flex;
+    overflow: hidden;
     min-height: var(--editor-min-height);
-    border-bottom: 1px solid var(--color-border);
-    overflow: auto;
+  }
+
+  .editor-pane {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editor-pane.hidden {
+    display: none;
+  }
+
+  .editor-divider {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .editor-divider:hover,
+  .editor-divider:active {
+    background: var(--color-accent);
+  }
+
+  .editor-divider.hidden {
+    display: none;
   }
 
   .editor-resize-handle {
