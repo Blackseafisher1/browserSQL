@@ -91,7 +91,7 @@ export function switchFile(name) {
   saveCurrentContent();
   setActiveFileName(name);
   loadContentIntoEditor(files[name]);
-  updateFileListDOM();
+  requestAnimationFrame(() => updateFileListDOM());
 }
 
 export function createFile(name) {
