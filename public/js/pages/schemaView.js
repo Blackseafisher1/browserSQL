@@ -149,8 +149,17 @@ function handleTreeClick(e) {
     toggleExpand(tableName);
     return;
   }
+  // Single click on table name → execute SELECT * LIMIT 100
   state.activeTable = tableName;
   updateActiveState(tableName);
+  if (!state.db) return;
+  try {
+    const sql = `SELECT * FROM ${escId(tableName)} LIMIT 100`;
+    const rows = state.db.exec(sql, { rowMode: 'object' });
+    import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
+  } catch (err) {
+    import('./resultsView.js').then(r => r.showError(err.message));
+  }
 }
 
 function handleTreeDblClick(e) {
