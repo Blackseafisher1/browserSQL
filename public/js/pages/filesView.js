@@ -57,11 +57,10 @@ export function switchFile(name, targetPane) {
 
 function renderTabs() {
   for (let p = 0; p < 2; p++) {
-    const bar = document.getElementById(p === 0 ? 'tab-bar-0' : 'tab-bar-1');
+    const bar = document.getElementById('tab-bar-' + p);
     if (!bar) continue;
     bar.innerHTML = '';
-    if (p === 1 && paneTabs[1].length === 0) { bar.style.display = 'none'; continue; }
-    bar.style.display = 'flex';
+    bar.style.display = paneTabs[p].length > 0 ? 'flex' : 'none';
     for (const name of paneTabs[p]) {
       const tab = document.createElement('div');
       tab.className = 'tab-item' + (name === activeFile && activePane === p ? ' active' : '');
@@ -80,7 +79,7 @@ function renderTabs() {
       });
       bar.appendChild(tab);
     }
-    // Close handler
+    // Close button handler per tab bar
     bar.querySelectorAll('[data-tabclose]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -95,8 +94,7 @@ function renderTabs() {
           if (activePane === pane) switchEditor(pane);
         } else if (pane === 1) {
           showEditors(1);
-          activePane = 0;
-          switchEditor(0);
+          if (activePane === 1) { activePane = 0; switchEditor(0); }
         } else {
           setEditorContentFor(0, '');
         }

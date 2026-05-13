@@ -167,21 +167,21 @@ function getKbdSettings() {
 function initPaneResize() {
   const divider = document.getElementById('editor-divider');
   if (!divider) return;
-  const container0 = document.getElementById('editor-container-0');
-  const container1 = document.getElementById('editor-container-1');
-  if (!container0 || !container1) return;
+  const wrap0 = divider.previousElementSibling;
+  const wrap1 = divider.nextElementSibling;
+  if (!wrap0 || !wrap1) return;
   function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
   let startX, startW0;
-  function start(e) { startX = getX(e); startW0 = container0.getBoundingClientRect().width; document.addEventListener('mousemove', move); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, { passive: false }); document.addEventListener('touchend', end); document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); }
+  function start(e) { startX = getX(e); startW0 = wrap0.getBoundingClientRect().width; document.addEventListener('mousemove', move); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, { passive: false }); document.addEventListener('touchend', end); document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); }
   function move(e) {
     const dx = getX(e) - startX;
-    const total = container0.parentElement.getBoundingClientRect().width;
+    const total = wrap0.parentElement.getBoundingClientRect().width;
     let p0 = ((startW0 + dx) / total * 100);
     let p1 = 100 - p0;
     if (p0 < 15) { p0 = 15; p1 = 85; }
     if (p1 < 15) { p1 = 15; p0 = 85; }
-    container0.style.flex = `0 0 ${p0}%`;
-    container1.style.flex = `0 0 ${p1}%`;
+    wrap0.style.flex = `0 0 ${p0}%`;
+    wrap1.style.flex = `0 0 ${p1}%`;
   }
   function end() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', end); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); document.body.style.cursor = ''; document.body.style.userSelect = ''; }
   divider.addEventListener('mousedown', start);
