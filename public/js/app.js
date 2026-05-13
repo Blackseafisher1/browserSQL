@@ -193,27 +193,21 @@ function initEditorResize() {
 
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
-  if (!toolbar || !window.visualViewport) return;
-  function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:'+(window.innerHeight-window.visualViewport.height)+'px;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
-  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0 var(--space-3)'; }
-  function update() {
-    const kbd = getKbdSettings();
-    const kbHeight = window.innerHeight - window.visualViewport.height;
-    if (kbd.kbdForce) { show(); return; }
-    if (kbHeight > 80 && kbd.kbdEnabled) { show(); return; }
-    hide();
-  }
-  window.visualViewport.addEventListener('resize', update);
-  window.addEventListener('storage', update);
-  document.addEventListener('focusin', (e) => {
-    if (!e.target.closest('.cm-editor')) return;
-    let n = 0;
-    const iv = setInterval(() => {
-      update();
-      if (++n > 20 || window.innerHeight - window.visualViewport.height > 80) clearInterval(iv);
-    }, 80);
-  });
-  update();
+  if (!toolbar) return;
+  const kbd = getKbdSettings();
+  function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
+  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; }
+  if (kbd.kbdForce) { show(); return; }
+  let wasInput = false;
+  setInterval(() => {
+    const s = getKbdSettings();
+    if (s.kbdForce) { show(); return; }
+    if (!s.kbdEnabled) { hide(); wasInput = false; return; }
+    const a = document.activeElement;
+    const isInput = a && (a.closest('.cm-editor') || a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && /text|search/.test(a.type)));
+    if (isInput && !wasInput) { show(); wasInput = true; }
+    else if (!isInput && wasInput) { hide(); wasInput = false; }
+  }, 150);
 }
 
 function wireSchemaToolbar() {
