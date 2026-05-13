@@ -4,7 +4,7 @@ import { state } from '../state.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0 };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false };
 }
 
 let settings = loadSettings();
@@ -42,6 +42,9 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
+  document.getElementById('header').style.display = settings.hideHeader ? 'none' : '';
+  const hhCb = $('#setting-hideheader');
+  if (hhCb) hhCb.checked = settings.hideHeader;
 }
 
 export function initSettings() {
@@ -79,6 +82,12 @@ export function initSettings() {
 
   $('#setting-topmargin')?.addEventListener('input', (e) => {
     settings.topMargin = parseInt(e.target.value);
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-hideheader')?.addEventListener('change', (e) => {
+    settings.hideHeader = e.target.checked;
     saveSettings();
     applySettings();
   });

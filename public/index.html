@@ -130,6 +130,7 @@
       </div>
     </div>
     <main id="main-content" class="main-content">
+      <div id="tab-bar" class="tab-bar"></div>
       <div id="editor-container" class="editor-container"></div>
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
@@ -200,6 +201,10 @@
           <span>Top margin</span>
           <input type="range" id="setting-topmargin" min="0" max="100" step="1">
           <span id="setting-topmargin-value" class="settings-value">0</span>
+        </label>
+        <label class="settings-row">
+          <span>Hide header</span>
+          <input type="checkbox" id="setting-hideheader">
         </label>
       </div>
     </div>

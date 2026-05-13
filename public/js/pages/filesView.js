@@ -1,4 +1,4 @@
-import { $ } from '../utils.js';
+import { $, esc } from '../utils.js';
 import { state } from '../state.js';
 import { setEditorContent, getEditorContent, setLanguage } from './editorView.js';
 
@@ -8,6 +8,7 @@ const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
 let activeFile = null;
+let tabFiles = [];
 
 export function getFiles() {
   try { return JSON.parse(localStorage.getItem(FILES_KEY)) || {}; } catch { return {}; }
@@ -41,7 +42,39 @@ export function switchFile(name) {
   saveCurrentFile();
   setActiveFileName(name);
   setEditorContent(files[name]);
+  // Update tabs: add to front, keep max 2
+  tabFiles = [name, ...tabFiles.filter(f => f !== name)].slice(0, 2);
+  renderTabs();
   renderTree();
+}
+
+function renderTabs() {
+  const bar = document.getElementById('tab-bar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  for (const name of tabFiles) {
+    const tab = document.createElement('div');
+    tab.className = 'tab-item' + (name === activeFile ? ' active' : '');
+    const label = name.includes('/') ? name.split('/').pop() : name;
+    tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="${name}">✕</span>`;
+    tab.addEventListener('click', (e) => {
+      if (e.target.closest('[data-tabclose]')) return;
+      switchFile(name);
+    });
+    bar.appendChild(tab);
+  }
+  // Close button handler via delegation
+  bar.querySelectorAll('[data-tabclose]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = el.dataset.tabclose;
+      if (confirm(`Close "${name}"?`)) {
+        tabFiles = tabFiles.filter(f => f !== name);
+        if (name === activeFile && tabFiles.length > 0) switchFile(tabFiles[0]);
+        renderTabs();
+      }
+    });
+  });
 }
 
 export function createFile(name) {
@@ -134,6 +167,8 @@ export function initFilesView() {
   state.activeFileIsMD = name.endsWith('.md');
   setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql');
   setEditorContent(files[name]);
+  tabFiles = [name];
+  renderTabs();
   renderTree();
 
   const tree = $('#files-tree');
