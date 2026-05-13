@@ -27,6 +27,7 @@ function toggleTheme() {
 }
 
 async function main() {
+  document.addEventListener('touchstart', () => {}, { passive: true });
   initTheme();
 
   const dbOk = await initDatabase();
