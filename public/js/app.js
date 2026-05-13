@@ -46,6 +46,7 @@ async function main() {
 
   wireSchemaToolbar();
   initSidebarResize();
+  initEditorResize();
   initMobileToggles();
   pinToolbarToKeyboard();
 
@@ -153,6 +154,41 @@ function getKbdSettings() {
   } catch { return { kbdEnabled: true, kbdHeight: 40, kbdForce: false }; }
 }
 
+function initEditorResize() {
+  const handle = document.getElementById('editor-resize-handle');
+  if (!handle) return;
+  let startY, startEditor, startResults;
+  const editor = document.getElementById('editor-container');
+  const results = document.getElementById('results-container');
+  if (!editor || !results) return;
+  function onMouseMove(e) {
+    const dy = e.clientY - startY;
+    const total = editor.parentElement.clientHeight;
+    let edPct = ((startEditor + dy) / total * 100);
+    let rsPct = ((startResults - dy) / total * 100);
+    if (edPct < 10) { edPct = 10; rsPct = 90; }
+    if (rsPct < 10) { rsPct = 10; edPct = 90; }
+    editor.style.flex = `1 1 ${edPct}%`;
+    results.style.flex = `1 1 ${rsPct}%`;
+  }
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+  handle.addEventListener('mousedown', (e) => {
+    startY = e.clientY;
+    startEditor = editor.getBoundingClientRect().height;
+    startResults = results.getBoundingClientRect().height;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+}
+
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar || !window.visualViewport) return;
@@ -182,6 +218,7 @@ function pinToolbarToKeyboard() {
   }
   window.visualViewport.addEventListener('resize', update);
   window.addEventListener('storage', update);
+  document.addEventListener('focusin', update);
   update();
 }
 

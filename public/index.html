@@ -51,12 +51,12 @@
         <button id="btn-new-db" class="btn btn-sm" data-action="new-db" title="New Database (Ctrl+N)">New</button>
         <button id="btn-open-db" class="btn btn-sm" data-action="open-db" title="Open Database (Ctrl+O)">Open</button>
         <button id="btn-export-db" class="btn btn-sm" title="Export as .sqlite file (Ctrl+S)">Export</button>
-        <button id="btn-delete-db" class="btn btn-sm btn-danger" title="Delete current database from local storage">Del</button>
-        <button id="btn-test-schema" class="btn btn-sm" title="Load test schema with sample data">Test</button>
         <div class="recent-wrap">
           <button id="btn-recent-dbs" class="btn btn-sm" title="Recent databases">Recent &#9662;</button>
           <div id="recent-dbs-dropdown" class="dropdown-menu hidden"></div>
         </div>
+        <button id="btn-delete-db" class="btn btn-sm btn-danger" title="Delete current database from local storage">Del</button>
+        <button id="btn-test-schema" class="btn btn-sm" title="Load test schema with sample data">Test</button>
         <button id="btn-theme-toggle" class="btn btn-sm" title="Toggle theme">&#9790;</button>
         <button id="btn-settings" class="btn btn-sm" title="Settings">&#9881;</button>
         <button id="btn-mobile-menu" class="btn btn-sm mobile-menu-btn" title="Menu">&#8942;</button>
@@ -101,6 +101,7 @@
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
         <span class="execute-hint">Ctrl+Enter</span>
       </div>
+      <div id="editor-resize-handle" class="editor-resize-handle"></div>
       <div id="results-container" class="results-container">
         <div class="results-header">
           <span id="results-info" class="results-info">Ready</span>

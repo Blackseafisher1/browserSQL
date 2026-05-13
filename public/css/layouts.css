@@ -21,7 +21,7 @@
   .header-right {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
 
   .schema-panel {
@@ -83,10 +83,31 @@
   }
 
   .editor-container {
-    flex: 1;
+    flex: 1 1 var(--editor-size, 1fr);
     min-height: var(--editor-min-height);
     border-bottom: 1px solid var(--color-border);
     overflow: auto;
+  }
+
+  .editor-resize-handle {
+    height: 4px;
+    cursor: row-resize;
+    background: transparent;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .editor-resize-handle:hover,
+  .editor-resize-handle:active {
+    background: var(--color-accent);
+  }
+
+  .results-container {
+    flex: 1 1 var(--results-size, 1fr);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 80px;
   }
 
   .execute-bar {
@@ -183,6 +204,27 @@
     }
 
     input, select, textarea, button, .btn, .dropdown-item, .schema-table-name {
+      font-size: 16px !important;
+    }
+
+    .app-header {
+      padding: 0 var(--space-2);
+    }
+
+    .header-left, .header-right {
+      gap: var(--space-1);
+    }
+
+    .header-right .btn {
+      padding: var(--space-1) var(--space-1);
+      font-size: 13px;
+    }
+
+    .header-right .recent-wrap .btn {
+      font-size: 16px !important;
+    }
+
+    .schema-toggle {
       font-size: 16px !important;
     }
 

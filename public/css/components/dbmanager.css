@@ -1,7 +1,7 @@
 @layer components {
   .app-logo {
     font-weight: 700;
-    font-size: var(--size-fluid-2);
+    font-size: var(--size-fluid-1);
     color: var(--color-accent);
   }
 
@@ -14,7 +14,7 @@
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
     outline: none;
-    width: 200px;
+    width: 120px;
     transition: border-color 0.15s;
   }
 
