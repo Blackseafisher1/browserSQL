@@ -49,34 +49,6 @@ export function initEditor() {
   setupTemplateButtons();
   setupKeyboardButtons();
 }
-      EditorView.theme({
-        '&': { height: '100%' },
-        '.cm-scroller': { overflow: 'auto' },
-        '.cm-gutters': {
-          background: 'var(--color-bg)',
-          color: 'var(--color-text-muted)',
-          borderRight: '1px solid var(--color-border-light)',
-        },
-        '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
-        '.cm-tooltip-autocomplete': {
-          background: 'var(--color-bg-surface)',
-          color: 'var(--color-text)',
-          border: '1px solid var(--color-border)',
-        },
-        '.cm-tooltip-autocomplete ul li[aria-selected]': {
-          background: 'var(--color-accent)',
-          color: 'var(--color-accent-text)',
-        },
-      }),
-    ],
-    parent: container,
-  });
-  state.editorView = view;
-  setupExecuteShortcut();
-  setupExecuteButton();
-  setupTemplateButtons();
-  setupKeyboardButtons();
-}
 
 export function setEditorContent(doc) {
   if (!view) return;
