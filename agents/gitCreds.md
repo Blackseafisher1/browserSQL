@@ -1,2 +1,0 @@
-- username:  Blackseafisher1
-- email: nice.ege.cool@gmail.com
