@@ -5,8 +5,9 @@ import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, b
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
+import { javascript } from '@codemirror/lang-javascript';
 import { executeJS } from './jsExecutor.js';
-import { showShell } from './shellView.js';
+import { showShell, showJSReady } from './shellView.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
@@ -17,12 +18,10 @@ const executeBtn = $('#btn-execute');
 
 let view = null;
 let currentSchema = {};
-let sqlConfig = null;
-let wrapConfig = null;
+let langConfig = null;
 
 export function initEditor() {
-  sqlConfig = new Compartment();
-  wrapConfig = new Compartment();
+  langConfig = new Compartment();
   view = new EditorView({
     doc: '',
     extensions: [
@@ -43,8 +42,7 @@ export function initEditor() {
       highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
-      wrapConfig.of(EditorView.theme({ '.cm-content': { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } })),
-      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
+      langConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -107,19 +105,19 @@ export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-  if (!view || !sqlConfig) return;
+  if (!view || !langConfig) return;
   view.dispatch({
-    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
+    effects: langConfig.reconfigure(sql({ dialect: SQLite, schema })),
   });
 }
 
 export function setWordWrap(enabled) {
-  if (!view || !wrapConfig) return;
-  view.dispatch({
-    effects: wrapConfig.reconfigure(
-      enabled ? EditorView.theme({ '.cm-content': { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }) : []
-    ),
-  });
+}
+
+export function setLanguage(lang) {
+  if (!view || !langConfig) return;
+  const ext = lang === 'js' ? javascript() : sql({ dialect: SQLite, schema: currentSchema });
+  view.dispatch({ effects: langConfig.reconfigure(ext) });
 }
 
 export function insertAtCursor(text) {

@@ -1,7 +1,5 @@
 import { $ } from '../utils.js';
 
-let inputCallback = null;
-
 export function showShell(logs) {
   const output = $('#results-output');
   const info = $('#results-info');
@@ -14,38 +12,6 @@ export function showShell(logs) {
   }
   html += '</div>';
   output.innerHTML = html;
-  setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
-}
-
-export function showInput(promptText, resolve) {
-  inputCallback = resolve;
-  const output = $('#results-output');
-  const info = $('#results-info');
-  if (!output) return;
-  if (info) info.textContent = 'JS Shell (input)';
-  const inputId = 'shell-input-' + Date.now();
-  const line = document.createElement('div');
-  line.className = 'shell-input-line';
-  line.innerHTML = `<span class="shell-prompt">${esc(promptText || '> ')}</span>`;
-  const field = document.createElement('input');
-  field.type = 'text';
-  field.id = inputId;
-  field.className = 'shell-input';
-  field.autofocus = true;
-  line.appendChild(field);
-  output.appendChild(line);
-  field.focus();
-  setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
-  field.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const val = field.value;
-      const done = document.createElement('span');
-      done.className = 'shell-input-done';
-      done.textContent = val;
-      field.replaceWith(done);
-      if (inputCallback) { const cb = inputCallback; inputCallback = null; cb(val); }
-    }
-  });
 }
 
 export function showJSReady() {
@@ -53,7 +19,7 @@ export function showJSReady() {
   const info = $('#results-info');
   if (!output) return;
   if (info) info.textContent = 'JS Shell';
-  output.innerHTML = '<div class="shell-output"><div class="shell-line shell-log">// JS Shell — console.log output appears here</div><div class="shell-line shell-log">// For interactive programs with input(), use F12 browser console</div><div class="shell-line shell-log">// Note: db.exec() returns [{columns:[], values:[[]]}] — use results[0].values for data</div></div>';
+  output.innerHTML = '<div class="shell-output"><div class="shell-line shell-log">// JS Shell — console.log output appears here</div></div>';
 }
 
 function esc(s) {
