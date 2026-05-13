@@ -227,7 +227,14 @@ function pinToolbarToKeyboard() {
   }
   window.visualViewport.addEventListener('resize', update);
   window.addEventListener('storage', update);
-  document.addEventListener('focusin', update);
+  document.addEventListener('focusin', () => {
+    update();
+    let attempts = 0;
+    const iv = setInterval(() => {
+      update();
+      if (++attempts > 10 || window.innerHeight - window.visualViewport.height > 150) clearInterval(iv);
+    }, 100);
+  });
   update();
 }
 
