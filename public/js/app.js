@@ -192,46 +192,12 @@ function wireSchemaToolbar() {
     'btn-schema-export': 'btn-export-db',
     'btn-schema-delete': 'btn-delete-db',
     'btn-schema-test': 'btn-test-schema',
-    'btn-schema-recent': 'btn-recent-dbs',
-    'btn-schema-theme': 'btn-theme-toggle',
+     'btn-schema-theme': 'btn-theme-toggle',
     'btn-schema-settings': 'btn-settings',
   };
   for (const [fromId, toId] of Object.entries(map)) {
     document.getElementById(fromId)?.addEventListener('click', () => {
       document.getElementById(toId)?.click();
-    });
-  }
-  const sr = document.getElementById('btn-schema-recent');
-  const sd = document.getElementById('schema-recent-dropdown');
-  if (sr && sd) {
-    sr.addEventListener('click', async () => {
-      sd.innerHTML = '';
-      const { listLocalDBs } = await import('./pages/dbManager.js');
-      const dbs = await listLocalDBs();
-      if (dbs.length === 0) {
-        sd.innerHTML = '<div class="dropdown-empty">No saved databases</div>';
-      } else {
-        for (const db of dbs) {
-          const item = document.createElement('button');
-          item.className = 'dropdown-item';
-          item.dataset.name = db.name;
-          const date = new Date(db.savedAt);
-          const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-          item.innerHTML = `<span class="item-name">${esc(db.name)}</span><span class="item-date">${dateStr}</span>`;
-          item.addEventListener('click', async () => {
-            sd.classList.add('hidden');
-            document.getElementById('btn-recent-dbs')?.click();
-          });
-          sd.appendChild(item);
-        }
-      }
-      sd.classList.toggle('hidden');
-    });
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#schema-recent-dropdown') && !e.target.closest('#btn-schema-recent')) {
-        sd.classList.add('hidden');
-      }
     });
   }
 }
