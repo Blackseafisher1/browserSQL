@@ -93,51 +93,6 @@ export function insertAtCursor(text) {
   });
   view.focus();
 }
-export function setEditorContent(doc) {
-  if (!view) return;
-  const cur = view.state.doc.toString();
-  if (cur === doc) return;
-  view.dom.style.opacity = '0';
-  view.dispatch({
-    changes: { from: 0, to: view.state.doc.length, insert: doc || '' },
-  });
-  requestAnimationFrame(() => { view.dom.style.opacity = ''; });
-}
-
-export function getEditorContent() {
-  return view ? view.state.doc.toString() : '';
-}
-
-export function getCurrentSchema() {
-  return currentSchema;
-}
-
-export function updateEditorSchema(tables) {
-  const schema = {};
-  for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
-  currentSchema = schema;
-  if (!view) return;
-  view.dispatch({
-    effects: sqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
-  });
-  // Force completion source re-evaluation
-  view.dispatch({});
-}
-
-export function setWordWrap(enabled) {
-  container.classList.toggle('cm-wordwrap', enabled);
-}
-
-export function insertAtCursor(text) {
-  if (!view) return;
-  const sel = view.state.selection.main;
-  view.dispatch({
-    changes: { from: sel.from, to: sel.to, insert: text },
-    selection: { anchor: sel.from + text.length },
-    userEvent: 'input.type',
-  });
-  view.focus();
-}
 
 function setupExecuteShortcut() {
   document.addEventListener('keydown', (e) => {
