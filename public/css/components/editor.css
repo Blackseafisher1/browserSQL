@@ -28,7 +28,7 @@
   }
 
   .cm-editor .cm-selectionBackground {
-    background: var(--color-accent) !important;
+    background: var(--color-accent);
     opacity: 0.2;
   }
 

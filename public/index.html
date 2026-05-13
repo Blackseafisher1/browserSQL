@@ -64,8 +64,10 @@
     </header>
     <aside id="schema-panel" class="schema-panel">
       <div class="schema-header">
-        <span class="schema-header-title">Schema</span>
-        <span class="schema-header-file">File</span>
+        <div class="schema-tabs">
+          <button id="tab-tables" class="schema-tab schema-tab-active">Tables</button>
+          <button id="tab-files" class="schema-tab">Files</button>
+        </div>
         <button id="btn-schema-close" class="btn btn-close schema-close" title="Close schema panel">&times;</button>
       </div>
       <div id="schema-toolbar" class="schema-toolbar">
@@ -78,6 +80,12 @@
       </div>
       <div id="schema-tree" class="schema-tree">
         <div class="schema-empty">No tables</div>
+      </div>
+      <div id="files-panel" class="files-panel hidden">
+        <div class="files-toolbar">
+          <button id="btn-file-new" class="btn btn-sm" title="New file">+ New</button>
+        </div>
+        <div id="files-list" class="files-list"></div>
       </div>
       <div id="schema-resize-handle" class="schema-resize-handle"></div>
     </aside>
@@ -182,6 +190,7 @@
   <script type="module" src="js/pages/editorView.js"></script>
   <script type="module" src="js/pages/schemaView.js"></script>
   <script type="module" src="js/pages/dbManager.js"></script>
+  <script type="module" src="js/pages/filesView.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

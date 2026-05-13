@@ -8,6 +8,7 @@
     --space-5: 24px;
     --space-6: 32px;
 
+    --size-fluid-0: clamp(0.625rem, 0.6rem + 0.125vw, 0.75rem);
     --size-fluid-1: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
     --size-fluid-2: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
     --size-fluid-3: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);

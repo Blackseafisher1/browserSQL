@@ -2,6 +2,7 @@ import { initEditor, updateEditorSchema } from './pages/editorView.js';
 import { initSchemaView } from './pages/schemaView.js';
 import { initDBManager, initDatabase, loadTestSchema, openLastDB } from './pages/dbManager.js';
 import { initSettings } from './pages/settings.js';
+import { initFilesView } from './pages/filesView.js';
 import { showReady } from './pages/resultsView.js';
 import { state } from './state.js';
 
@@ -38,6 +39,7 @@ async function main() {
   initSchemaView();
   initDBManager();
   initSettings();
+  initFilesView();
 
   state.refreshEditorSchema = updateEditorSchema;
 

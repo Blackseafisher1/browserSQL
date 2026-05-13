@@ -22,4 +22,11 @@
   .schema-table-name .expand-icon.expanded {
     transform: rotate(90deg);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
