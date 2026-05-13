@@ -145,17 +145,13 @@
   }
 
   .cm-editor .cm-cursor {
-    border-left: 1.2px solid var(--color-text);
+    border-left: 2px solid var(--color-text) !important;
     z-index: 1;
     animation: none !important;
     opacity: 1 !important;
     visibility: visible !important;
-  }
-
-  html.no-blink .cm-editor .cm-cursor {
-    border-left: 2px solid var(--color-text) !important;
-    background: var(--color-text) !important;
     width: 2px !important;
+    background: var(--color-text) !important;
   }
 
   @media (prefers-reduced-motion: reduce) {

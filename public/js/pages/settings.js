@@ -1,11 +1,10 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
-import { setWordWrap } from './editorView.js';
 
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, blinkCursor: true };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0 };
 }
 
 let settings = loadSettings();
@@ -43,9 +42,6 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
-  document.documentElement.classList.toggle('no-blink', !settings.blinkCursor);
-  const bcCb = $('#setting-blinkcursor');
-  if (bcCb) bcCb.checked = settings.blinkCursor;
 }
 
 export function initSettings() {
@@ -83,12 +79,6 @@ export function initSettings() {
 
   $('#setting-topmargin')?.addEventListener('input', (e) => {
     settings.topMargin = parseInt(e.target.value);
-    saveSettings();
-    applySettings();
-  });
-
-  $('#setting-blinkcursor')?.addEventListener('change', (e) => {
-    settings.blinkCursor = e.target.checked;
     saveSettings();
     applySettings();
   });
