@@ -1,5 +1,14 @@
 import { state } from '../state.js';
 
+// Expose db globally for browser console usage
+Object.defineProperty(window, 'db', {
+  get: () => state.db,
+  configurable: true,
+});
+
+// Expose input() for console usage (uses native prompt)
+window.input = async (msg) => prompt(msg || '');
+
 export async function executeJS(code) {
   const logs = [];
   let inputResolve = null;
