@@ -198,24 +198,11 @@ function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar) return;
   const kbd = getKbdSettings();
-  function show() { toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch'; }
-  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; }
-  if (kbd.kbdForce) { show(); return; }
-  const container = document.getElementById('editor-container');
-  if (!container) return;
-  let focusTimeout;
-  container.addEventListener('focusin', (e) => {
-    if (!e.target.closest('.cm-editor')) return;
-    clearTimeout(focusTimeout);
-    const s = getKbdSettings();
-    if (s.kbdEnabled) show();
-  });
-  container.addEventListener('focusout', (e) => {
-    clearTimeout(focusTimeout);
-    focusTimeout = setTimeout(() => {
-      if (!container.contains(document.activeElement)) hide();
-    }, 200);
-  });
+  if (kbd.kbdForce || kbd.kbdEnabled) {
+    toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
+  } else {
+    toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0';
+  }
 }
 
 function wireSchemaToolbar() {
