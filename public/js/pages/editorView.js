@@ -182,8 +182,7 @@ export async function executeQuery() {
   if (!code) return;
 
   if (isJS) {
-    const result = await executeJS(code);
-    showShell(result.logs);
+    showError('JS execution is not supported. Use the browser console (F12) to run JavaScript with db and console.');
     return;
   }
 
