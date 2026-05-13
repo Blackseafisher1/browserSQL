@@ -76,7 +76,10 @@ export function ensureEditor(idx) {
 export function showEditors(count) {
   const wrap0 = container0.closest('.editor-pane-wrap');
   const wrap1 = container1.closest('.editor-pane-wrap');
-  if (wrap0) wrap0.style.display = count >= 1 ? 'flex' : 'none';
+  if (wrap0) {
+    wrap0.style.display = count >= 1 ? 'flex' : 'none';
+    if (count < 2) wrap0.style.flex = ''; // reset to CSS default
+  }
   if (wrap1) wrap1.style.display = count >= 2 ? 'flex' : 'none';
   const div = document.getElementById('editor-divider');
   if (div) div.classList.toggle('hidden', count < 2);
