@@ -2,7 +2,7 @@
   .app-layout {
     display: grid;
     grid-template-columns: var(--sidebar-width, 260px) 1fr;
-    grid-template-rows: var(--header-height) 1fr;
+    grid-template-rows: auto 1fr;
     height: 100vh;
     height: calc(100vh - env(safe-area-inset-bottom, 0));
     width: 100vw;
