@@ -189,12 +189,18 @@ export function initFilesView() {
       const collapsed = body.classList.toggle('collapsed');
       localStorage.setItem(key, collapsed ? '1' : '');
       arrow.textContent = collapsed ? '▸' : '▾';
+      if (collapsed) {
+        body.style.flex = '0 0 0';
+      } else {
+        body.style.flex = '';
+      }
     });
     const section = hdr.dataset.section;
     const body = document.getElementById('section-' + section);
     const arrow = hdr.querySelector('.section-arrow');
     if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
       body.classList.add('collapsed');
+      body.style.flex = '0 0 0';
       arrow.textContent = '▸';
     }
   });
