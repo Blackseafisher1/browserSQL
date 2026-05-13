@@ -15,26 +15,30 @@ const sqlConfig = new Compartment();
 
 function customCompletion(context) {
   const word = context.matchBefore(/[\w.]+/);
-  const prefix = word ? word.text.toLowerCase() : '';
-  const options = [];
-  const added = new Set();
+  const prefix = word ? word.text : '';
+  const opts = [];
+  const seen = new Set();
   function add(label, type) {
-    const key = label.toUpperCase();
-    if (!added.has(key)) { added.add(key); options.push({ label, type }); }
+    const k = label.toUpperCase();
+    if (!seen.has(k)) { seen.add(k); opts.push({ label, type }); }
   }
-  // SQL keywords
   const kws = 'SELECT FROM WHERE INSERT INTO VALUES UPDATE SET DELETE CREATE TABLE DROP ALTER ADD COLUMN INDEX PRIMARY KEY FOREIGN REFERENCES NOT NULL DEFAULT UNIQUE CHECK AND OR IN LIKE BETWEEN JOIN LEFT RIGHT INNER OUTER ON AS ORDER BY GROUP HAVING LIMIT OFFSET UNION ALL DISTINCT COUNT SUM AVG MIN MAX EXISTS CASE WHEN THEN ELSE END CAST IS AUTOINCREMENT INTEGER TEXT REAL BLOB BOOLEAN DATE TIMESTAMP'.split(' ');
-  for (const kw of kws) { if (kw.toLowerCase().startsWith(prefix) || !word) add(kw, 'keyword'); }
-  // Table + column names
-  for (const tbl of Object.keys(currentSchema)) {
-    if (tbl.toLowerCase().startsWith(prefix) || !word) add(tbl, 'type');
-    if (prefix.endsWith('.')) {
-      const tblName = prefix.slice(0, -1);
-      const matchTbl = currentSchema[tblName] || currentSchema[Object.keys(currentSchema).find(k => k.toLowerCase() === tblName)];
-      if (matchTbl) for (const col of matchTbl) add(col, 'property');
-    }
+  if (!word || !prefix) {
+    for (const kw of kws) add(kw, 'keyword');
+    for (const tbl of Object.keys(currentSchema)) add(tbl, 'type');
+    return { from: context.pos, options: opts, validFor: /^[\w.]+$/ };
   }
-  return { from: word ? word.from : context.pos, options, validFor: /^[\w.]+$/ };
+  const lower = prefix.toLowerCase();
+  for (const kw of kws) { if (kw.toLowerCase().startsWith(lower)) add(kw, 'keyword'); }
+  for (const tbl of Object.keys(currentSchema)) {
+    if (tbl.toLowerCase().startsWith(lower)) add(tbl, 'type');
+  }
+  if (lower.endsWith('.')) {
+    const t = lower.slice(0, -1);
+    const mt = currentSchema[t] || currentSchema[Object.keys(currentSchema).find(k => k.toLowerCase() === t)];
+    if (mt) mt.forEach(c => add(c, 'property'));
+  }
+  return { from: word.from, options: opts, validFor: /^[\w.]+$/ };
 }
 
 export function initEditor() {
