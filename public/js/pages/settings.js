@@ -46,7 +46,7 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
-  document.documentElement.style.setProperty('--cursor-blink', settings.blinkCursor ? '1.2s' : '0s');
+  document.documentElement.classList.toggle('no-blink', !settings.blinkCursor);
   const bcCb = $('#setting-blinkcursor');
   if (bcCb) bcCb.checked = settings.blinkCursor;
 }

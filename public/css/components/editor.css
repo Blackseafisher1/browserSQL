@@ -145,15 +145,14 @@
   }
 
   .cm-editor .cm-cursor {
-    animation: cm-blink var(--cursor-blink, 1.2s) step-end infinite !important;
+    animation: cm-blink 1.2s step-end infinite;
     border-left: 1.2px solid var(--color-text);
     z-index: 1;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .cm-editor .cm-cursor {
-      opacity: 1 !important;
-    }
+  html.no-blink .cm-editor .cm-cursor {
+    animation: none !important;
+    opacity: 1 !important;
   }
 
   .cm-editor .cm-content {
