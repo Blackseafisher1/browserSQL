@@ -2,19 +2,23 @@
 
 ## iOS Cursor Flicker
 
-**Status**: Fixed
+**Status**: Partially mitigated, cosmetic only, no functional impact
 
-**Cause**: iOS **Reduce Motion** setting (`prefers-reduced-motion: reduce`) disables CSS animations. CodeMirror's cursor blink animation conflicts with the OS-level override, causing visible flicker.
+**Cause**: iOS Safari compositor conflict during virtual keyboard transitions. Not related to cursor blink animation, Reduce Motion, active line highlighting, or any configurable setting.
 
-**Fix**: Detect `prefers-reduced-motion` at editor init and set `cursorBlinkRate: -1` (never blink) via `drawSelection({ cursorBlinkRate })`. When blink rate is `-1`, CodeMirror renders a solid cursor via JavaScript, bypassing CSS animations entirely. iOS can't interfere.
+**Attempted (none fully resolved)**:
+- CSS `animation: none !important` on cursor
+- Solid `border-left` cursor instead of animated
+- `drawSelection({ cursorBlinkRate: -1 })` via JS
+- Removed `highlightActiveLine`, `highlightSelectionMatches`
+- `prefers-reduced-motion: reduce` detection with `!important` overrides
+- `caret-color: transparent` on content
+- `overscroll-behavior: none`, `viewport-fit=cover`, no polling intervals
+- All imports from single `@codemirror/*` packages, no `codemirror` meta-package
 
-**Code**:
-```js
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-drawSelection({ cursorBlinkRate: reduceMotion ? -1 : 1200 })
-```
+**Observation**: Solid cursor reduced flicker by ~50% but didn't eliminate it. Remaining flicker is iOS Safari's internal rendering of the contenteditable layer during `visualViewport` resize — not controllable from CSS/JS.
 
-Spring 2026
+**Verdict**: Accept as iOS quirk. Fully functional on all platforms, cosmetic only on iOS.
 
 ## SQLite WASM C String Allocation
 
