@@ -56,10 +56,11 @@ export function createFile(name) {
 
 export function deleteFile(name) {
   const files = getFiles();
-  if (!(name in files) || Object.keys(files).length <= 1) return false;
+  if (!(name in files)) return false;
   delete files[name];
+  if (Object.keys(files).length === 0) files['scratch.sql'] = '';
   saveFiles(files);
-  if (activeFile === name) {
+  if (activeFile === name || !(getActiveFileName() in getFiles())) {
     const rem = Object.keys(files);
     switchFile(rem[0]);
   }
