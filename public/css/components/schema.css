@@ -110,6 +110,34 @@
     padding: 2px 6px;
   }
 
+  .ops-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--color-border-light);
+    font-size: 10px;
+  }
+
+  .ops-logo {
+    font-weight: 700;
+    color: var(--color-accent);
+    cursor: pointer;
+  }
+
+  .ops-logo:hover {
+    text-decoration: underline;
+  }
+
+  .ops-link {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .ops-link:hover {
+    color: var(--color-accent);
+  }
+
   .files-tree {
     padding: var(--space-1) 0;
     overflow-y: auto;
