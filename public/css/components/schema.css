@@ -29,6 +29,7 @@
   .section-node {
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   .section-node + .section-node {
@@ -86,6 +87,7 @@
 
   .section-body {
     overflow: hidden;
+    min-height: 0;
   }
 
   .section-body.collapsed {
