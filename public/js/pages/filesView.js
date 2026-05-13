@@ -46,7 +46,7 @@ export function switchFile(name, targetPane) {
   // Add to pane's tab list
   if (!paneTabs[pane].includes(name)) {
     paneTabs[pane].push(name);
-    if (paneTabs[pane].length > 5) paneTabs[pane].shift();
+    if (paneTabs[pane].length > 10) paneTabs[pane].shift();
   }
   activePane = pane;
   switchEditor(pane);
