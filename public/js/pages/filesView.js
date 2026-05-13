@@ -7,9 +7,7 @@ const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
 export function getFiles() {
-  try {
-    return JSON.parse(localStorage.getItem(FILES_KEY)) || {};
-  } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(FILES_KEY)) || {}; } catch { return {}; }
 }
 
 function saveFiles(files) {
@@ -33,50 +31,6 @@ function ensureDefault() {
   }
 }
 
-export function switchFile(name) {
-  const files = getFiles();
-  if (!files[name]) return;
-  saveCurrentContent();
-  setActiveFileName(name);
-  loadContentIntoEditor(files[name]);
-  renderFilesList();
-}
-
-export function createFile(name) {
-  const files = getFiles();
-  if (files[name]) return false;
-  files[name] = '';
-  saveFiles(files);
-  switchFile(name);
-  return true;
-}
-
-export function deleteFile(name) {
-  const files = getFiles();
-  if (!files[name] || Object.keys(files).length <= 1) return false;
-  delete files[name];
-  saveFiles(files);
-  const active = getActiveFileName();
-  if (active === name) {
-    const remaining = Object.keys(files);
-    switchFile(remaining[0]);
-  }
-  renderFilesList();
-  return true;
-}
-
-export function renameFile(oldName, newName) {
-  if (!newName || oldName === newName) return false;
-  const files = getFiles();
-  if (!files[oldName] || files[newName]) return false;
-  files[newName] = files[oldName];
-  delete files[oldName];
-  saveFiles(files);
-  setActiveFileName(newName);
-  renderFilesList();
-  return true;
-}
-
 function saveCurrentContent() {
   const v = state.editorView;
   if (!v) return;
@@ -89,38 +43,82 @@ function saveCurrentContent() {
 function loadContentIntoEditor(content) {
   const v = state.editorView;
   if (!v) return;
+  if (v.state.doc.toString() === content) return;
   v.dispatch({
     changes: { from: 0, to: v.state.doc.length, insert: content || '' },
+    selection: { anchor: 0 },
   });
 }
 
-function renderFilesList() {
+function updateFileListDOM() {
   const list = $('#files-list');
   if (!list) return;
   const files = getFiles();
   const active = getActiveFileName();
-  list.innerHTML = '';
-  for (const name of Object.keys(files).sort()) {
-    const item = document.createElement('div');
-    item.className = 'file-item' + (name === active ? ' file-item-active' : '');
-    const span = document.createElement('span');
-    span.className = 'file-name';
-    span.textContent = name;
-    span.addEventListener('click', () => switchFile(name));
-    item.appendChild(span);
-    const del = document.createElement('button');
-    del.className = 'file-del';
-    del.textContent = '×';
-    del.title = 'Delete file';
-    del.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`Delete "${name}"?`)) deleteFile(name); });
-    item.appendChild(del);
-    list.appendChild(item);
+  const names = Object.keys(files).sort();
+  let items = list.children;
+  let i = 0;
+  for (const name of names) {
+    if (i < items.length && items[i].dataset.name === name) {
+      items[i].className = 'file-item' + (name === active ? ' file-item-active' : '');
+    } else {
+      const item = document.createElement('div');
+      item.className = 'file-item' + (name === active ? ' file-item-active' : '');
+      item.dataset.name = name;
+      const span = document.createElement('span');
+      span.className = 'file-name';
+      span.textContent = name;
+      span.addEventListener('click', () => switchFile(name));
+      item.appendChild(span);
+      const del = document.createElement('button');
+      del.className = 'file-del';
+      del.textContent = '×';
+      del.title = 'Delete file';
+      del.addEventListener('click', (e) => { e.stopPropagation(); if (confirm(`Delete "${name}"?`)) deleteFile(name); });
+      item.appendChild(del);
+      if (i < items.length) list.insertBefore(item, items[i]);
+      else list.appendChild(item);
+    }
+    i++;
   }
+  while (items.length > names.length) items[items.length - 1].remove();
+}
+
+export function switchFile(name) {
+  if (name === getActiveFileName()) return;
+  const files = getFiles();
+  if (!(name in files)) return;
+  saveCurrentContent();
+  setActiveFileName(name);
+  loadContentIntoEditor(files[name]);
+  updateFileListDOM();
+}
+
+export function createFile(name) {
+  const files = getFiles();
+  if (name in files) return false;
+  files[name] = '';
+  saveFiles(files);
+  switchFile(name);
+  return true;
+}
+
+export function deleteFile(name) {
+  const files = getFiles();
+  if (!(name in files) || Object.keys(files).length <= 1) return false;
+  delete files[name];
+  saveFiles(files);
+  if (getActiveFileName() === name) {
+    const remaining = Object.keys(files);
+    switchFile(remaining[0]);
+  }
+  updateFileListDOM();
+  return true;
 }
 
 export function initFilesView() {
   ensureDefault();
-  renderFilesList();
+  updateFileListDOM();
 
   $('#tab-tables')?.addEventListener('click', () => {
     $('#tab-tables')?.classList.add('schema-tab-active');
@@ -137,7 +135,7 @@ export function initFilesView() {
     $('#schema-tree')?.classList.add('hidden');
     $('#schema-toolbar')?.classList.add('hidden');
     saveCurrentContent();
-    renderFilesList();
+    updateFileListDOM();
   });
 
   $('#btn-file-new')?.addEventListener('click', () => {
