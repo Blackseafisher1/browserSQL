@@ -38,6 +38,7 @@ function makeEditor(doc, parent) {
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
       lc.of(sql({ dialect: SQLite, schema: currentSchema })),
+      EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
         '.cm-scroller': { overflow: 'auto' },
@@ -73,8 +74,12 @@ export function ensureEditor(idx) {
 }
 
 export function showEditors(count) {
-  container0.style.display = count >= 1 ? 'flex' : 'none';
-  container1.style.display = count >= 2 ? 'flex' : 'none';
+  const wrap0 = container0.closest('.editor-pane-wrap');
+  const wrap1 = container1.closest('.editor-pane-wrap');
+  if (wrap0) wrap0.style.display = count >= 1 ? 'flex' : 'none';
+  if (wrap1) wrap1.style.display = count >= 2 ? 'flex' : 'none';
+  const div = document.getElementById('editor-divider');
+  if (div) div.classList.toggle('hidden', count < 2);
   if (count >= 2) { ensureEditor(0); ensureEditor(1); }
 }
 

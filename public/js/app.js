@@ -266,7 +266,7 @@ function pinToolbarToKeyboard() {
 function initEditorResize() {
   const handle = document.getElementById('editor-resize-handle');
   if (!handle) return;
-  const editor = document.getElementById('editor-container');
+  const editor = document.querySelector('.editor-split');
   const results = document.getElementById('results-container');
   if (!editor || !results) return;
   function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
