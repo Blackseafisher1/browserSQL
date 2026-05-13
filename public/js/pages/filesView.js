@@ -43,10 +43,10 @@ function saveCurrentContent() {
 function loadContentIntoEditor(content) {
   const v = state.editorView;
   if (!v) return;
-  if (v.state.doc.toString() === content) return;
+  const cur = v.state.doc.toString();
+  if (cur === content) return;
   v.dispatch({
     changes: { from: 0, to: v.state.doc.length, insert: content || '' },
-    selection: { anchor: 0 },
   });
 }
 
