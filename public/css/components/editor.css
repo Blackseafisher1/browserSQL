@@ -150,6 +150,12 @@
     z-index: 1;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .cm-editor .cm-cursor {
+      opacity: 1 !important;
+    }
+  }
+
   .cm-editor .cm-content {
     -webkit-user-modify: read-write-plaintext-only;
   }

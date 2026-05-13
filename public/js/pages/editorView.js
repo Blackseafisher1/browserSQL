@@ -1,4 +1,5 @@
 import { EditorView, basicSetup } from 'codemirror';
+import { drawSelection } from '@codemirror/view';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { Compartment } from '@codemirror/state';
 import { $ } from '../utils.js';
@@ -15,10 +16,12 @@ let sqlConfig = null;
 
 export function initEditor() {
   sqlConfig = new Compartment();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   view = new EditorView({
     doc: '',
     extensions: [
       basicSetup,
+      drawSelection({ cursorBlinkRate: reduceMotion ? -1 : 1200 }),
       sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({

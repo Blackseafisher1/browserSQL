@@ -2,25 +2,19 @@
 
 ## iOS Cursor Flicker
 
-**Status**: Unresolved
+**Status**: Fixed
 
-**Description**: On iOS Safari, the CodeMirror cursor flickers/glitches while the virtual keyboard is open, even when not typing. The cursor appears to jump or flash at irregular intervals.
+**Cause**: iOS **Reduce Motion** setting (`prefers-reduced-motion: reduce`) disables CSS animations. CodeMirror's cursor blink animation conflicts with the OS-level override, causing visible flicker.
 
-**Root cause**: Unknown. Likely iOS Safari's compositor interrupting CodeMirror's cursor rendering during `visualViewport` resize events triggered by the virtual keyboard. The following were attempted without success:
+**Fix**: Detect `prefers-reduced-motion` at editor init and set `cursorBlinkRate: -1` (never blink) via `drawSelection({ cursorBlinkRate })`. When blink rate is `-1`, CodeMirror renders a solid cursor via JavaScript, bypassing CSS animations entirely. iOS can't interfere.
 
-- Disabling cursor CSS animation (`animation: none`, solid `border-left`)
-- Slowing cursor blink rate (`animation-duration: 1.2s`)
-- Replacing `setInterval` polling with `focusin`/`focusout` events
-- Removing all toolbar show/hide DOM mutations during keyboard use
-- `overscroll-behavior: none` on `.cm-editor`
-- `viewport-fit=cover` in viewport meta
-- User-scalable=no, maximum-scale=1.0
+**Code**:
+```js
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+drawSelection({ cursorBlinkRate: reduceMotion ? -1 : 1200 })
+```
 
-None resolved the flicker. It appears to be a CodeMirror 6 + iOS Safari rendering issue that occurs specifically when the virtual keyboard is open and the viewport is resized.
-
-**Workaround**: Use a desktop browser or Android. The editor is fully functional on iOS — the flicker is cosmetic only and does not affect input or execution.
-
----
+Spring 2026
 
 ## SQLite WASM C String Allocation
 
