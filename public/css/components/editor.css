@@ -107,39 +107,23 @@
     border: 1px solid var(--color-border);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    transition: background 0.08s, border-color 0.08s, transform 0.06s, box-shadow 0.08s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
     user-select: none;
-    position: relative;
-    overflow: hidden;
   }
 
   .btn-kbd:hover {
     background: var(--color-bg-active);
     border-color: var(--color-accent);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
   }
 
   .btn-kbd:active {
     background: var(--color-accent);
     color: var(--color-accent-text);
     border-color: var(--color-accent);
-    transform: scale(0.88);
+    transform: scale(0.85);
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  }
-
-  .btn-kbd::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.15s;
-    pointer-events: none;
-  }
-
-  .btn-kbd:active::after {
-    opacity: 1;
   }
 
   .cm-editor.cm-wordwrap .cm-content {
