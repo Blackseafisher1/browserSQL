@@ -35,36 +35,6 @@ In-browser SQLite editor with CodeMirror 6, schema explorer, file management, an
 | UI | Vanilla ES modules, CSS `@layer` architecture, `light-dark()` theming |
 | Mobile | `visualViewport` + `activeElement` polling for keyboard detection |
 
-## Project Structure
-
-```
-public/
-├── index.html
-├── test_schema.sql
-├── css/
-│   ├── tokens.css          # Design tokens, CSS variables
-│   ├── reset.css / base.css / layouts.css
-│   ├── states.css / utilities.css
-│   └── components/         # editor.css, schema.css, results.css, modal.css, dbmanager.css
-├── js/
-│   ├── app.js              # Entry point, init order, theme, resize, mobile
-│   ├── state.js            # Global state object
-│   ├── utils.js            # $(), esc(), html()
-│   └── pages/
-│       ├── editorView.js   # CodeMirror setup, execute, schema compartment
-│       ├── filesView.js    # localStorage SQL files, tab switching
-│       ├── schemaView.js   # Schema tree, DDL/Drop, context menu
-│       ├── resultsView.js  # Results table with zoom
-│       ├── dbManager.js    # SQLite WASM init, IndexedDB, export
-│       ├── ddlModal.js     # DDL display + drop table
-│       └── settings.js     # Font size, word wrap, keyboard settings
-├── agents/
-│   ├── architecture.md     # Architecture decisions
-│   ├── plan.md             # Original feature plan
-│   ├── rules.md            # Frontend conventions
-│   └── sqlite-wasm.md      # SQLite WASM integration guide
-```
-
 ## Known Quirks
 
 - `lineWrapping` not exported from `@codemirror/view` CDN bundle — uses `EditorView.contentAttributes.of({ class: 'cm-lineWrapping' })` instead

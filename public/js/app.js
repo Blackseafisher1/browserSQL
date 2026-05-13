@@ -46,6 +46,9 @@ async function main() {
 
   document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
   document.getElementById('btn-test-schema').addEventListener('click', loadTestSchema);
+  document.querySelector('.app-logo')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
+  document.getElementById('about-modal-close')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.add('hidden'));
+  document.getElementById('about-overlay')?.addEventListener('click', (e) => { if (e.target === document.getElementById('about-overlay')) document.getElementById('about-overlay').classList.add('hidden'); });
 
   wireSchemaToolbar();
   initSidebarResize();
