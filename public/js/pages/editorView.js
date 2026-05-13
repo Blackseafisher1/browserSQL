@@ -1,6 +1,5 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { Compartment } from '@codemirror/state';
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
@@ -10,16 +9,14 @@ const container = $('#editor-container');
 const executeBtn = $('#btn-execute');
 
 let view = null;
-let currentSqlConfig = null;
 let currentSchema = {};
 
 function makeEditor(doc) {
-  const sqlConfig = new Compartment();
-  const editor = new EditorView({
+  return new EditorView({
     doc: doc || '',
     extensions: [
       basicSetup,
-      sqlConfig.of(sql({ dialect: SQLite, schema: currentSchema })),
+      sql({ dialect: SQLite, schema: currentSchema }),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -29,9 +26,7 @@ function makeEditor(doc) {
           color: 'var(--color-text-muted)',
           borderRight: '1px solid var(--color-border-light)',
         },
-        '.cm-activeLineGutter': {
-          background: 'var(--color-bg-hover)',
-        },
+        '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
         '.cm-tooltip-autocomplete': {
           background: 'var(--color-bg-surface)',
           color: 'var(--color-text)',
@@ -45,8 +40,6 @@ function makeEditor(doc) {
     ],
     parent: container,
   });
-  editor._sqlConfig = sqlConfig;
-  return editor;
 }
 
 export function initEditor() {
@@ -69,27 +62,31 @@ export function setActiveEditor(editor) {
   view = editor;
   view.dom.style.display = '';
   state.editorView = view;
-  currentSqlConfig = editor._sqlConfig || null;
 }
 
 export function getCurrentEditor() {
   return view;
 }
 
+export function getCurrentSchema() {
+  return currentSchema;
+}
+
 export function updateEditorSchema(tables) {
   const schema = {};
-  for (const t of tables) {
-    schema[t.name] = t.columns.map(c => c.name);
-  }
+  for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
-  if (!currentSqlConfig || !view) return;
-  view.dispatch({
-    effects: currentSqlConfig.reconfigure(sql({ dialect: SQLite, schema })),
-  });
+}
+
+export function replaceEditor(editor, doc) {
+  const isHidden = editor.dom.style.display === 'none';
+  editor.destroy();
+  const newEditor = makeEditor(doc);
+  newEditor.dom.style.display = isHidden ? 'none' : '';
+  return newEditor;
 }
 
 export function setWordWrap(enabled) {
-  // Currently hardcoded in makeEditor; toggle via CSS class override on container
   container.classList.toggle('cm-wordwrap', enabled);
 }
 
@@ -124,14 +121,13 @@ function setupTemplateButtons() {
     const tpl = btn.dataset.template;
     const tableName = state.activeTable || 'table_name';
     const safeTable = sqlesc(tableName);
-    let text = '';
-    switch (tpl) {
-      case 'select': text = `SELECT * FROM ${safeTable} WHERE `; break;
-      case 'insert': text = `INSERT INTO ${safeTable} (col1, col2) VALUES (val1, val2);`; break;
-      case 'update': text = `UPDATE ${safeTable} SET col1 = val1 WHERE `; break;
-      case 'delete': text = `DELETE FROM ${safeTable} WHERE `; break;
-    }
-    insertAtCursor(text);
+    const texts = {
+      select: `SELECT * FROM ${safeTable} WHERE `,
+      insert: `INSERT INTO ${safeTable} (col1, col2) VALUES (val1, val2);`,
+      update: `UPDATE ${safeTable} SET col1 = val1 WHERE `,
+      delete: `DELETE FROM ${safeTable} WHERE `,
+    };
+    insertAtCursor(texts[tpl] || '');
   });
 }
 
@@ -154,15 +150,9 @@ export async function executeQuery() {
   }
   if (!view) return;
   const sel = view.state.selection.main;
-  let sqlText;
-  if (sel.empty) {
-    sqlText = view.state.doc.toString();
-  } else {
-    sqlText = view.state.sliceDoc(sel.from, sel.to);
-  }
+  let sqlText = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
   sqlText = sqlText.trim();
   if (!sqlText) return;
-
   const startTime = performance.now();
   try {
     const rows = state.db.exec(sqlText, { rowMode: 'object' });
@@ -171,20 +161,15 @@ export async function executeQuery() {
       showResults(rows, elapsed);
     } else {
       const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer);
-      if (changes > 0) {
-        showNoResults(`${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`);
-      } else {
-        showNoResults(`0 rows | ${elapsed}ms`);
-      }
+      showNoResults(
+        changes > 0
+          ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`
+          : `0 rows | ${elapsed}ms`
+      );
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
-    refreshSchema();
+    if (state.renderSchema) state.renderSchema();
   } catch (err) {
-    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    showError(`${err.message || String(err)} (${elapsed}ms)`);
+    showError(`${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
   }
-}
-
-async function refreshSchema() {
-  if (state.renderSchema) await state.renderSchema();
 }

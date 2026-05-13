@@ -1,6 +1,6 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
-import { createEditor, setActiveEditor, getCurrentEditor, insertAtCursor } from './editorView.js';
+import { createEditor, setActiveEditor, getCurrentEditor, insertAtCursor, replaceEditor, getCurrentSchema } from './editorView.js';
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
@@ -8,6 +8,7 @@ const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
 const editors = {};
+const editorSchemas = {};
 let activeFile = null;
 
 export function getFiles() {
@@ -31,10 +32,24 @@ function ensureDefault() {
 }
 
 function getOrCreateEditor(name, content) {
-  if (!editors[name]) {
-    editors[name] = createEditor(content);
+  const oldEditor = editors[name];
+  if (oldEditor) {
+    const oldSchema = editorSchemas[name] || 0;
+    const curSchema = getSchemaKey();
+    if (oldSchema !== curSchema) {
+      const doc = oldEditor.state.doc.toString();
+      editors[name] = replaceEditor(oldEditor, doc);
+      editorSchemas[name] = curSchema;
+    }
+    return editors[name];
   }
+  editors[name] = createEditor(content);
+  editorSchemas[name] = getSchemaKey();
   return editors[name];
+}
+
+function getSchemaKey() {
+  return Object.keys(getCurrentSchema()).length;
 }
 
 function saveCurrentContent() {
