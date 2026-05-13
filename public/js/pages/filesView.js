@@ -96,8 +96,13 @@ function renderTabs() {
         } else if (pane === 1) {
           showEditors(1);
           if (activePane === 1) { activePane = 0; switchEditor(0); }
-        } else {
-          setEditorContentFor(0, '');
+        } else if (pane === 0 && paneTabs[0].length === 0) {
+          // Auto-create scratch file if left pane has no tabs
+          const files = getFiles();
+          files['scratch.sql'] = '';
+          saveFiles(files);
+          paneTabs[0] = ['scratch.sql'];
+          switchFile('scratch.sql', 0);
         }
         renderTabs();
       });
@@ -117,6 +122,8 @@ function switchToTab(name) {
 }
 
 function openInPane(name, pane) {
+  // Don't open in pane 1 if already open in pane 0
+  if (pane === 1 && paneTabs[0].includes(name)) return;
   if (pane === 1) ensureEditor(1);
   if (!paneTabs[pane].includes(name)) paneTabs[pane].push(name);
   activePane = pane;
