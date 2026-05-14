@@ -12,6 +12,9 @@
  *   renderSchema: null | (() => void),
  *   activeFileIsJS: boolean,
  *   activeFileIsMD: boolean,
+ *   tutorialMode: boolean,
+ *   tutorialStep: number,
+ *   tutorialActive: boolean,
  * }}
  */
 export const state = {
@@ -26,6 +29,9 @@ export const state = {
   renderSchema: null,
   activeFileIsJS: false,
   activeFileIsMD: false,
+  tutorialMode: false,
+  tutorialStep: 0,
+  tutorialActive: false,
 };
 
 /**

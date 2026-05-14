@@ -4,6 +4,8 @@ import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, e
 
 const FILES_KEY = 'browsersql-files';
 const ACTIVE_KEY = 'browsersql-active-file';
+const TUTORIAL_FILES_KEY = 'browsersql-tutorial-files';
+const TUTORIAL_ACTIVE_KEY = 'browsersql-tutorial-active-file';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
 
@@ -11,20 +13,39 @@ let activeFile = null;
 let activePane = 0;
 let paneTabs = [[], []]; // pane 0 = left, pane 1 = right
 
+function getStorageKeys() {
+  return state.tutorialMode
+    ? { files: TUTORIAL_FILES_KEY, active: TUTORIAL_ACTIVE_KEY }
+    : { files: FILES_KEY, active: ACTIVE_KEY };
+}
+
 /**
  * Returns the persisted file map from localStorage.
  * @returns {Record<string, string>}
  */
 export function getFiles() {
-  try { return JSON.parse(localStorage.getItem(FILES_KEY)) || {}; } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(getStorageKeys().files)) || {}; } catch { return {}; }
 }
-function saveFiles(files) { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
+function saveFiles(files) { localStorage.setItem(getStorageKeys().files, JSON.stringify(files)); }
 /**
  * Returns the active file name, falling back to the default query file.
  * @returns {string}
  */
-export function getActiveFileName() { return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE; }
-function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
+export function getActiveFileName() { return localStorage.getItem(getStorageKeys().active) || DEFAULT_FILE; }
+function setActiveFileName(n) { localStorage.setItem(getStorageKeys().active, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
+
+/**
+ * Replaces the full file set with the provided files.
+ * @param {Record<string, string>} files File map to persist.
+ * @param {string} [activeName] Optional active file name.
+ */
+export function replaceFiles(files, activeName) {
+  saveFiles(files);
+  const names = Object.keys(files);
+  const nextActive = activeName && activeName in files ? activeName : names[0] || DEFAULT_FILE;
+  localStorage.setItem(getStorageKeys().active, nextActive);
+  activeFile = null;
+}
 
 function ensureDefault() {
   const files = getFiles();
@@ -48,11 +69,11 @@ export function saveCurrentFile() {
  * @param {string} name File name.
  * @param {number} [targetPane] Optional pane index.
  */
-export function switchFile(name, targetPane) {
+export function switchFile(name, targetPane, skipSave = false) {
   if (name === activeFile) return;
   const files = getFiles();
   if (!(name in files)) return;
-  saveCurrentFile();
+  if (!skipSave) saveCurrentFile();
   setActiveFileName(name);
   const pane = targetPane !== undefined ? targetPane : activePane;
   // Ensure editor pane exists

@@ -129,6 +129,51 @@ export async function initDatabase() {
 
 const SQLITE_BASE = 'https://cdn.jsdelivr.net/npm/@sqlite.org/sqlite-wasm@3.51.2-build8/dist/';
 
+const TUTORIAL_DB_NAME = 'browsersql-tutorial';
+
+const TUTORIAL_SCHEMA = `
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  city TEXT NOT NULL,
+  age INTEGER NOT NULL
+);
+
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  price REAL NOT NULL
+);
+
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+INSERT INTO users (id, name, city, age) VALUES
+  (1, 'Ava', 'Berlin', 28),
+  (2, 'Noah', 'Hamburg', 22),
+  (3, 'Mia', 'Munich', 31),
+  (4, 'Liam', 'Cologne', 19);
+
+INSERT INTO products (id, name, price) VALUES
+  (1, 'Keyboard', 79.90),
+  (2, 'Mouse', 29.50),
+  (3, 'Monitor', 219.00);
+
+INSERT INTO orders (id, user_id, product_id, quantity, created_at) VALUES
+  (1, 1, 1, 1, '2026-05-01'),
+  (2, 1, 3, 2, '2026-05-02'),
+  (3, 2, 2, 1, '2026-05-02'),
+  (4, 3, 1, 1, '2026-05-03'),
+  (5, 4, 2, 3, '2026-05-04');
+`;
+
 async function sqlite3Init() {
   const mod = await import(SQLITE_BASE + 'index.mjs');
   return mod.default({
@@ -299,6 +344,30 @@ export async function loadTestSchema() {
     showReadyInResults();
   } catch (err) {
     showErrorInResults(`Test schema failed: ${err.message || String(err)}`);
+  }
+}
+
+/**
+ * Creates a fresh tutorial database with a small, stable learning schema.
+ * @returns {Promise<boolean>}
+ */
+export async function loadTutorialDatabase() {
+  if (!state.sqlite3) return false;
+  try {
+    state.db?.close();
+  } catch (_) {}
+  try {
+    state.db = new state.sqlite3.oo1.DB();
+    resetState();
+    state.db.exec(TUTORIAL_SCHEMA, { rowMode: 'object' });
+    state.dbName = TUTORIAL_DB_NAME;
+    dbNameInput.value = TUTORIAL_DB_NAME;
+    if (state.renderSchema) state.renderSchema();
+    showReadyInResults();
+    return true;
+  } catch (err) {
+    showErrorInResults(`Tutorial database failed: ${err.message || String(err)}`);
+    return false;
   }
 }
 

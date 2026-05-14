@@ -4,6 +4,7 @@ import { initDBManager, initDatabase, loadTestSchema, openLastDB } from './pages
 import { initSettings } from './pages/settings.js';
 import { initFilesView } from './pages/filesView.js';
 import { showReady } from './pages/resultsView.js';
+import { initTutorialMode } from './pages/tutorialView.js';
 import { state } from './state.js';
 
 const STORAGE_KEY = 'browsersql-theme';
@@ -69,11 +70,14 @@ async function main() {
   pinToolbarToKeyboard();
   initResultsZoom();
 
-  showReady();
-  if (state.renderSchema) {
-    state.renderSchema();
+  const tutorialStarted = await initTutorialMode();
+  if (!tutorialStarted) {
+    showReady();
+    if (state.renderSchema) {
+      state.renderSchema();
+    }
+    openLastDB();
   }
-  openLastDB();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
@@ -214,46 +218,56 @@ function initPaneResize() {
 }
 
 function initSidebarSectionResize() {
-  const handle = document.getElementById('sidebar-resize-handle');
-  if (!handle) return;
-  const filesNode = handle.previousElementSibling;
-  const schemaNode = handle.nextElementSibling;
-  if (!filesNode || !schemaNode) return;
-  filesNode.style.flex = '1';
-  schemaNode.style.flex = '1';
+  const handles = Array.from(document.querySelectorAll('#schema-panel .sidebar-resize-handle'));
+  if (handles.length === 0) return;
   function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-  let startY, startFs;
-  function startResize(e) {
-    startY = getY(e);
-    startFs = filesNode.getBoundingClientRect().height;
-    document.addEventListener('mousemove', moveResize);
-    document.addEventListener('mouseup', endResize);
-    document.addEventListener('touchmove', moveResize, { passive: false });
-    document.addEventListener('touchend', endResize);
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
+
+  for (const handle of handles) {
+    const topNode = handle.previousElementSibling;
+    const bottomNode = handle.nextElementSibling;
+    if (!topNode || !bottomNode) continue;
+
+    let startY = 0;
+    let startTop = 0;
+    let startBottom = 0;
+    let total = 0;
+
+    function moveResize(e) {
+      const dy = getY(e) - startY;
+      const minPx = 70;
+      let topPx = startTop + dy;
+      topPx = Math.max(minPx, Math.min(total - minPx, topPx));
+      const bottomPx = total - topPx;
+      topNode.style.flex = '0 0 ' + topPx + 'px';
+      bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
+    }
+
+    function endResize() {
+      document.removeEventListener('mousemove', moveResize);
+      document.removeEventListener('mouseup', endResize);
+      document.removeEventListener('touchmove', moveResize);
+      document.removeEventListener('touchend', endResize);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    function startResize(e) {
+      startY = getY(e);
+      startTop = topNode.getBoundingClientRect().height;
+      startBottom = bottomNode.getBoundingClientRect().height;
+      total = startTop + startBottom;
+      document.addEventListener('mousemove', moveResize);
+      document.addEventListener('mouseup', endResize);
+      document.addEventListener('touchmove', moveResize, { passive: false });
+      document.addEventListener('touchend', endResize);
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    }
+
+    handle.addEventListener('mousedown', startResize);
+    handle.addEventListener('touchstart', startResize, { passive: false });
   }
-  function moveResize(e) {
-    const dy = getY(e) - startY;
-    const total = filesNode.parentElement.getBoundingClientRect().height;
-    let fp = ((startFs + dy) / total * 100);
-    let sp = 100 - fp;
-    if (fp < 15) { fp = 15; sp = 85; }
-    if (sp < 15) { sp = 15; fp = 85; }
-    filesNode.style.flex = '0 0 ' + fp + '%';
-    schemaNode.style.flex = '0 0 ' + sp + '%';
-  }
-  function endResize() {
-    document.removeEventListener('mousemove', moveResize);
-    document.removeEventListener('mouseup', endResize);
-    document.removeEventListener('touchmove', moveResize);
-    document.removeEventListener('touchend', endResize);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-  handle.addEventListener('mousedown', startResize);
-  handle.addEventListener('touchstart', startResize, { passive: false });
 }
 
 function pinToolbarToKeyboard() {

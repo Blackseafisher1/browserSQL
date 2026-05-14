@@ -32,15 +32,14 @@
     min-height: 0;
     flex: 1;
     overflow: hidden;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .section-node-fixed {
     flex: 0 0 auto;
   }
 
-  .section-node + .section-node {
-    border-top: 1px solid var(--color-border);
-  }
 
   .section-header {
     display: flex;
@@ -164,6 +163,72 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+  }
+
+  #section-tutorial {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .tutorial-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    min-height: 0;
+    height: 100%;
+  }
+
+  .tutorial-progress {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .tutorial-content {
+    flex: 1;
+    min-height: 80px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .tutorial-content h1,
+  .tutorial-content h2,
+  .tutorial-content h3 {
+    margin: 0 0 var(--space-2);
+    line-height: 1.2;
+  }
+
+  .tutorial-content p,
+  .tutorial-content ul {
+    margin: 0 0 var(--space-2);
+  }
+
+  .tutorial-content pre {
+    margin: var(--space-2) 0;
+    padding: var(--space-2);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  .tutorial-content code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .tutorial-files {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border-light);
+    padding-top: var(--space-2);
   }
 
   .schema-tree {
@@ -311,7 +376,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    padding: var(--space-2) var(--space-3);
+    padding: 1px var(--space-2);
     cursor: pointer;
     font-size: var(--size-fluid-2);
     font-weight: 500;
@@ -347,7 +412,7 @@
   .btn-schema-drop {
     font-family: var(--font-mono);
     font-size: var(--size-fluid-0);
-    padding: 1px 5px;
+    padding: 0 5px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-border);
     background: var(--color-bg-hover);
@@ -383,10 +448,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    font-size: 14px;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    font-size: 12px;
     color: var(--color-text-muted);
     border-radius: var(--radius-sm);
     user-select: none;
@@ -405,7 +470,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    padding: 2px var(--space-3) 2px var(--space-6);
+    padding: 1px var(--space-3) 1px var(--space-6);
     font-size: var(--size-fluid-1);
     color: var(--color-text-muted);
   }
