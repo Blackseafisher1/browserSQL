@@ -23,6 +23,16 @@ let view = null;
 let editors = {};
 let currentSchema = {};
 
+let saveTimer = null;
+function debounceUpdate(update) {
+  if (update.docChanged) {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { saveCurrentFile(); } catch (_) {}
+    }, 500);
+  }
+}
+
 /**
  * Creates a CodeMirror editor instance with the app's shared extension set.
  * @param {string} doc Initial document text.
@@ -54,6 +64,7 @@ function makeEditor(doc, parent) {
         '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' },
         '.cm-tooltip-autocomplete ul li[aria-selected]': { background: 'var(--color-accent)', color: 'var(--color-accent-text)' },
       }),
+      EditorView.updateListener.of(debounceUpdate),
     ],
     parent: parent,
   });
@@ -68,6 +79,9 @@ export function initEditor() {
   editors[0] = makeEditor('', container0);
   view = editors[0];
   state.editorView = view;
+  window.addEventListener('beforeunload', () => {
+    try { saveCurrentFile(); } catch (_) {}
+  });
   setupExecuteShortcut();
   setupExecuteButton();
   setupPreviewButton();
@@ -256,7 +270,6 @@ export async function executeQuery() {
       showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
-    try { saveCurrentFile(); } catch (_) {}
     if (state.renderSchema) state.renderSchema();
     evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
