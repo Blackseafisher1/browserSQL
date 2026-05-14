@@ -4,7 +4,7 @@ import { state } from '../state.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false, showTutorial: true };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false };
 }
 
 let settings = loadSettings();
@@ -25,6 +25,8 @@ function saveSettings() {
 /**
  * Applies the current settings to the document and control values.
  */
+export function getSettings() { return settings; }
+
 export function applySettings() {
   document.documentElement.style.setProperty('--editor-font-size', settings.fontSize + 'px');
   document.documentElement.style.setProperty('--kbd-height', settings.kbdHeight + 'px');
@@ -51,6 +53,8 @@ export function applySettings() {
   applyTutorialVisibility();
   const stCb = $('#setting-showtutorial');
   if (stCb) stCb.checked = settings.showTutorial !== false;
+  const skCb = $('#setting-skip');
+  if (skCb) skCb.checked = settings.skipEnabled === true;
 }
 
 /**
@@ -121,6 +125,12 @@ export function initSettings() {
 
   $('#setting-showtutorial')?.addEventListener('change', (e) => {
     settings.showTutorial = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-skip')?.addEventListener('change', (e) => {
+    settings.skipEnabled = e.target.checked;
     saveSettings();
     applySettings();
   });

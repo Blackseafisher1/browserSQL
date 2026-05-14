@@ -3,6 +3,7 @@ import { state } from '../state.js';
 import { renderMarkdown } from './marker.js';
 import { loadTutorialDatabase, openLastDB, saveCurrentToLocal } from './dbManager.js';
 import { ensureDefaultFiles, getActiveFileName, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
+import { getSettings } from './settings.js';
 
 const ACTIVE_KEY = 'browsersql-tutorial-active';
 const STEP_KEY = 'browsersql-tutorial-step';
@@ -325,7 +326,7 @@ ORDER BY column;
 - Live in Berlin or Munich
 - Are between 20 and 35 years old (inclusive)
 - Are NOT 22 years old
-- Sorted alphabetically by name`,`,
+- Sorted alphabetically by name`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;" },
   },
@@ -537,7 +538,7 @@ function renderTutorialPanel() {
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
     panel.next.textContent = state.tutorialStep === lessons.length - 1 ? 'Finish' : 'Next';
-    panel.next.disabled = !state.tutorialActive || !completed;
+    panel.next.disabled = !state.tutorialActive || (!completed && !getSettings().skipEnabled);
   }
   if (!state.tutorialActive) setStatus('Start the tutorial to begin.', '');
 }
@@ -719,6 +720,8 @@ export async function initTutorialMode() {
   });
   panel.next?.addEventListener('click', (e) => {
     e.stopPropagation();
+    const skipped = !isComplete(state.tutorialStep) && getSettings().skipEnabled;
+    if (skipped && !confirm('Skipping lessons means you miss the practice. Only skip for testing. Actually want to proceed?')) return;
     if (state.tutorialStep >= lessons.length - 1) {
       void exitTutorialMode();
       return;
