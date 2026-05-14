@@ -22,6 +22,9 @@ function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
+/**
+ * Applies the current settings to the document and control values.
+ */
 export function applySettings() {
   document.documentElement.style.setProperty('--editor-font-size', settings.fontSize + 'px');
   document.documentElement.style.setProperty('--kbd-height', settings.kbdHeight + 'px');
@@ -47,10 +50,16 @@ export function applySettings() {
   if (hhCb) hhCb.checked = settings.hideHeader;
 }
 
+/**
+ * Hides or shows the app header based on the saved preference and viewport width.
+ */
 function applyHideHeader() {
   document.getElementById('header').style.display = settings.hideHeader && window.innerWidth > 768 ? 'none' : '';
 }
 
+/**
+ * Wires the settings modal and change handlers.
+ */
 export function initSettings() {
   applySettings();
 

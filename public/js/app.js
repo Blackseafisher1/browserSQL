@@ -8,6 +8,9 @@ import { state } from './state.js';
 
 const STORAGE_KEY = 'browsersql-theme';
 
+/**
+ * Initializes the saved or system theme on page load.
+ */
 function initTheme() {
   const saved = localStorage.getItem(STORAGE_KEY);
   let theme;
@@ -19,6 +22,9 @@ function initTheme() {
   document.documentElement.setAttribute('data-theme', theme);
 }
 
+/**
+ * Toggles the app theme between light and dark.
+ */
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
@@ -26,6 +32,9 @@ function toggleTheme() {
   localStorage.setItem(STORAGE_KEY, next);
 }
 
+/**
+ * Bootstraps the full browserSQL application.
+ */
 async function main() {
   document.addEventListener('touchstart', () => {}, { passive: true });
   initTheme();
@@ -257,8 +266,61 @@ function pinToolbarToKeyboard() {
   toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
 }
 
+/**
+ * Wires the schema-panel toolbar buttons to their header counterparts.
+ */
 function wireSchemaToolbar() {
+  const headerRecentBtn = document.getElementById('btn-recent-dbs');
+  let preferFloatingRecent = false;
+
+  function restoreRecentDropdown() {
+/**
+ * Makes the schema panel resizable horizontally.
+ */
+    const dropdown = document.getElementById('recent-dbs-dropdown');
+    const wrap = document.querySelector('#header .recent-wrap');
+    if (!dropdown || !wrap || dropdown.dataset.floating !== 'true') return;
+    dropdown.dataset.floating = 'false';
+    dropdown.classList.remove('recent-wrap');
+    dropdown.style.position = '';
+    dropdown.style.left = '';
+    dropdown.style.top = '';
+    dropdown.style.right = '';
+    dropdown.style.marginTop = '';
+    if (dropdown.parentElement !== wrap) wrap.appendChild(dropdown);
+  }
+
+  function floatRecentDropdown(anchor) {
+/**
+ * Wires the mobile schema and action drawer toggles.
+ */
+    const dropdown = document.getElementById('recent-dbs-dropdown');
+    if (!dropdown || !anchor) return;
+    if (dropdown.parentElement !== document.body) document.body.appendChild(dropdown);
+    dropdown.dataset.floating = 'true';
+    dropdown.classList.add('recent-wrap');
+    const rect = anchor.getBoundingClientRect();
+    const width = Math.max(250, dropdown.offsetWidth || 0);
+    const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+    dropdown.style.position = 'fixed';
+    dropdown.style.left = left + 'px';
+    dropdown.style.top = rect.bottom + 6 + 'px';
+    dropdown.style.right = 'auto';
+    dropdown.style.marginTop = '0';
+  }
+
+  headerRecentBtn?.addEventListener('click', () => {
+/**
+ * Reads keyboard-toolbar settings from localStorage.
+ * @returns {{kbdEnabled: boolean, kbdHeight: number}}
+ */
+    if (!preferFloatingRecent) restoreRecentDropdown();
+  });
+
   const map = {
+/**
+ * Makes the SQL keyboard bar stick to the bottom on supported mobile devices.
+ */
     'btn-schema-new': 'btn-new-db',
     'btn-schema-open': 'btn-open-db',
     'btn-schema-export': 'btn-export-db',
@@ -270,11 +332,26 @@ function wireSchemaToolbar() {
   };
   for (const [fromId, toId] of Object.entries(map)) {
     document.getElementById(fromId)?.addEventListener('click', () => {
+      if (fromId === 'btn-schema-recent') {
+        const header = document.getElementById('header');
+        const headerHidden = header && getComputedStyle(header).display === 'none';
+        if (headerHidden) {
+          const anchor = document.getElementById('btn-schema-recent');
+          preferFloatingRecent = true;
+          floatRecentDropdown(anchor);
+          headerRecentBtn?.click();
+          preferFloatingRecent = false;
+          return;
+        }
+      }
       document.getElementById(toId)?.click();
     });
   }
 }
 
+/**
+ * Updates the results zoom slider and persisted font size.
+ */
 function initResultsZoom() {
   const slider = document.getElementById('results-zoom');
   const display = document.getElementById('results-zoom-value');

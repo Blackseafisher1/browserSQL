@@ -10,6 +10,10 @@ const dropBtn = $('#btn-drop-table');
 
 let currentTableName = null;
 
+/**
+ * Opens the DDL modal for a table and renders a formatted CREATE TABLE statement.
+ * @param {string} tableName Table to inspect.
+ */
 export function showDDLModal(tableName) {
   if (!state.db) return;
   currentTableName = tableName;
@@ -25,6 +29,11 @@ export function showDDLModal(tableName) {
   }
 }
 
+/**
+ * Builds a readable CREATE TABLE statement for the given table.
+ * @param {string} tableName Table name.
+ * @returns {string}
+ */
 function buildFormattedDDL(tableName) {
   const db = state.db;
   const cols = db.exec(`PRAGMA table_info(${escId(tableName)})`, { rowMode: 'object' });
@@ -86,6 +95,12 @@ function buildFormattedDDL(tableName) {
   return `CREATE TABLE ${tableName}(\n${lines.concat(combined).join(',\n')}\n);`;
 }
 
+/**
+ * Detects whether a table column is AUTOINCREMENT.
+ * @param {string} tableName Table name.
+ * @param {string} colName Column name.
+ * @returns {boolean}
+ */
 function checkAutoIncrement(tableName, colName) {
   try {
     const rows = state.db.exec(
@@ -99,11 +114,17 @@ function checkAutoIncrement(tableName, colName) {
   return false;
 }
 
+/**
+ * Closes the DDL modal and clears the selected table.
+ */
 export function hideDDLModal() {
   overlay.classList.add('hidden');
   currentTableName = null;
 }
 
+/**
+ * Drops the table currently shown in the modal.
+ */
 function dropCurrentTable() {
   if (!currentTableName || !state.db) return;
   const confirmed = confirm(`Drop table "${currentTableName}"? This cannot be undone.`);

@@ -6,6 +6,9 @@ import { executeQuery } from './editorView.js';
 const tree = $('#schema-tree');
 const contextMenu = $('#context-menu');
 
+/**
+ * Wires schema tree rendering, selection, and context menu interactions.
+ */
 export function initSchemaView() {
   state.renderSchema = renderSchema;
   tree.addEventListener('click', handleTreeClick);
@@ -15,6 +18,9 @@ export function initSchemaView() {
   contextMenu.addEventListener('click', handleContextMenuClick);
 }
 
+/**
+ * Rebuilds the schema sidebar from the current database.
+ */
 async function renderSchema() {
   if (!state.db) {
     tree.innerHTML = '<div class="schema-empty">No tables</div>';
@@ -81,10 +87,19 @@ async function renderSchema() {
   }
 }
 
+/**
+ * Escapes an SQLite identifier.
+ * @param {string} name Identifier name.
+ * @returns {string}
+ */
 function escId(name) {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
+/**
+ * Renders the schema tree HTML from the discovered tables.
+ * @param {Array<{name: string, columns: Array<{name: string, type: string, pk: boolean, fk: boolean, nn: boolean, uq: boolean, ai: boolean}>}>} tables Table metadata.
+ */
 function renderTree(tables) {
   if (tables.length === 0) {
     tree.innerHTML = '<div class="schema-empty">No tables</div>';
@@ -124,6 +139,10 @@ function renderTree(tables) {
   tree.innerHTML = html;
 }
 
+/**
+ * Handles single-click selection and schema actions.
+ * @param {MouseEvent} e Click event.
+ */
 function handleTreeClick(e) {
   const ddlBtn = e.target.closest('[data-ddl]');
   if (ddlBtn) {
@@ -162,6 +181,10 @@ function handleTreeClick(e) {
   }
 }
 
+/**
+ * Handles double-clicking a table to insert a SELECT statement.
+ * @param {MouseEvent} e Double-click event.
+ */
 function handleTreeDblClick(e) {
   const tableEl = e.target.closest('[data-table-name]');
   if (!tableEl) return;
@@ -178,6 +201,10 @@ function handleTreeDblClick(e) {
   }
 }
 
+/**
+ * Inserts SQL into the active editor.
+ * @param {string} text SQL text.
+ */
 function insertInEditor(text) {
   if (state.editorView) {
     state.editorView.dispatch({
@@ -187,6 +214,10 @@ function insertInEditor(text) {
   }
 }
 
+/**
+ * Toggles whether a schema table is expanded.
+ * @param {string} name Table name.
+ */
 function toggleExpand(name) {
   if (state.tableExpanded.has(name)) {
     state.tableExpanded.delete(name);
@@ -196,12 +227,20 @@ function toggleExpand(name) {
   renderSchema();
 }
 
+/**
+ * Updates the active-table highlight state.
+ * @param {string} name Table name.
+ */
 function updateActiveState(name) {
   $$('.schema-table-name').forEach(el => {
     el.classList.toggle('active', el.dataset.tableName === name);
   });
 }
 
+/**
+ * Opens the floating schema context menu for a table.
+ * @param {MouseEvent} e Context-menu event.
+ */
 function handleContextMenu(e) {
   const tableEl = e.target.closest('[data-table-name]');
   if (!tableEl) return;
@@ -210,6 +249,12 @@ function handleContextMenu(e) {
   showContextMenu(e.clientX, e.clientY, tableName);
 }
 
+/**
+ * Populates and positions the schema context menu.
+ * @param {number} x Client X coordinate.
+ * @param {number} y Client Y coordinate.
+ * @param {string} tableName Table name.
+ */
 function showContextMenu(x, y, tableName) {
   const safe = esc(tableName);
   contextMenu.innerHTML = `
@@ -227,14 +272,26 @@ function showContextMenu(x, y, tableName) {
   contextMenu.dataset.contextTable = tableName;
 }
 
+/**
+ * Hides the schema context menu.
+ */
 function hideContextMenu() {
   contextMenu.classList.add('hidden');
 }
 
+/**
+ * Escapes an identifier for SQL templates.
+ * @param {string} name Table name.
+ * @returns {string}
+ */
 function sqlesc(name) {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
+/**
+ * Handles clicks inside the schema context menu.
+ * @param {MouseEvent} e Click event.
+ */
 function handleContextMenuClick(e) {
   const item = e.target.closest('[data-action]');
   if (!item) return;

@@ -11,10 +11,18 @@ let activeFile = null;
 let activePane = 0;
 let paneTabs = [[], []]; // pane 0 = left, pane 1 = right
 
+/**
+ * Returns the persisted file map from localStorage.
+ * @returns {Record<string, string>}
+ */
 export function getFiles() {
   try { return JSON.parse(localStorage.getItem(FILES_KEY)) || {}; } catch { return {}; }
 }
 function saveFiles(files) { localStorage.setItem(FILES_KEY, JSON.stringify(files)); }
+/**
+ * Returns the active file name, falling back to the default query file.
+ * @returns {string}
+ */
 export function getActiveFileName() { return localStorage.getItem(ACTIVE_KEY) || DEFAULT_FILE; }
 function setActiveFileName(n) { localStorage.setItem(ACTIVE_KEY, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
 
@@ -24,6 +32,9 @@ function ensureDefault() {
   if (!(getActiveFileName() in getFiles())) setActiveFileName(DEFAULT_FILE);
 }
 
+/**
+ * Saves the current editor content back into the active file entry.
+ */
 export function saveCurrentFile() {
   const c = getEditorContent();
   if (c === null) return;
@@ -32,6 +43,11 @@ export function saveCurrentFile() {
   if (name) { files[name] = c; saveFiles(files); }
 }
 
+/**
+ * Opens a file in the requested pane and refreshes the tree and tabs.
+ * @param {string} name File name.
+ * @param {number} [targetPane] Optional pane index.
+ */
 export function switchFile(name, targetPane) {
   if (name === activeFile) return;
   const files = getFiles();
@@ -177,6 +193,11 @@ function openInPane(name, pane) {
   switchFile(name, pane);
 }
 
+/**
+ * Creates a new empty file and opens it in the left editor pane.
+ * @param {string} name File name.
+ * @returns {boolean}
+ */
 export function createFile(name) {
   const files = getFiles();
   if (name in files) return false;
@@ -186,6 +207,11 @@ export function createFile(name) {
   return true;
 }
 
+/**
+ * Deletes a file and updates active tabs if needed.
+ * @param {string} name File name.
+ * @returns {boolean}
+ */
 export function deleteFile(name) {
   const files = getFiles();
   if (!(name in files)) return false;
@@ -216,6 +242,9 @@ function buildTree(paths) {
 
 let expandedFolders = new Set();
 
+/**
+ * Renders the file tree into the sidebar.
+ */
 export function renderTree() {
   const el = $('#files-tree');
   if (!el) return;
@@ -243,6 +272,9 @@ function renderNode(node, prefix, active, depth) {
   return html;
 }
 
+/**
+ * Initializes the file explorer, default file, and sidebar interactions.
+ */
 export function initFilesView() {
   ensureDefault();
   const files = getFiles(); const name = getActiveFileName();

@@ -14,6 +14,10 @@ const dbNameInput = $('#db-name-input');
 
 const LOCAL_DB_NAME = 'browsersql-dbs';
 
+/**
+ * Opens the IndexedDB database used to store local database snapshots.
+ * @returns {Promise<IDBDatabase>}
+ */
 function openLocalDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(LOCAL_DB_NAME, 1);
@@ -26,6 +30,11 @@ function openLocalDB() {
   });
 }
 
+/**
+ * Persists a database snapshot to local IndexedDB storage.
+ * @param {string} name Database name.
+ * @param {Uint8Array} data Serialized database bytes.
+ */
 async function saveToLocal(name, data) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readwrite');
@@ -34,6 +43,11 @@ async function saveToLocal(name, data) {
   idb.close();
 }
 
+/**
+ * Loads a database snapshot from local IndexedDB storage.
+ * @param {string} name Database name.
+ * @returns {Promise<Uint8Array | undefined>}
+ */
 async function loadFromLocal(name) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readonly');
@@ -46,6 +60,10 @@ async function loadFromLocal(name) {
   return result?.data;
 }
 
+/**
+ * Lists all locally saved databases, newest first.
+ * @returns {Promise<Array<{name: string, data: Uint8Array, savedAt: number}>>}
+ */
 async function listLocalDBs() {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readonly');
@@ -58,6 +76,10 @@ async function listLocalDBs() {
   return (results || []).sort((a, b) => b.savedAt - a.savedAt);
 }
 
+/**
+ * Deletes a local database snapshot.
+ * @param {string} name Database name.
+ */
 async function deleteFromLocal(name) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readwrite');
@@ -66,6 +88,9 @@ async function deleteFromLocal(name) {
   idb.close();
 }
 
+/**
+ * Wires the database toolbar, file input, shortcuts, and recent list.
+ */
 export function initDBManager() {
   btnNew.addEventListener('click', newDatabase);
   btnOpen.addEventListener('click', () => fileInput.click());
@@ -85,6 +110,10 @@ export function initDBManager() {
   });
 }
 
+/**
+ * Initializes the SQLite WASM runtime and creates an empty database.
+ * @returns {Promise<boolean>}
+ */
 export async function initDatabase() {
   try {
     const sqlite3 = await sqlite3Init();
@@ -107,6 +136,9 @@ async function sqlite3Init() {
   });
 }
 
+/**
+ * Creates a fresh empty database and resets app state.
+ */
 function newDatabase() {
   if (!state.sqlite3) return;
   try {
@@ -120,11 +152,20 @@ function newDatabase() {
   localStorage.removeItem(LAST_DB_KEY);
 }
 
+/**
+ * Synchronizes the visible database name input and shared state.
+ * @param {string} name Database name.
+ */
 function updateDBName(name) {
   state.dbName = name;
   dbNameInput.value = name;
 }
 
+/**
+ * Reconstructs a SQLite database instance from serialized bytes.
+ * @param {Uint8Array} bytes Serialized SQLite database.
+ * @returns {any}
+ */
 function deserializeDB(bytes) {
   const pDb = new state.sqlite3.oo1.DB();
   const mod = state.sqlite3;
@@ -148,6 +189,10 @@ function deserializeDB(bytes) {
   }
 }
 
+/**
+ * Exports the current database using the available SQLite API.
+ * @returns {Uint8Array}
+ */
 function exportDB() {
   if (typeof state.db.export === 'function') {
     return state.db.export();
@@ -155,6 +200,11 @@ function exportDB() {
   return state.sqlite3.capi.sqlite3_js_db_export(state.db.pointer);
 }
 
+/**
+ * Loads serialized database bytes into the current session.
+ * @param {Uint8Array} bytes Serialized SQLite database.
+ * @param {string} name Database name.
+ */
 async function loadDBState(bytes, name) {
   if (!state.sqlite3) return;
   try {
@@ -169,6 +219,10 @@ async function loadDBState(bytes, name) {
   localStorage.setItem(LAST_DB_KEY, name);
 }
 
+/**
+ * Handles opening a database file from disk.
+ * @param {Event} e File input change event.
+ */
 async function handleFileOpen(e) {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -185,6 +239,9 @@ async function handleFileOpen(e) {
   fileInput.value = '';
 }
 
+/**
+ * Downloads the current database as a SQLite file.
+ */
 async function exportDatabase() {
   if (!state.db || !state.sqlite3) {
     showErrorInResults('No database to export.');
@@ -206,6 +263,9 @@ async function exportDatabase() {
   }
 }
 
+/**
+ * Persists the current database snapshot to local storage.
+ */
 export async function saveCurrentToLocal() {
   if (!state.db || !state.sqlite3) return;
   try {
@@ -214,6 +274,9 @@ export async function saveCurrentToLocal() {
   } catch (_) {}
 }
 
+/**
+ * Loads the bundled test schema into a fresh database.
+ */
 export async function loadTestSchema() {
   if (!state.sqlite3) return;
   try {
@@ -239,6 +302,9 @@ export async function loadTestSchema() {
   }
 }
 
+/**
+ * Refreshes the recent database dropdown contents.
+ */
 async function refreshRecentDBsList() {
   try {
     const dbs = await listLocalDBs();
@@ -262,6 +328,10 @@ async function refreshRecentDBsList() {
   }
 }
 
+/**
+ * Handles selecting a recent database from the dropdown.
+ * @param {MouseEvent} e Click event.
+ */
 async function handleRecentClick(e) {
   const item = e.target.closest('.dropdown-item');
   if (!item) return;
@@ -281,6 +351,9 @@ async function handleRecentClick(e) {
   }
 }
 
+/**
+ * Deletes the current database from local storage after confirmation.
+ */
 async function deleteCurrentFromLocal() {
   const name = state.dbName;
   if (!name || name === 'untitled') {
@@ -299,6 +372,10 @@ async function deleteCurrentFromLocal() {
   }
 }
 
+/**
+ * Handles keyboard shortcuts for save, open, and new database actions.
+ * @param {KeyboardEvent} e Keydown event.
+ */
 function handleShortcuts(e) {
   const ctrl = e.ctrlKey || e.metaKey;
   if (ctrl && e.key === 's') {
@@ -315,6 +392,9 @@ function handleShortcuts(e) {
   }
 }
 
+/**
+ * Writes the ready state to the results pane.
+ */
 function showReadyInResults() {
   const el = $('#results-info');
   const out = $('#results-output');
@@ -322,6 +402,10 @@ function showReadyInResults() {
   if (out) out.innerHTML = '';
 }
 
+/**
+ * Writes an error state to the results pane.
+ * @param {string} msg Error message.
+ */
 function showErrorInResults(msg) {
   const el = $('#results-info');
   const out = $('#results-output');
@@ -329,12 +413,20 @@ function showErrorInResults(msg) {
   if (out) out.innerHTML = `<div class="results-error">${esc(msg)}</div>`;
 }
 
+/**
+ * Escapes text for safe HTML insertion.
+ * @param {string} s Raw text.
+ * @returns {string}
+ */
 function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
 }
 
+/**
+ * Reopens the last active local database, if one was saved.
+ */
 export async function openLastDB() {
   const name = localStorage.getItem(LAST_DB_KEY);
   if (!name) return;

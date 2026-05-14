@@ -1,3 +1,19 @@
+/**
+ * Shared runtime state for the app.
+ * @type {{
+ *   db: any,
+ *   sqlite3: any,
+ *   dbName: string,
+ *   editorView: any,
+ *   tables: Array<{name: string, columns: Array<Record<string, unknown>>}>,
+ *   refreshEditorSchema: null | ((tables: Array<{name: string, columns: Array<Record<string, unknown>>}>) => void),
+ *   tableExpanded: Set<string>,
+ *   activeTable: string | null,
+ *   renderSchema: null | (() => void),
+ *   activeFileIsJS: boolean,
+ *   activeFileIsMD: boolean,
+ * }}
+ */
 export const state = {
   db: null,
   sqlite3: null,
@@ -12,6 +28,9 @@ export const state = {
   activeFileIsMD: false,
 };
 
+/**
+ * Resets the schema and active-table portions of the shared state.
+ */
 export function resetState() {
   state.tables = [];
   state.tableExpanded = new Set();

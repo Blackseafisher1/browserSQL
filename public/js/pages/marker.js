@@ -1,3 +1,8 @@
+/**
+ * Renders a small Markdown subset into HTML for the preview pane.
+ * @param {string} text Markdown source text.
+ * @returns {string}
+ */
 export function renderMarkdown(text) {
   const lines = text.split('\n');
   let html = '';
@@ -45,6 +50,11 @@ export function renderMarkdown(text) {
   return html;
 }
 
+/**
+ * Escapes HTML for the Markdown renderer.
+ * @param {string} s Raw text.
+ * @returns {string}
+ */
 function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;

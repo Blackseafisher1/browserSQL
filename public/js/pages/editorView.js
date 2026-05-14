@@ -22,6 +22,12 @@ let editors = {};
 let currentSchema = {};
 let langConfig = null;
 
+/**
+ * Creates a CodeMirror editor instance with the app's shared extension set.
+ * @param {string} doc Initial document text.
+ * @param {HTMLElement} parent Host element for the editor.
+ * @returns {EditorView}
+ */
 function makeEditor(doc, parent) {
   const lc = new Compartment();
   const ed = new EditorView({
@@ -54,6 +60,9 @@ function makeEditor(doc, parent) {
   return ed;
 }
 
+/**
+ * Initializes the primary editor and attaches global editor controls.
+ */
 export function initEditor() {
   langConfig = new Compartment();
   editors[0] = makeEditor('', container0);
@@ -66,6 +75,11 @@ export function initEditor() {
   setupKeyboardButtons();
 }
 
+/**
+ * Ensures the requested editor pane exists.
+ * @param {number} idx Pane index.
+ * @returns {EditorView}
+ */
 export function ensureEditor(idx) {
   if (!editors[idx]) {
     editors[idx] = makeEditor('', idx === 0 ? container0 : container1);
@@ -73,6 +87,10 @@ export function ensureEditor(idx) {
   return editors[idx];
 }
 
+/**
+ * Shows or hides editor panes to match the requested count.
+ * @param {number} count Number of visible panes.
+ */
 export function showEditors(count) {
   const wrap0 = container0.closest('.editor-pane-wrap');
   const wrap1 = container1.closest('.editor-pane-wrap');
@@ -86,6 +104,10 @@ export function showEditors(count) {
   if (count >= 2) { ensureEditor(0); ensureEditor(1); }
 }
 
+/**
+ * Switches the active editor view to the requested pane.
+ * @param {number} idx Pane index.
+ */
 export function switchEditor(idx) {
   const ed = ensureEditor(idx);
   if (view && view !== ed) view.dom.style.display = 'none';
@@ -94,10 +116,18 @@ export function switchEditor(idx) {
   state.editorView = view;
 }
 
+/**
+ * Returns the text from the active editor.
+ * @returns {string}
+ */
 export function getEditorContent() {
   return view ? view.state.doc.toString() : '';
 }
 
+/**
+ * Replaces the current editor content with the provided document text.
+ * @param {string} doc New document text.
+ */
 export function setEditorContent(doc) {
   if (!view) return;
   const cur = view.state.doc.toString();
@@ -107,6 +137,11 @@ export function setEditorContent(doc) {
   requestAnimationFrame(() => { view.dom.style.opacity = ''; });
 }
 
+/**
+ * Replaces the text in a specific editor pane.
+ * @param {number} idx Pane index.
+ * @param {string} doc New document text.
+ */
 export function setEditorContentFor(idx, doc) {
   const ed = ensureEditor(idx);
   const cur = ed.state.doc.toString();
@@ -114,8 +149,16 @@ export function setEditorContentFor(idx, doc) {
   ed.dispatch({ changes: { from: 0, to: ed.state.doc.length, insert: doc || '' } });
 }
 
+/**
+ * Returns the current SQL schema map used for completion.
+ * @returns {Record<string, string[]>}
+ */
 export function getCurrentSchema() { return currentSchema; }
 
+/**
+ * Rebuilds the editor schema from the current database table list.
+ * @param {Array<{name: string, columns: Array<{name: string}>}>} tables Table metadata.
+ */
 export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
@@ -124,6 +167,10 @@ export function updateEditorSchema(tables) {
   view.dispatch({ effects: view._langComp.reconfigure(sql({ dialect: SQLite, schema })) });
 }
 
+/**
+ * Switches syntax support for the active editors.
+ * @param {'js' | 'md' | 'sql'} lang Language key.
+ */
 export function setLanguage(lang) {
   const map = { js: javascript(), md: markdown(), sql: sql({ dialect: SQLite, schema: currentSchema }) };
   const ext = map[lang] || map.sql;
@@ -132,10 +179,17 @@ export function setLanguage(lang) {
     if (ed && ed._langComp) ed.dispatch({ effects: ed._langComp.reconfigure(ext) });
   }
 }
+  /**
+   * Inserts text at the current cursor position in the active editor.
+   * @param {string} text Text to insert.
+   */
 
 export function setWordWrap(enabled) {}
 
 export function insertAtCursor(text) {
+/**
+ * Executes the current selection or full editor contents as SQL.
+ */
   if (!view) return;
   const sel = view.state.selection.main;
   view.dispatch({
