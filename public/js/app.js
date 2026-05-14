@@ -165,6 +165,21 @@ function getKbdSettings() {
   } catch { return { kbdEnabled: true, kbdHeight: 40 }; }
 }
 
+function initEditorResize() {
+  const handle = document.getElementById('editor-resize-handle');
+  if (!handle) return;
+  const editor = document.querySelector('.editor-split');
+  const results = document.getElementById('results-container');
+  if (!editor || !results) return;
+  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+  let startY, startEd, startRs;
+  function startResize(e) { startY = getY(e); startEd = editor.getBoundingClientRect().height; startRs = results.getBoundingClientRect().height; document.addEventListener('mousemove', moveResize); document.addEventListener('mouseup', endResize); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); }
+  function moveResize(e) { const dy = getY(e) - startY; const total = editor.parentElement.clientHeight; let ep = ((startEd + dy) / total * 100); let rp = ((startRs - dy) / total * 100); if (ep < 10) { ep = 10; rp = 90; } if (rp < 10) { rp = 10; ep = 90; } editor.style.flex = `1 1 ${ep}%`; results.style.flex = `1 1 ${rp}%`; }
+  function endResize() { document.removeEventListener('mousemove', moveResize); document.removeEventListener('mouseup', endResize); document.removeEventListener('touchmove', moveResize); document.removeEventListener('touchend', endResize); document.body.style.cursor = ''; document.body.style.userSelect = ''; }
+  handle.addEventListener('mousedown', startResize);
+  handle.addEventListener('touchstart', startResize, { passive: false });
+}
+
 function initPaneResize() {
   const divider = document.getElementById('editor-divider');
   if (!divider) return;
