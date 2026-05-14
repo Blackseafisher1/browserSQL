@@ -163,6 +163,13 @@ SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
 
 A \`PRIMARY KEY\` uniquely identifies each row. Use \`INTEGER PRIMARY KEY AUTOINCREMENT\` to have SQLite automatically assign increasing IDs.
 
+\`\`\`sql
+CREATE TABLE tablename (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  column TYPE
+);
+\`\`\`
+
 **Goal:** Create a table called \`projects\` with an auto-incrementing \`id\` primary key and a \`name\` column (TEXT NOT NULL). Then insert a project row.`,
     seed: SEED_EMPTY,
     check: { type: 'pk', table: 'projects', column: 'id' },
@@ -200,6 +207,11 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     markdown: `# 8. Constraints
 
 Constraints enforce rules on your data:
+
+\`\`\`sql
+column TYPE NOT NULL UNIQUE DEFAULT value CHECK (condition)
+\`\`\`
+
 - \`NOT NULL\` — column must have a value
 - \`UNIQUE\` — all values in the column must be different
 - \`DEFAULT\` — provides a fallback value
@@ -294,6 +306,15 @@ Use \`=\` to compare values. String literals go in single quotes.
     markdown: `# 12. Advanced filtering
 
 Combine multiple operators for precise filtering:
+
+\`\`\`sql
+SELECT columns FROM table
+WHERE column IN (value1, value2)
+  AND column BETWEEN x AND y
+  AND column NOT IN (value)
+ORDER BY column;
+\`\`\`
+
 - \`IN (...)\` — match any value in a list
 - \`BETWEEN x AND y\` — match a range
 - \`NOT IN (...)\` — exclude values
@@ -304,7 +325,7 @@ Combine multiple operators for precise filtering:
 - Live in Berlin or Munich
 - Are between 20 and 35 years old (inclusive)
 - Are NOT 22 years old
-- Sorted alphabetically by name`,
+- Sorted alphabetically by name`,`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;" },
   },
@@ -318,6 +339,11 @@ Combine multiple operators for precise filtering:
     markdown: `# 13. Working with NULL
 
 \`NULL\` represents missing or unknown data. You cannot use \`= NULL\` — instead use \`IS NULL\` or \`IS NOT NULL\`.
+
+\`\`\`sql
+SELECT columns FROM table WHERE column IS NULL;
+SELECT columns FROM table WHERE column IS NOT NULL;
+\`\`\`
 
 **Goal:** Write a query that returns the names of users who do not have an email address.`,
     seed: SEED_USERS_NULL,
