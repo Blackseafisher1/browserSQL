@@ -94,7 +94,11 @@ SQL databases use tables and a structured schema. NoSQL systems can be document,
     markdown: `# 3. Your first database
 
 Use \`SELECT\` to read data from a table:
-  SELECT column1, column2 FROM tablename;
+
+\`\`\`sql
+SELECT column1, column2 FROM tablename;
+\`\`\`
+
 Use \`*\` to select all columns. Use \`WHERE\` to filter rows.
 
 SQLite stores metadata about all tables in a system table called \`sqlite_master\`. It has columns like \`name\`, \`type\`, and \`sql\`.
@@ -117,10 +121,13 @@ Try querying \`sqlite_master\` to discover what tables exist in this database.
 Use \`CREATE TABLE\` to define a new table. Specify column names, data types, and constraints.
 
 Basic syntax:
-  CREATE TABLE tablename (
-    column1 TYPE CONSTRAINTS,
-    column2 TYPE CONSTRAINTS
-  );
+
+\`\`\`sql
+CREATE TABLE tablename (
+  column1 TYPE CONSTRAINTS,
+  column2 TYPE CONSTRAINTS
+);
+\`\`\`
 
 **Goal:** Create a table called \`people\` with columns \`id\` (INTEGER PRIMARY KEY), \`name\` (TEXT NOT NULL), and \`age\` (INTEGER NOT NULL).`,
     seed: SEED_EMPTY,
@@ -174,7 +181,10 @@ A \`FOREIGN KEY\` links rows across tables. It references a \`PRIMARY KEY\` in a
 First enable foreign keys with \`PRAGMA foreign_keys = ON;\`
 
 Syntax:
-  FOREIGN KEY (local_column) REFERENCES other_table(other_column)
+
+\`\`\`sql
+FOREIGN KEY (local_column) REFERENCES other_table(other_column);
+\`\`\`
 
 **Goal:** Create an \`authors\` table (id, name) and a \`books\` table (id, title, author_id) where \`author_id\` references \`authors(id)\`.`,
     seed: SEED_EMPTY_FK,
@@ -227,9 +237,27 @@ Relationships can be one-to-one, one-to-many, or many-to-many.
     sql: 'SELECT * FROM users;\n',
     markdown: `# 10. Reading data
 
-Use \`SELECT\` to read data from a table.
-  SELECT column1, column2 FROM tablename;
+Use \`SELECT\` to read data from a table:
+
+\`\`\`sql
+SELECT column1, column2 FROM tablename;
+\`\`\`
+
 Use \`*\` as shorthand for all columns.
+
+Different tables can have columns with the same name (e.g., both \`users\` and \`orders\` might have \`id\`). Prefix with the table name to remove ambiguity:
+
+\`\`\`sql
+SELECT users.name, orders.total FROM users, orders;
+\`\`\`
+
+You can also rename tables or columns with \`AS\` (alias):
+
+\`\`\`sql
+SELECT u.name AS username FROM users AS u;
+\`\`\`
+
+The \`AS\` keyword is optional: \`SELECT u.name FROM users u\`.
 
 **Goal:** Write a query that returns all rows and all columns from the \`users\` table.`,
     seed: SEED_USERS,
@@ -245,7 +273,11 @@ Use \`*\` as shorthand for all columns.
     markdown: `# 11. Filtering
 
 The \`WHERE\` clause filters rows based on a condition.
-  SELECT columns FROM table WHERE condition;
+
+\`\`\`sql
+SELECT columns FROM table WHERE condition;
+\`\`\`
+
 Use \`=\` to compare values. String literals go in single quotes.
 
 **Goal:** Write a query that returns the names of users who live in Berlin.`,
@@ -304,7 +336,9 @@ Combine multiple operators for precise filtering:
 - \`%\` — matches any sequence of characters
 - \`_\` — matches exactly one character
 
-  SELECT columns FROM table WHERE column LIKE pattern;
+\`\`\`sql
+SELECT columns FROM table WHERE column LIKE pattern;
+\`\`\`
 
 **Goal:** Write a query that returns names containing the letter 'a', sorted alphabetically.`,
     seed: SEED_USERS,
@@ -320,7 +354,10 @@ Combine multiple operators for precise filtering:
     markdown: `# 15. Inserting data
 
 Use \`INSERT\` to add rows to a table.
-  INSERT INTO tablename (col1, col2, ...) VALUES (val1, val2, ...);
+
+\`\`\`sql
+INSERT INTO tablename (col1, col2, ...) VALUES (val1, val2, ...);
+\`\`\`
 
 The \`users\` table has columns: id, name, city, age, email. The \`id\` column is auto-incrementing — you can omit it.
 
@@ -338,7 +375,10 @@ The \`users\` table has columns: id, name, city, age, email. The \`id\` column i
     markdown: `# 16. Updating data
 
 Use \`UPDATE\` to modify existing rows.
-  UPDATE tablename SET column = value WHERE condition;
+
+\`\`\`sql
+UPDATE tablename SET column = value WHERE condition;
+\`\`\`
 
 Always include a \`WHERE\` clause — without it, every row gets updated!
 
@@ -356,7 +396,10 @@ Always include a \`WHERE\` clause — without it, every row gets updated!
     markdown: `# 17. Deleting data
 
 Use \`DELETE\` to remove rows.
-  DELETE FROM tablename WHERE condition;
+
+\`\`\`sql
+DELETE FROM tablename WHERE condition;
+\`\`\`
 
 Always include a \`WHERE\` clause — without it, all rows are deleted!
 
