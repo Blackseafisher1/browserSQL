@@ -42,9 +42,13 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
-  document.getElementById('header').style.display = settings.hideHeader && !window.matchMedia('(max-width: 768px)').matches ? 'none' : '';
+  applyHideHeader();
   const hhCb = $('#setting-hideheader');
   if (hhCb) hhCb.checked = settings.hideHeader;
+}
+
+function applyHideHeader() {
+  document.getElementById('header').style.display = settings.hideHeader && window.innerWidth > 768 ? 'none' : '';
 }
 
 export function initSettings() {
@@ -60,6 +64,8 @@ export function initSettings() {
   overlay?.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.classList.add('hidden');
   });
+
+  window.addEventListener('resize', applyHideHeader);
 
   $('#setting-fontsize')?.addEventListener('input', (e) => {
     settings.fontSize = parseInt(e.target.value);
