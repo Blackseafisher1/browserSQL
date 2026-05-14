@@ -12,6 +12,7 @@ import { state } from '../state.js';
 import { showResults, showError, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
 import { evaluateTutorialQuery } from './tutorialView.js';
+import { saveCurrentFile } from './filesView.js';
 import { $ } from '../utils.js';
 
 const container0 = $('#editor-container-0');
@@ -255,6 +256,7 @@ export async function executeQuery() {
       showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
+    saveCurrentFile();
     if (state.renderSchema) state.renderSchema();
     evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {

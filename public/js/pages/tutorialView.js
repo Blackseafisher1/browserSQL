@@ -1873,23 +1873,23 @@ export async function startTutorialMode(resetProgress = true) {
   state.tutorialMode = true;
   state.tutorialActive = true;
   localStorage.setItem(ACTIVE_KEY, '1');
-  if (resetProgress) {
-    setStep(0);
-    resetCompletion();
-  } else {
-    setStep(getStep());
-  }
-  const lesson = lessons[state.tutorialStep];
+  const lesson = lessons[setStep(resetProgress ? 0 : getStep())];
   currentModule = lesson.module;
-  const dbOk = await loadTutorialDatabase(lesson?.seed || SEED_USERS);
-  if (!dbOk) {
-    state.tutorialMode = false;
-    state.tutorialActive = false;
-    localStorage.removeItem(ACTIVE_KEY);
-    renderTutorialPanel();
-    return false;
+  if (resetProgress) {
+    resetCompletion();
+    const dbOk = await loadTutorialDatabase(lesson.seed || SEED_USERS);
+    if (!dbOk) {
+      state.tutorialMode = false;
+      state.tutorialActive = false;
+      localStorage.removeItem(ACTIVE_KEY);
+      renderTutorialPanel();
+      return false;
+    }
+    await seedTutorialWorkspace(lesson.file, currentModule);
+  } else {
+    renderTree();
+    if (lesson.type === 'practice') openSingleFile(lesson.file);
   }
-  await seedTutorialWorkspace(lesson?.file, currentModule);
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
