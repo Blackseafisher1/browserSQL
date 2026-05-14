@@ -720,8 +720,6 @@ export async function initTutorialMode() {
   });
   panel.next?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const skipped = !isComplete(state.tutorialStep) && getSettings().skipEnabled;
-    if (skipped && !confirm('Skipping lessons means you miss the practice. Only skip for testing. Actually want to proceed?')) return;
     if (state.tutorialStep >= lessons.length - 1) {
       void exitTutorialMode();
       return;
