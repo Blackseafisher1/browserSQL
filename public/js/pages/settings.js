@@ -42,7 +42,7 @@ export function applySettings() {
   if (tmSlider) tmSlider.value = settings.topMargin;
   const tmDisplay = $('#setting-topmargin-value');
   if (tmDisplay) tmDisplay.textContent = settings.topMargin;
-  document.getElementById('header').style.display = settings.hideHeader ? 'none' : '';
+  document.getElementById('header').style.display = settings.hideHeader && !window.matchMedia('(max-width: 768px)').matches ? 'none' : '';
   const hhCb = $('#setting-hideheader');
   if (hhCb) hhCb.checked = settings.hideHeader;
 }
