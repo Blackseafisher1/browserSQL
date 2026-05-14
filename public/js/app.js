@@ -266,8 +266,14 @@ function wireSchemaToolbar() {
     'btn-schema-test': 'btn-test-schema',
      'btn-schema-theme': 'btn-theme-toggle',
      'btn-schema-settings': 'btn-settings',
-     'btn-schema-recent': 'btn-recent-dbs',
+      'btn-schema-recent': 'btn-recent-dbs',
   };
+  for (const [fromId, toId] of Object.entries(map)) {
+    document.getElementById(fromId)?.addEventListener('click', () => {
+      document.getElementById(toId)?.click();
+    });
+  }
+}
 
 function initResultsZoom() {
   const slider = document.getElementById('results-zoom');
