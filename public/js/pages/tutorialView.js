@@ -10,6 +10,29 @@ const STEP_KEY = 'browsersql-tutorial-step';
 const COMPLETE_KEY = 'browsersql-tutorial-complete';
 const TUTORIAL_DB_NAME = 'browsersql-tutorial';
 
+const MODULE_NAMES = {
+  1: 'Database Fundamentals',
+  2: 'Schema & Constraints',
+  3: 'CRUD Operations',
+  4: 'Query Power Tools',
+  5: 'Joins',
+  6: 'Subqueries & CTEs',
+  7: 'Normalization',
+  8: 'Indexes & Performance',
+  9: 'Transactions',
+  10: 'Advanced Topics',
+};
+
+let currentModule = 1;
+
+function getModuleIndices(module) {
+  const indices = [];
+  for (let i = 0; i < lessons.length; i++) {
+    if (lessons[i].module === module) indices.push(i);
+  }
+  return indices;
+}
+
 const SEED_EMPTY = '';
 const SEED_EMPTY_FK = 'PRAGMA foreign_keys = ON;';
 const SEED_USERS = `
@@ -1532,12 +1555,13 @@ function markComplete(step) {
   saveCompletion();
 }
 
-function buildTutorialFiles() {
+function buildTutorialFiles(module) {
+  module = module || currentModule;
   const files = {
-    'tutorial/README.md': `# SQL tutorial\n\nOpen a practice lesson file and write your SQL.`,
+    'tutorial/README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
   };
   for (const lesson of lessons) {
-    if (lesson.type === 'practice') {
+    if (lesson.type === 'practice' && lesson.module === module) {
       files[lesson.file] = '-- Write your SQL here\n';
     }
   }
@@ -1581,7 +1605,17 @@ function renderTutorialPanel() {
   const panel = getPanel();
   if (!panel.content || !panel.progress) return;
   const lesson = lessons[state.tutorialStep] || lessons[0];
-  panel.progress.textContent = `Lesson ${state.tutorialStep + 1} of ${lessons.length} · ${lesson.title}`;
+  const mod = lesson.module;
+  const modIndices = getModuleIndices(mod);
+  const posInMod = modIndices.indexOf(state.tutorialStep) + 1;
+  const select = document.getElementById('tutorial-module-select');
+  if (select) {
+    select.innerHTML = Object.entries(MODULE_NAMES).map(([num, name]) =>
+      `<option value="${num}" ${num == mod ? 'selected' : ''}>M${num}: ${name}</option>`
+    ).join('');
+  }
+  const prog = document.getElementById('tutorial-lesson-progress');
+  if (prog) prog.textContent = `Lesson ${posInMod} of ${modIndices.length} · ${lesson.title}`;
   panel.content.innerHTML = renderMarkdown(lesson.markdown);
   if (panel.files) {
     panel.files.innerHTML = `<strong>Lesson file:</strong> ${lesson.file}`;
@@ -1590,7 +1624,8 @@ function renderTutorialPanel() {
   const completed = isComplete(state.tutorialStep);
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
-    panel.next.textContent = state.tutorialStep === lessons.length - 1 ? 'Finish' : 'Next';
+    const modEnd = state.tutorialStep >= lessons.length - 1;
+    panel.next.textContent = modEnd ? 'Finish' : 'Next';
     panel.next.disabled = !state.tutorialActive || (!completed && !getSettings().skipEnabled);
   }
   if (!state.tutorialActive) setStatus('Start the tutorial to begin.', '');
@@ -1677,8 +1712,9 @@ function toggleEditorForLesson(lesson) {
   }
 }
 
-async function seedTutorialWorkspace(startFile) {
-  const files = buildTutorialFiles();
+async function seedTutorialWorkspace(startFile, module) {
+  module = module || currentModule;
+  const files = buildTutorialFiles(module);
   const target = startFile && files[startFile] ? startFile : 'tutorial/README.md';
   replaceFiles(files, target);
   renderTree();
@@ -1777,7 +1813,24 @@ export async function initTutorialMode() {
       void exitTutorialMode();
       return;
     }
+    const lesson = lessons[state.tutorialStep];
+    const modIndices = getModuleIndices(lesson.module);
+    const isModEnd = state.tutorialStep >= modIndices[modIndices.length - 1];
+    if (isModEnd) {
+      const nextIndices = getModuleIndices(lesson.module + 1);
+      if (nextIndices.length > 0) {
+        goToLesson(nextIndices[0]);
+        return;
+      }
+    }
     goToLesson(state.tutorialStep + 1);
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'tutorial-module-select') {
+      const idx = getModuleIndices(Number(e.target.value))[0];
+      if (idx !== undefined) goToLesson(idx);
+    }
   });
 
   if (localStorage.getItem(ACTIVE_KEY) === '1') {
@@ -1827,6 +1880,7 @@ export async function startTutorialMode(resetProgress = true) {
     setStep(getStep());
   }
   const lesson = lessons[state.tutorialStep];
+  currentModule = lesson.module;
   const dbOk = await loadTutorialDatabase(lesson?.seed || SEED_USERS);
   if (!dbOk) {
     state.tutorialMode = false;
@@ -1835,7 +1889,7 @@ export async function startTutorialMode(resetProgress = true) {
     renderTutorialPanel();
     return false;
   }
-  await seedTutorialWorkspace(lesson?.file);
+  await seedTutorialWorkspace(lesson?.file, currentModule);
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
@@ -1851,6 +1905,10 @@ async function goToLesson(step) {
   const lesson = lessons[next];
   const dbOk = await loadTutorialDatabase(lesson.seed || SEED_USERS);
   if (!dbOk) return;
+  if (lesson.module !== currentModule) {
+    currentModule = lesson.module;
+    await seedTutorialWorkspace(lesson.file, currentModule);
+  }
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');

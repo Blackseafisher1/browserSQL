@@ -183,8 +183,24 @@
   }
 
   .tutorial-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     font-size: 11px;
     color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .tutorial-module-select {
+    font-size: 11px;
+    font-family: var(--font-ui);
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 1px 4px;
+    max-width: 140px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -280,6 +296,7 @@
     width: 100%;
     line-height: 1.6;
     content-visibility: auto;
+    contain-intrinsic-size: 25px;
   }
 
   .file-tree-item:hover {
@@ -375,6 +392,9 @@
     flex: 1;
     overflow-y: auto;
   }
+  
+
+ 
 
   .schema-empty {
     padding: var(--space-4) var(--space-3);
