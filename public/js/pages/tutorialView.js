@@ -224,7 +224,7 @@ const lessons = [
     module: 1,
     title: 'What is a Database?',
     type: 'theory',
-    file: 'tutorial/01-intro.md',
+    file: '01-intro.md',
     markdown: `# 1. What is a database?
 
 A database stores information in tables. Tables have rows and columns.
@@ -243,7 +243,7 @@ A database stores information in tables. Tables have rows and columns.
     module: 1,
     title: 'SQL vs NoSQL',
     type: 'theory',
-    file: 'tutorial/02-nosql.md',
+    file: '02-nosql.md',
     markdown: `# 2. SQL vs NoSQL
 
 SQL databases use tables and a structured schema. NoSQL systems can be document, key-value, or graph based.
@@ -262,7 +262,7 @@ SQL databases use tables and a structured schema. NoSQL systems can be document,
     module: 1,
     title: 'Your First Database',
     type: 'practice',
-    file: 'tutorial/03-attach.sql',
+    file: '03-attach.sql',
     sql: 'SELECT name FROM sqlite_master WHERE type = \'table\';\n',
     markdown: `# 3. Your first database
 
@@ -287,7 +287,7 @@ Try querying \`sqlite_master\` to discover what tables exist in this database.
     module: 1,
     title: 'Creating Tables',
     type: 'practice',
-    file: 'tutorial/04-create.sql',
+    file: '04-create.sql',
     sql: 'CREATE TABLE people (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  age INTEGER NOT NULL\n);\n',
     markdown: `# 4. Creating tables
 
@@ -311,7 +311,7 @@ CREATE TABLE tablename (
     module: 1,
     title: 'Data Types Deep Dive',
     type: 'theory',
-    file: 'tutorial/05-types.md',
+    file: '05-types.md',
     markdown: `# 5. Data types
 
 SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
@@ -330,7 +330,7 @@ SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
     module: 2,
     title: 'Primary Keys',
     type: 'practice',
-    file: 'tutorial/06-primary.sql',
+    file: '06-primary.sql',
     sql: 'CREATE TABLE projects (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  name TEXT NOT NULL\n);\nINSERT INTO projects (name) VALUES (\'Apollo\');\n',
     markdown: `# 6. Primary keys
 
@@ -352,7 +352,7 @@ CREATE TABLE tablename (
     module: 2,
     title: 'Foreign Keys',
     type: 'practice',
-    file: 'tutorial/07-foreign.sql',
+    file: '07-foreign.sql',
     sql: 'PRAGMA foreign_keys = ON;\nCREATE TABLE authors (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\nCREATE TABLE books (\n  id INTEGER PRIMARY KEY,\n  title TEXT NOT NULL,\n  author_id INTEGER NOT NULL,\n  FOREIGN KEY (author_id) REFERENCES authors(id)\n);\n',
     markdown: `# 7. Foreign keys
 
@@ -375,7 +375,7 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     module: 2,
     title: 'Constraints',
     type: 'practice',
-    file: 'tutorial/08-constraints.sql',
+    file: '08-constraints.sql',
     sql: 'CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT \'active\',\n  age INTEGER CHECK (age >= 18)\n);\n',
     markdown: `# 8. Constraints
 
@@ -399,7 +399,7 @@ column TYPE NOT NULL UNIQUE DEFAULT value CHECK (condition)
     module: 2,
     title: 'Schema Design',
     type: 'theory',
-    file: 'tutorial/09-schema.md',
+    file: '09-schema.md',
     markdown: `# 9. Schema design
 
 Relationships can be one-to-one, one-to-many, or many-to-many.
@@ -418,7 +418,7 @@ Relationships can be one-to-one, one-to-many, or many-to-many.
     module: 3,
     title: 'Reading Data',
     type: 'practice',
-    file: 'tutorial/10-select.sql',
+    file: '10-select.sql',
     sql: 'SELECT * FROM users;\n',
     markdown: `# 10. Reading data
 
@@ -453,7 +453,7 @@ The \`AS\` keyword is optional: \`SELECT u.name FROM users u\`.
     module: 3,
     title: 'Filtering',
     type: 'practice',
-    file: 'tutorial/11-where.sql',
+    file: '11-where.sql',
     sql: "SELECT name FROM users WHERE city = 'Berlin';\n",
     markdown: `# 11. Filtering
 
@@ -474,7 +474,7 @@ Use \`=\` to compare values. String literals go in single quotes.
     module: 3,
     title: 'Advanced Filtering',
     type: 'practice',
-    file: 'tutorial/12-advanced-where.sql',
+    file: '12-advanced-where.sql',
     sql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;\n",
     markdown: `# 12. Advanced filtering
 
@@ -507,7 +507,7 @@ ORDER BY column;
     module: 3,
     title: 'Working with NULL',
     type: 'practice',
-    file: 'tutorial/13-null.sql',
+    file: '13-null.sql',
     sql: 'SELECT name FROM users WHERE email IS NULL;\n',
     markdown: `# 13. Working with NULL
 
@@ -527,7 +527,7 @@ SELECT columns FROM table WHERE column IS NOT NULL;
     module: 3,
     title: 'Pattern Matching',
     type: 'practice',
-    file: 'tutorial/14-like.sql',
+    file: '14-like.sql',
     sql: "SELECT name FROM users WHERE name LIKE '%a%' ORDER BY name;\n",
     markdown: `# 14. Pattern matching
 
@@ -548,7 +548,7 @@ SELECT columns FROM table WHERE column LIKE pattern;
     module: 3,
     title: 'Inserting Data',
     type: 'practice',
-    file: 'tutorial/15-insert.sql',
+    file: '15-insert.sql',
     sql: "INSERT INTO users (name, city, age, email) VALUES ('Kai', 'Berlin', 27, 'kai@example.com');\n",
     markdown: `# 15. Inserting data
 
@@ -569,7 +569,7 @@ The \`users\` table has columns: id, name, city, age, email. The \`id\` column i
     module: 3,
     title: 'Updating Data',
     type: 'practice',
-    file: 'tutorial/16-update.sql',
+    file: '16-update.sql',
     sql: "UPDATE users SET city = 'Bremen' WHERE name = 'Mia';\n",
     markdown: `# 16. Updating data
 
@@ -590,7 +590,7 @@ Always include a \`WHERE\` clause — without it, every row gets updated!
     module: 3,
     title: 'Deleting Data',
     type: 'practice',
-    file: 'tutorial/17-delete.sql',
+    file: '17-delete.sql',
     sql: "DELETE FROM users WHERE name = 'Liam';\n",
     markdown: `# 17. Deleting data
 
@@ -611,7 +611,7 @@ Always include a \`WHERE\` clause — without it, all rows are deleted!
     module: 3,
     title: 'Danger of DELETE',
     type: 'theory',
-    file: 'tutorial/18-delete-danger.md',
+    file: '18-delete-danger.md',
     markdown: `# 18. Danger of DELETE
 
 Always include WHERE unless you truly want to delete everything.
@@ -631,7 +631,7 @@ Always include WHERE unless you truly want to delete everything.
     module: 4,
     title: 'Sorting',
     type: 'practice',
-    file: 'tutorial/19-sort.sql',
+    file: '19-sort.sql',
     markdown: `# 19. Sorting
 
 Use \`ORDER BY\` to sort results:
@@ -651,7 +651,7 @@ Use \`ASC\` for ascending (default) or \`DESC\` for descending. Sort by multiple
     module: 4,
     title: 'Limiting Results',
     type: 'practice',
-    file: 'tutorial/20-limit.sql',
+    file: '20-limit.sql',
     markdown: `# 20. Limiting results
 
 Use \`LIMIT\` to restrict how many rows are returned:
@@ -670,7 +670,7 @@ SELECT columns FROM table LIMIT count OFFSET skip;
     module: 4,
     title: 'Aggregate Functions',
     type: 'practice',
-    file: 'tutorial/21-aggregates.sql',
+    file: '21-aggregates.sql',
     markdown: `# 21. Aggregate functions
 
 Aggregate functions summarize many rows into one value:
@@ -693,7 +693,7 @@ SELECT COUNT(*), AVG(column), SUM(column), MIN(column), MAX(column) FROM table;
     module: 4,
     title: 'Grouping',
     type: 'practice',
-    file: 'tutorial/22-group.sql',
+    file: '22-group.sql',
     markdown: `# 22. Grouping
 
 \`GROUP BY\` groups rows that share a value, so aggregate functions work per group:
@@ -713,7 +713,7 @@ Use \`HAVING\` to filter groups (like \`WHERE\` but for groups).
     module: 4,
     title: 'Distinct Values',
     type: 'practice',
-    file: 'tutorial/23-distinct.sql',
+    file: '23-distinct.sql',
     markdown: `# 23. Distinct values
 
 \`DISTINCT\` removes duplicate values from results:
@@ -731,7 +731,7 @@ SELECT DISTINCT column FROM table;
     module: 4,
     title: 'Aliases',
     type: 'practice',
-    file: 'tutorial/24-alias.sql',
+    file: '24-alias.sql',
     markdown: `# 24. Aliases
 
 \`AS\` renames columns or tables in query results:
@@ -752,7 +752,7 @@ The \`AS\` keyword is optional: \`SELECT column alias FROM table t\`.
     module: 5,
     title: 'INNER JOIN',
     type: 'practice',
-    file: 'tutorial/25-inner-join.sql',
+    file: '25-inner-join.sql',
     markdown: `# 25. INNER JOIN
 
 \`INNER JOIN\` combines rows from two tables where a condition matches:
@@ -773,7 +773,7 @@ Only rows with matches in both tables appear.
     module: 5,
     title: 'LEFT JOIN',
     type: 'practice',
-    file: 'tutorial/26-left-join.sql',
+    file: '26-left-join.sql',
     markdown: `# 26. LEFT JOIN
 
 \`LEFT JOIN\` keeps ALL rows from the left table, even without matches. Unmatched right columns show \`NULL\`:
@@ -792,7 +792,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     module: 5,
     title: 'RIGHT JOIN (Theory)',
     type: 'theory',
-    file: 'tutorial/27-right-join.md',
+    file: '27-right-join.md',
     markdown: `# 27. RIGHT JOIN
 
 \`RIGHT JOIN\` keeps ALL rows from the right table. SQLite does not support it — use \`LEFT JOIN\` and swap the tables.
@@ -811,7 +811,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     module: 5,
     title: 'FULL OUTER JOIN (Theory)',
     type: 'theory',
-    file: 'tutorial/28-full-join.md',
+    file: '28-full-join.md',
     markdown: `# 28. FULL OUTER JOIN
 
 \`FULL OUTER JOIN\` keeps rows from both sides. Not supported in SQLite — combine LEFT JOIN and RIGHT JOIN with \`UNION\`.
@@ -830,7 +830,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     module: 5,
     title: 'Self Joins',
     type: 'practice',
-    file: 'tutorial/29-self-join.sql',
+    file: '29-self-join.sql',
     markdown: `# 29. Self joins
 
 A self join joins a table to itself. Use different aliases to tell them apart:
@@ -851,7 +851,7 @@ The \`employees\` table has \`manager_id\` referencing \`id\` in the same table.
     module: 5,
     title: 'Joining Multiple Tables',
     type: 'practice',
-    file: 'tutorial/30-multi-join.sql',
+    file: '30-multi-join.sql',
     markdown: `# 30. Joining multiple tables
 
 Chain multiple \`JOIN\` clauses to combine three or more tables:
@@ -873,7 +873,7 @@ INNER JOIN table_c c ON b.id = c.b_id;
     module: 6,
     title: 'Subquery in WHERE',
     type: 'practice',
-    file: 'tutorial/31-subquery-where.sql',
+    file: '31-subquery-where.sql',
     markdown: `# 31. Subquery in WHERE
 
 A subquery is a query inside another query. Use it in \`WHERE\` with \`IN\`:
@@ -892,7 +892,7 @@ WHERE id IN (SELECT foreign_id FROM other_table WHERE condition);
     module: 6,
     title: 'Subquery in SELECT',
     type: 'practice',
-    file: 'tutorial/32-subquery-select.sql',
+    file: '32-subquery-select.sql',
     markdown: `# 32. Subquery in SELECT
 
 A subquery in \`SELECT\` computes a value for each row. It must return a single value:
@@ -913,7 +913,7 @@ The subquery runs once per row — it references the outer query's values.
     module: 6,
     title: 'Subquery in FROM',
     type: 'practice',
-    file: 'tutorial/33-subquery-from.sql',
+    file: '33-subquery-from.sql',
     markdown: `# 33. Subquery in FROM
 
 A subquery in \`FROM\` acts like a temporary table. It must have an alias:
@@ -931,7 +931,7 @@ SELECT columns FROM (SELECT ...) AS alias WHERE condition;
     module: 6,
     title: 'Correlated Subqueries',
     type: 'practice',
-    file: 'tutorial/34-correlated.sql',
+    file: '34-correlated.sql',
     markdown: `# 34. Correlated subqueries
 
 A correlated subquery references the outer query's values and runs once per outer row:
@@ -950,7 +950,7 @@ WHERE column > (SELECT AVG(column) FROM table_b WHERE b.id = a.id);
     module: 6,
     title: 'EXISTS',
     type: 'practice',
-    file: 'tutorial/35-exists.sql',
+    file: '35-exists.sql',
     markdown: `# 35. EXISTS
 
 \`EXISTS\` checks whether a subquery returns any rows. It is often faster than \`IN\`:
@@ -969,7 +969,7 @@ WHERE EXISTS (SELECT 1 FROM table_b WHERE b.ref_id = a.id);
     module: 6,
     title: 'Common Table Expressions',
     type: 'practice',
-    file: 'tutorial/36-cte.sql',
+    file: '36-cte.sql',
     markdown: `# 36. Common Table Expressions
 
 A CTE (WITH clause) names a subquery for reuse in the main query:
@@ -990,7 +990,7 @@ SELECT columns FROM name WHERE condition;
     module: 6,
     title: 'Recursive CTEs (Theory)',
     type: 'theory',
-    file: 'tutorial/37-recursive-cte.md',
+    file: '37-recursive-cte.md',
     markdown: `# 37. Recursive CTEs
 
 Recursive CTEs reference themselves to handle hierarchical data (org charts, trees, graphs). Use \`UNION ALL\` to combine the anchor and recursive steps.
@@ -1010,7 +1010,7 @@ Recursive CTEs reference themselves to handle hierarchical data (org charts, tre
     module: 7,
     title: 'Why Normalize?',
     type: 'theory',
-    file: 'tutorial/38-why-normalize.md',
+    file: '38-why-normalize.md',
     markdown: `# 38. Why normalize?
 
 Normalization reduces data redundancy and prevents anomalies (update, insert, delete). Split data into related tables instead of one big table.
@@ -1029,7 +1029,7 @@ Normalization reduces data redundancy and prevents anomalies (update, insert, de
     module: 7,
     title: 'First Normal Form (1NF)',
     type: 'practice',
-    file: 'tutorial/39-1nf.sql',
+    file: '39-1nf.sql',
     markdown: `# 39. First Normal Form
 
 A table is in 1NF when:
@@ -1053,7 +1053,7 @@ CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL, produ
     module: 7,
     title: 'Second Normal Form (2NF)',
     type: 'practice',
-    file: 'tutorial/40-2nf.sql',
+    file: '40-2nf.sql',
     markdown: `# 40. Second Normal Form
 
 A table is in 2NF when:
@@ -1077,7 +1077,7 @@ CREATE TABLE orders (...);
     module: 7,
     title: 'Third Normal Form (3NF)',
     type: 'practice',
-    file: 'tutorial/41-3nf.sql',
+    file: '41-3nf.sql',
     markdown: `# 41. Third Normal Form
 
 A table is in 3NF when:
@@ -1095,7 +1095,7 @@ Here \`customer_city\` depends on \`customer\`, not on the order id. You already
     module: 7,
     title: 'Denormalization',
     type: 'theory',
-    file: 'tutorial/42-denormalization.md',
+    file: '42-denormalization.md',
     markdown: `# 42. Denormalization
 
 Denormalization intentionally adds redundancy for read performance. Used in reporting / analytics where writes are rare.
@@ -1115,7 +1115,7 @@ Denormalization intentionally adds redundancy for read performance. Used in repo
     module: 8,
     title: 'What is an Index?',
     type: 'theory',
-    file: 'tutorial/43-what-index.md',
+    file: '43-what-index.md',
     markdown: `# 43. What is an index?
 
 An index is a data structure (B-Tree) that speeds up lookups. Like a book index — instead of scanning every page, jump to the right spot. Trade-off: faster reads, slower writes.
@@ -1136,7 +1136,7 @@ An index is a data structure (B-Tree) that speeds up lookups. Like a book index 
     module: 8,
     title: 'Creating Indexes',
     type: 'practice',
-    file: 'tutorial/44-create-index.sql',
+    file: '44-create-index.sql',
     markdown: `# 44. Creating indexes
 
 Use \`CREATE INDEX\` to add an index:
@@ -1156,7 +1156,7 @@ Note: \`PRIMARY KEY\` columns are already indexed automatically — they don't n
     module: 8,
     title: 'Query Planning',
     type: 'practice',
-    file: 'tutorial/45-explain-plan.sql',
+    file: '45-explain-plan.sql',
     markdown: `# 45. Query planning
 
 \`EXPLAIN QUERY PLAN\` shows how SQLite executes a query. Use it to see if indexes are used:
@@ -1174,7 +1174,7 @@ EXPLAIN QUERY PLAN SELECT * FROM table WHERE column = value;
     module: 8,
     title: 'Composite Indexes',
     type: 'practice',
-    file: 'tutorial/46-composite-index.sql',
+    file: '46-composite-index.sql',
     markdown: `# 46. Composite indexes
 
 A composite index covers multiple columns:
@@ -1194,7 +1194,7 @@ The column order matters — leftmost columns first.
     module: 8,
     title: 'When NOT to Index',
     type: 'theory',
-    file: 'tutorial/47-no-index.md',
+    file: '47-no-index.md',
     markdown: `# 47. When NOT to index
 
 Avoid indexes on:
@@ -1217,7 +1217,7 @@ Avoid indexes on:
     module: 9,
     title: 'ACID Properties',
     type: 'theory',
-    file: 'tutorial/48-acid.md',
+    file: '48-acid.md',
     markdown: `# 48. ACID properties
 
 Transactions guarantee:
@@ -1240,7 +1240,7 @@ Transactions guarantee:
     module: 9,
     title: 'Starting Transactions',
     type: 'practice',
-    file: 'tutorial/49-begin.sql',
+    file: '49-begin.sql',
     markdown: `# 49. Starting transactions
 
 Wrap operations in \`BEGIN TRANSACTION\` and \`COMMIT\`:
@@ -1261,7 +1261,7 @@ COMMIT;
     module: 9,
     title: 'Committing',
     type: 'practice',
-    file: 'tutorial/50-commit.sql',
+    file: '50-commit.sql',
     markdown: `# 50. Committing
 
 \`COMMIT\` saves all changes made since \`BEGIN TRANSACTION\`. Changes become visible and permanent.
@@ -1275,7 +1275,7 @@ COMMIT;
     module: 9,
     title: 'Rolling Back',
     type: 'practice',
-    file: 'tutorial/51-rollback.sql',
+    file: '51-rollback.sql',
     markdown: `# 51. Rolling back
 
 \`ROLLBACK\` undoes all changes since \`BEGIN TRANSACTION\`:
@@ -1295,7 +1295,7 @@ ROLLBACK; -- nothing happened
     module: 9,
     title: 'Savepoints',
     type: 'practice',
-    file: 'tutorial/52-savepoint.sql',
+    file: '52-savepoint.sql',
     markdown: `# 52. Savepoints
 
 Savepoints allow partial rollbacks within a transaction:
@@ -1317,7 +1317,7 @@ COMMIT;
     module: 10,
     title: 'Views',
     type: 'practice',
-    file: 'tutorial/53-views.sql',
+    file: '53-views.sql',
     markdown: `# 53. Views
 
 A view is a saved query that acts like a virtual table:
@@ -1335,7 +1335,7 @@ CREATE VIEW view_name AS SELECT ...;
     module: 10,
     title: 'Triggers',
     type: 'practice',
-    file: 'tutorial/54-triggers.sql',
+    file: '54-triggers.sql',
     markdown: `# 54. Triggers
 
 A trigger runs automatically before or after an INSERT, UPDATE, or DELETE:
@@ -1357,7 +1357,7 @@ END;
     module: 10,
     title: 'Window Functions',
     type: 'practice',
-    file: 'tutorial/55-window.sql',
+    file: '55-window.sql',
     markdown: `# 55. Window functions
 
 Window functions compute values across a set of rows related to the current row:
@@ -1377,7 +1377,7 @@ SELECT column, ROW_NUMBER() OVER (ORDER BY col) AS rank FROM table;
     module: 10,
     title: 'CASE Statements',
     type: 'practice',
-    file: 'tutorial/56-case.sql',
+    file: '56-case.sql',
     markdown: `# 56. CASE statements
 
 \`CASE\` adds conditional logic to queries:
@@ -1397,7 +1397,7 @@ FROM table;
     module: 10,
     title: 'Date and Time Functions',
     type: 'practice',
-    file: 'tutorial/57-datetime.sql',
+    file: '57-datetime.sql',
     markdown: `# 57. Date and time functions
 
 SQLite has functions for date arithmetic:
@@ -1420,7 +1420,7 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
     module: 2,
     title: 'ALTER TABLE',
     type: 'practice',
-    file: 'tutorial/58-alter-table.sql',
+    file: '58-alter-table.sql',
     markdown: `# 58. ALTER TABLE
 
 Modify existing tables with \`ALTER TABLE\`:
@@ -1442,7 +1442,7 @@ The \`users\` table already exists.
     module: 3,
     title: 'INSERT INTO SELECT',
     type: 'practice',
-    file: 'tutorial/59-insert-select.sql',
+    file: '59-insert-select.sql',
     markdown: `# 59. INSERT INTO ... SELECT
 
 Copy rows from one table into another:
@@ -1464,7 +1464,7 @@ Both tables must exist. The column types must match.
     module: 3,
     title: 'CRUD Mastery',
     type: 'practice',
-    file: 'tutorial/60-crud-mastery.sql',
+    file: '60-crud-mastery.sql',
     markdown: `# 60. CRUD mastery
 
 Combine everything you learned: create, insert, update, delete, and query.
@@ -1483,7 +1483,7 @@ Combine everything you learned: create, insert, update, delete, and query.
     module: 4,
     title: 'Query Mastery',
     type: 'practice',
-    file: 'tutorial/61-query-mastery.sql',
+    file: '61-query-mastery.sql',
     markdown: `# 61. Query mastery
 
 Combine grouping, filtering, sorting, and aggregates into one query.
@@ -1499,7 +1499,7 @@ The \`users\` table has users in multiple cities with different ages.
     module: 5,
     title: 'Join Mastery',
     type: 'practice',
-    file: 'tutorial/62-join-mastery.sql',
+    file: '62-join-mastery.sql',
     markdown: `# 62. Join mastery
 
 Combine joins, aggregation, and ordering across multiple tables.
@@ -1515,7 +1515,7 @@ The database has \`customers\`, \`orders\`, and \`products\` tables.
     module: 10,
     title: 'Final Capstone',
     type: 'practice',
-    file: 'tutorial/63-capstone.sql',
+    file: '63-capstone.sql',
     markdown: `# 63. Final capstone
 
 Build a library system from scratch. Create the schema, add data, and write queries.
@@ -1558,7 +1558,7 @@ function markComplete(step) {
 function buildTutorialFiles(module) {
   module = module || currentModule;
   const files = {
-    'tutorial/README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
+    'README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
   };
   for (const lesson of lessons) {
     if (lesson.type === 'practice' && lesson.module === module) {
@@ -1619,7 +1619,7 @@ function renderTutorialPanel() {
   if (prog) prog.textContent = `Lesson ${posInMod} of ${modIndices.length} · ${lesson.title}`;
   panel.content.innerHTML = renderMarkdown(lesson.markdown);
   if (panel.files) {
-    panel.files.innerHTML = `<strong>Lesson file:</strong> ${lesson.file}`;
+    panel.files.innerHTML = `<strong class="notranslate">Lesson file:</strong> <span class="notranslate">${lesson.file}</span>`;
   }
   if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
   if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
@@ -1642,8 +1642,8 @@ function ensureQuizPanel() {
     panel.className = 'tutorial-quiz';
     panel.innerHTML = `
       <h2>Quiz</h2>
-      <p class="tutorial-quiz-question"></p>
-      <div class="tutorial-quiz-options"></div>
+      <p class="tutorial-quiz-question notranslate"></p>
+      <div class="tutorial-quiz-options notranslate"></div>
       <div class="tutorial-quiz-feedback"></div>
     `;
     container.appendChild(panel);
@@ -1664,7 +1664,7 @@ function renderQuiz(lesson) {
   feedback.textContent = '';
   question.options.forEach((opt, idx) => {
     const btn = document.createElement('button');
-    btn.className = 'tutorial-quiz-option';
+    btn.className = 'tutorial-quiz-option notranslate';
     btn.type = 'button';
     btn.textContent = opt;
     btn.addEventListener('click', () => handleQuizAnswer(idx, lesson, btn));
@@ -1717,7 +1717,7 @@ function toggleEditorForLesson(lesson) {
 async function seedTutorialWorkspace(startFile, module) {
   module = module || currentModule;
   const files = buildTutorialFiles(module);
-  const target = startFile && files[startFile] ? startFile : 'tutorial/README.md';
+  const target = startFile && files[startFile] ? startFile : 'README.md';
   replaceFiles(files, target);
   renderTree();
   openSingleFile(target);

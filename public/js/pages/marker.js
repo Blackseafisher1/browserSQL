@@ -15,7 +15,7 @@ export function renderMarkdown(text) {
 
     if (line.startsWith('```')) {
       if (inCode) {
-        html += '<pre><code>' + esc(codeBuf.join('\n')) + '</code></pre>\n';
+        html += '<pre class="notranslate"><code class="notranslate">' + esc(codeBuf.join('\n')) + '</code></pre>\n';
         codeBuf = [];
         inCode = false;
       } else {
@@ -27,7 +27,7 @@ export function renderMarkdown(text) {
 
     line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     line = line.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    line = line.replace(/`([^`]+)`/g, '<code>$1</code>');
+    line = line.replace(/`([^`]+)`/g, '<code class="notranslate">$1</code>');
     line = line.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
     if (/^#{1,6}\s/.test(line)) {
