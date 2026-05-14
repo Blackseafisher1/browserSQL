@@ -50,8 +50,8 @@ function buildFormattedDDL(tableName) {
     if (col.dflt_value !== null && col.dflt_value !== undefined) {
       line += ` DEFAULT ${col.dflt_value}`;
     }
-    if (col.pk && pkCols.length === 1) line += ' PRIMARY KEY';
     if (col.pk && pkCols.length === 1) {
+      line += ' PRIMARY KEY';
       const autoInc = checkAutoIncrement(tableName, col.name);
       if (autoInc) line += ' AUTOINCREMENT';
     }
@@ -62,29 +62,8 @@ function buildFormattedDDL(tableName) {
     lines.push(`  PRIMARY KEY (${pkCols.join(', ')})`);
   }
 
-  for (const fk of fks) {
-    const fromCols = [];
-    const toCols = [];
-    for (const row of fks.filter(r => r.id === fk.id)) {
-      fromCols.push(row.from);
-      toCols.push(row.to);
-    }
-    if (fk.id === fks[0].id || !fromCols.length) {
-      lines.push(`  FOREIGN KEY (${fk.from}) REFERENCES ${fk.table}(${fk.to})`);
-    }
-  }
-  // deduplicate foreign keys
-  const seenFk = new Set();
-  const fkLines = [];
-  for (const fk of fks) {
-    const key = `${fk.from}->${fk.table}(${fk.to})`;
-    if (seenFk.has(key)) continue;
-    seenFk.add(key);
-    fkLines.push(`  FOREIGN KEY (${fk.from}) REFERENCES ${fk.table}(${fk.to})`);
-  }
-
-  const combined = [];
   const fkIds = [...new Set(fks.map(f => f.id))];
+  const combined = [];
   for (const id of fkIds) {
     const group = fks.filter(f => f.id === id);
     const from = group.map(f => f.from).join(', ');

@@ -279,6 +279,7 @@
     text-align: left;
     width: 100%;
     line-height: 1.6;
+    content-visibility: auto;
   }
 
   .file-tree-item:hover {

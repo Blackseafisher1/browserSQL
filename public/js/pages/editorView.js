@@ -9,7 +9,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
-import { showResults, showError, showReady, showNoResults } from './resultsView.js';
+import { showResults, showError, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
 import { evaluateTutorialQuery } from './tutorialView.js';
 import { $ } from '../utils.js';
@@ -21,7 +21,6 @@ const executeBtn = $('#btn-execute');
 let view = null;
 let editors = {};
 let currentSchema = {};
-let langConfig = null;
 
 /**
  * Creates a CodeMirror editor instance with the app's shared extension set.
@@ -65,7 +64,6 @@ function makeEditor(doc, parent) {
  * Initializes the primary editor and attaches global editor controls.
  */
 export function initEditor() {
-  langConfig = new Compartment();
   editors[0] = makeEditor('', container0);
   view = editors[0];
   state.editorView = view;
@@ -151,12 +149,6 @@ export function setEditorContentFor(idx, doc) {
 }
 
 /**
- * Returns the current SQL schema map used for completion.
- * @returns {Record<string, string[]>}
- */
-export function getCurrentSchema() { return currentSchema; }
-
-/**
  * Rebuilds the editor schema from the current database table list.
  * @param {Array<{name: string, columns: Array<{name: string}>}>} tables Table metadata.
  */
@@ -180,17 +172,12 @@ export function setLanguage(lang) {
     if (ed && ed._langComp) ed.dispatch({ effects: ed._langComp.reconfigure(ext) });
   }
 }
-  /**
-   * Inserts text at the current cursor position in the active editor.
-   * @param {string} text Text to insert.
-   */
 
-export function setWordWrap(enabled) {}
-
-export function insertAtCursor(text) {
 /**
- * Executes the current selection or full editor contents as SQL.
+ * Inserts text at the current cursor position in the active editor.
+ * @param {string} text Text to insert.
  */
+function insertAtCursor(text) {
   if (!view) return;
   const sel = view.state.selection.main;
   view.dispatch({
