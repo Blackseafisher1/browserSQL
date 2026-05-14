@@ -13,6 +13,7 @@ import { showResults, showError, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
 import { evaluateTutorialQuery } from './tutorialView.js';
 import { saveCurrentFile } from './filesView.js';
+import { getSettings } from './settings.js';
 import { $ } from '../utils.js';
 
 const container0 = $('#editor-container-0');
@@ -31,6 +32,10 @@ function debounceUpdate(update) {
       try { saveCurrentFile(); } catch (_) {}
     }, 500);
   }
+}
+
+function makeSql(schema) {
+  return sql({ dialect: SQLite, upperCaseKeywords: getSettings().keywordUpper, schema: schema || currentSchema });
 }
 
 /**
@@ -54,7 +59,7 @@ function makeEditor(doc, parent) {
       rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
-      lc.of(sql({ dialect: SQLite, schema: currentSchema })),
+      lc.of(makeSql()),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
@@ -81,6 +86,11 @@ export function initEditor() {
   state.editorView = view;
   window.addEventListener('beforeunload', () => {
     try { saveCurrentFile(); } catch (_) {}
+  });
+  window.addEventListener('settings-changed', () => {
+    if (view && view._langComp) {
+      view.dispatch({ effects: view._langComp.reconfigure(makeSql()) });
+    }
   });
   setupExecuteShortcut();
   setupExecuteButton();
@@ -172,7 +182,7 @@ export function updateEditorSchema(tables) {
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
   if (!view || !view._langComp) return;
-  view.dispatch({ effects: view._langComp.reconfigure(sql({ dialect: SQLite, schema })) });
+  view.dispatch({ effects: view._langComp.reconfigure(makeSql(schema)) });
 }
 
 /**
@@ -180,7 +190,7 @@ export function updateEditorSchema(tables) {
  * @param {'js' | 'md' | 'sql'} lang Language key.
  */
 export function setLanguage(lang) {
-  const map = { js: javascript(), md: markdown(), sql: sql({ dialect: SQLite, schema: currentSchema }) };
+  const map = { js: javascript(), md: markdown(), sql: makeSql() };
   const ext = map[lang] || map.sql;
   for (const idx of [0, 1]) {
     const ed = editors[idx];

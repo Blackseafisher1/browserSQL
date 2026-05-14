@@ -1642,7 +1642,7 @@ function ensureQuizPanel() {
     panel.className = 'tutorial-quiz';
     panel.innerHTML = `
       <h2>Quiz</h2>
-      <p class="tutorial-quiz-question notranslate"></p>
+      <p class="tutorial-quiz-question"></p>
       <div class="tutorial-quiz-options notranslate"></div>
       <div class="tutorial-quiz-feedback"></div>
     `;

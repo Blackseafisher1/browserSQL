@@ -4,7 +4,7 @@ import { state } from '../state.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false };
 }
 
 let settings = loadSettings();
@@ -55,6 +55,8 @@ export function applySettings() {
   if (stCb) stCb.checked = settings.showTutorial !== false;
   const skCb = $('#setting-skip');
   if (skCb) skCb.checked = settings.skipEnabled === true;
+  const kwCb = $('#setting-keyword-case');
+  if (kwCb) kwCb.checked = settings.keywordUpper === true;
 }
 
 /**
@@ -137,6 +139,13 @@ export function initSettings() {
       }
     }
     settings.skipEnabled = e.target.checked;
+    saveSettings();
+    applySettings();
+    window.dispatchEvent(new CustomEvent('settings-changed'));
+  });
+
+  $('#setting-keyword-case')?.addEventListener('change', (e) => {
+    settings.keywordUpper = e.target.checked;
     saveSettings();
     applySettings();
     window.dispatchEvent(new CustomEvent('settings-changed'));
