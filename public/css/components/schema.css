@@ -319,6 +319,11 @@
     color: var(--color-accent);
   }
 
+  .file-tree-item.selected {
+    outline: 1px dashed var(--color-accent);
+    outline-offset: -1px;
+  }
+
   .file-tree-item .file-icon {
     flex-shrink: 0;
     font-size: 12px;

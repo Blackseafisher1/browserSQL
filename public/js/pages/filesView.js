@@ -8,10 +8,10 @@ const TUTORIAL_FILES_KEY = 'browsersql-tutorial-files';
 const TUTORIAL_ACTIVE_KEY = 'browsersql-tutorial-active-file';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';
-
 let activeFile = null;
 let activePane = 0;
-let paneTabs = [[], []]; // pane 0 = left, pane 1 = right
+let paneTabs = [[], []];
+let selectedFolder = null;
 
 function getStorageKeys() {
   return state.tutorialMode
@@ -306,7 +306,8 @@ function renderNode(node, prefix, active, depth) {
   for (const folder of folders) {
     const fullPrefix = prefix ? prefix + '/' + folder : folder;
     const expanded = expandedFolders.has(fullPrefix);
-    html += `<div class="file-tree-item" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${expanded ? '▾' : '▸'}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span><span class="file-del" data-delfolder="${fullPrefix}">✕</span></div>`;
+    const sel = fullPrefix === selectedFolder ? ' selected' : '';
+    html += `<div class="file-tree-item${sel}" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${expanded ? '▾' : '▸'}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span><span class="file-del" data-delfolder="${fullPrefix}">✕</span></div>`;
     if (expanded) html += renderNode(node[folder], fullPrefix, active, depth + 1);
   }
   for (const fp of fileList) {
@@ -337,8 +338,9 @@ export function initFilesView() {
     const del = e.target.closest('[data-del]'); const delf = e.target.closest('[data-delfolder]'); const item = e.target.closest('[data-file]'); const folder = e.target.closest('[data-folder]');
     if (del) { e.stopPropagation(); const n = del.dataset.del; if (confirm(`Delete "${n}"?`)) deleteFile(n); return; }
     if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['scratch.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
-    if (folder) { e.stopPropagation(); const f = folder.dataset.folder; if (expandedFolders.has(f)) expandedFolders.delete(f); else expandedFolders.add(f); renderTree(); return; }
-    if (item) { e.stopPropagation(); switchFile(item.dataset.file, 0); }
+    if (folder) { e.stopPropagation(); const f = folder.dataset.folder; const toggle = e.target.closest('.folder-toggle'); if (toggle) { if (expandedFolders.has(f)) expandedFolders.delete(f); else expandedFolders.add(f); renderTree(); } else { selectedFolder = selectedFolder === f ? null : f; renderTree(); } return; }
+    if (item) { selectedFolder = null; e.stopPropagation(); switchFile(item.dataset.file, 0); return; }
+    selectedFolder = null; renderTree();
   });
 
   tree.addEventListener('contextmenu', (e) => {
@@ -373,11 +375,11 @@ export function initFilesView() {
     const list = document.getElementById('files-tree');
     const input = document.createElement('input');
     input.className = 'file-rename-input';
-    input.value = '.sql';
+    input.value = selectedFolder ? selectedFolder + '/.sql' : '.sql';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
     list.insertBefore(input, list.firstChild);
     input.focus();
-    input.setSelectionRange(0, 0); // cursor before .sql
+    input.setSelectionRange(selectedFolder ? selectedFolder.length + 1 : 0, selectedFolder ? selectedFolder.length + 1 : 0);
     const finish = () => {
       let name = input.value.trim();
       if (!name || name === '.sql') { input.remove(); return; }
@@ -398,17 +400,19 @@ export function initFilesView() {
     const list = document.getElementById('files-tree');
     const input = document.createElement('input');
     input.className = 'file-rename-input';
-    input.placeholder = 'folder name';
+    input.placeholder = selectedFolder ? 'folder name inside ' + selectedFolder : 'folder name';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
     list.insertBefore(input, list.firstChild);
     input.focus();
     const finish = () => {
-      const name = input.value.trim();
+      const raw = input.value.trim();
       input.remove();
-      if (!name) return;
+      if (!raw) return;
+      const name = selectedFolder ? selectedFolder + '/' + raw : raw;
       const files = getFiles();
-      if (name + '/.gitkeep' in files) return;
-      files[name + '/.gitkeep'] = ''; saveFiles(files);
+      const marker = name + '/.gitkeep';
+      if (marker in files) return;
+      files[marker] = ''; saveFiles(files);
       expandedFolders.add(name.split('/')[0]); renderTree();
     };
     input.addEventListener('keydown', (e) => {
