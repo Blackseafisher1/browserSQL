@@ -1,6 +1,6 @@
 import { $, esc } from '../utils.js';
 import { state } from '../state.js';
-
+//
 const info = $('#results-info');
 const output = $('#results-output');
 
