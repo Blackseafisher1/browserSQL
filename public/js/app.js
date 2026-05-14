@@ -269,19 +269,7 @@ function wireSchemaToolbar() {
       'btn-schema-recent': 'btn-recent-dbs',
   };
   for (const [fromId, toId] of Object.entries(map)) {
-    document.getElementById(fromId)?.addEventListener('click', async () => {
-      if (fromId === 'btn-schema-recent' && document.getElementById('header')?.style.display === 'none') {
-        const { listLocalDBs } = await import('./pages/dbManager.js');
-        const dbs = await listLocalDBs();
-        if (dbs.length === 0) return alert('No saved databases');
-        const names = dbs.map(d => d.name).join('\n');
-        const name = prompt('Recent databases:\n' + names + '\n\nEnter name to open:');
-        if (name) {
-          const found = dbs.find(d => d.name === name);
-          if (found) document.getElementById('btn-recent-dbs')?.click();
-        }
-        return;
-      }
+    document.getElementById(fromId)?.addEventListener('click', () => {
       document.getElementById(toId)?.click();
     });
   }
