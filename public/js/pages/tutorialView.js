@@ -29,6 +29,155 @@ INSERT INTO users (id, name, city, age, email) VALUES
   (5, 'Zoe', 'Berlin', 26, 'zoe@example.com');
 `;
 
+const SEED_USERS_EXT = `
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  city TEXT NOT NULL,
+  age INTEGER NOT NULL,
+  email TEXT
+);
+INSERT INTO users VALUES
+  (1, 'Ava', 'Berlin', 28, 'ava@example.com'),
+  (2, 'Noah', 'Hamburg', 22, NULL),
+  (3, 'Mia', 'Munich', 31, 'mia@example.com'),
+  (4, 'Liam', 'Cologne', 19, NULL),
+  (5, 'Zoe', 'Berlin', 26, 'zoe@example.com'),
+  (6, 'Eli', 'Berlin', 35, 'eli@example.com'),
+  (7, 'Ivy', 'Munich', 24, NULL),
+  (8, 'Jay', 'Hamburg', 29, 'jay@example.com');
+`;
+
+const SEED_SHOP = `
+CREATE TABLE customers (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  city TEXT NOT NULL
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  item TEXT NOT NULL,
+  price REAL NOT NULL,
+  FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+INSERT INTO customers VALUES
+  (1, 'Ava', 'Berlin'),
+  (2, 'Noah', 'Hamburg'),
+  (3, 'Mia', 'Munich'),
+  (4, 'Leo', 'Leipzig');
+INSERT INTO orders VALUES
+  (1, 1, 'Laptop', 1200),
+  (2, 1, 'Mouse', 25),
+  (3, 2, 'Keyboard', 80),
+  (4, 3, 'Monitor', 350),
+  (5, 1, 'Desk', 450);
+`;
+
+const SEED_SHOP_EXT = `
+CREATE TABLE customers (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
+);
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  price REAL NOT NULL
+);
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  product_id INTEGER NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  FOREIGN KEY (customer_id) REFERENCES customers(id),
+  FOREIGN KEY (product_id) REFERENCES products(id)
+);
+INSERT INTO customers VALUES
+  (1, 'Ava'),
+  (2, 'Noah'),
+  (3, 'Mia');
+INSERT INTO products VALUES
+  (1, 'Laptop', 1200),
+  (2, 'Mouse', 25),
+  (3, 'Keyboard', 80),
+  (4, 'Monitor', 350),
+  (5, 'Desk', 450);
+INSERT INTO orders VALUES
+  (1, 1, 1, 1),
+  (2, 1, 2, 2),
+  (3, 2, 3, 1),
+  (4, 3, 4, 1),
+  (5, 1, 5, 1);
+`;
+
+const SEED_EMPLOYEES = `
+PRAGMA foreign_keys = ON;
+CREATE TABLE employees (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  manager_id INTEGER REFERENCES employees(id)
+);
+INSERT INTO employees VALUES
+  (1, 'Zara', NULL),
+  (2, 'Ben', 1),
+  (3, 'Chris', 1),
+  (4, 'Diana', 2),
+  (5, 'Evan', 2),
+  (6, 'Finn', 3);
+`;
+
+const SEED_NORMALIZE = `
+CREATE TABLE orders_denorm (
+  id INTEGER PRIMARY KEY,
+  customer TEXT NOT NULL,
+  customer_city TEXT NOT NULL,
+  product TEXT NOT NULL,
+  price REAL NOT NULL,
+  category TEXT NOT NULL
+);
+INSERT INTO orders_denorm VALUES
+  (1, 'Ava', 'Berlin', 'Laptop', 1200, 'Electronics'),
+  (2, 'Ava', 'Berlin', 'Mouse', 25, 'Accessories'),
+  (3, 'Noah', 'Hamburg', 'Keyboard', 80, 'Accessories'),
+  (4, 'Mia', 'Munich', 'Monitor', 350, 'Electronics'),
+  (5, 'Ava', 'Berlin', 'Desk', 450, 'Furniture');
+`;
+
+const SEED_INVENTORY = `
+CREATE TABLE products (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  price REAL NOT NULL,
+  stock INTEGER NOT NULL
+);
+INSERT INTO products VALUES
+  (1, 'Laptop', 'Electronics', 1200, 10),
+  (2, 'Mouse', 'Accessories', 25, 100),
+  (3, 'Keyboard', 'Accessories', 80, 50),
+  (4, 'Monitor', 'Electronics', 350, 30),
+  (5, 'Desk', 'Furniture', 450, 15),
+  (6, 'Chair', 'Furniture', 200, 25),
+  (7, 'Tablet', 'Electronics', 500, 20),
+  (8, 'Headphones', 'Accessories', 60, 75),
+  (9, 'Lamp', 'Furniture', 40, 60),
+  (10, 'Printer', 'Electronics', 180, 12);
+`;
+
+const SEED_DATES = `
+CREATE TABLE events (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  event_date TEXT NOT NULL
+);
+INSERT INTO events VALUES
+  (1, 'Product launch', '2025-01-15'),
+  (2, 'Team meeting', '2025-02-20'),
+  (3, 'Conference', '2025-03-10'),
+  (4, 'Workshop', '2025-01-25'),
+  (5, 'Review', '2025-03-01');
+`;
+
 const SEED_USERS_NULL = `
 CREATE TABLE users (
   id INTEGER PRIMARY KEY,
@@ -452,6 +601,791 @@ Always include WHERE unless you truly want to delete everything.
       explanation: 'Without WHERE, every row is removed.',
     },
     seed: SEED_USERS,
+  },
+  // ── Module 4: Query Power Tools ─────────────────────────────────────────
+  {
+    id: '19-sort',
+    module: 4,
+    title: 'Sorting',
+    type: 'practice',
+    file: 'tutorial/19-sort.sql',
+    markdown: `# 19. Sorting
+
+Use \`ORDER BY\` to sort results:
+
+\`\`\`sql
+SELECT columns FROM table ORDER BY column;
+\`\`\`
+
+Use \`ASC\` for ascending (default) or \`DESC\` for descending. Sort by multiple columns with commas.
+
+**Goal:** Write a query that returns \`name\` and \`age\` from \`users\`, sorted by age from youngest to oldest.`,
+    seed: SEED_USERS,
+    check: { type: 'result', expectedSql: 'SELECT name, age FROM users ORDER BY age;' },
+  },
+  {
+    id: '20-limit',
+    module: 4,
+    title: 'Limiting Results',
+    type: 'practice',
+    file: 'tutorial/20-limit.sql',
+    markdown: `# 20. Limiting results
+
+Use \`LIMIT\` to restrict how many rows are returned:
+
+\`\`\`sql
+SELECT columns FROM table LIMIT count;
+SELECT columns FROM table LIMIT count OFFSET skip;
+\`\`\`
+
+**Goal:** Write a query that returns the names of the 3 oldest users, sorted oldest first.`,
+    seed: SEED_USERS,
+    check: { type: 'result', expectedSql: 'SELECT name FROM users ORDER BY age DESC LIMIT 3;' },
+  },
+  {
+    id: '21-aggregates',
+    module: 4,
+    title: 'Aggregate Functions',
+    type: 'practice',
+    file: 'tutorial/21-aggregates.sql',
+    markdown: `# 21. Aggregate functions
+
+Aggregate functions summarize many rows into one value:
+
+\`\`\`sql
+SELECT COUNT(*), AVG(column), SUM(column), MIN(column), MAX(column) FROM table;
+\`\`\`
+
+- \`COUNT(*)\` — number of rows
+- \`AVG(col)\` — average value
+- \`SUM(col)\` — total
+- \`MIN(col)\` / \`MAX(col)\` — smallest / largest
+
+**Goal:** Write a query that returns the total number of users and their average age. Use \`COUNT(*)\` and \`AVG(age)\`.`,
+    seed: SEED_USERS_EXT,
+    check: { type: 'result', expectedSql: 'SELECT COUNT(*), AVG(age) FROM users;' },
+  },
+  {
+    id: '22-group',
+    module: 4,
+    title: 'Grouping',
+    type: 'practice',
+    file: 'tutorial/22-group.sql',
+    markdown: `# 22. Grouping
+
+\`GROUP BY\` groups rows that share a value, so aggregate functions work per group:
+
+\`\`\`sql
+SELECT column, COUNT(*) FROM table GROUP BY column;
+\`\`\`
+
+Use \`HAVING\` to filter groups (like \`WHERE\` but for groups).
+
+**Goal:** Write a query that counts how many users live in each city. Show city name and count, sorted alphabetically by city.`,
+    seed: SEED_USERS_EXT,
+    check: { type: 'result', expectedSql: 'SELECT city, COUNT(*) FROM users GROUP BY city ORDER BY city;' },
+  },
+  {
+    id: '23-distinct',
+    module: 4,
+    title: 'Distinct Values',
+    type: 'practice',
+    file: 'tutorial/23-distinct.sql',
+    markdown: `# 23. Distinct values
+
+\`DISTINCT\` removes duplicate values from results:
+
+\`\`\`sql
+SELECT DISTINCT column FROM table;
+\`\`\`
+
+**Goal:** Write a query that returns all unique cities from the \`users\` table, without duplicates.`,
+    seed: SEED_USERS,
+    check: { type: 'result', expectedSql: 'SELECT DISTINCT city FROM users;' },
+  },
+  {
+    id: '24-alias',
+    module: 4,
+    title: 'Aliases',
+    type: 'practice',
+    file: 'tutorial/24-alias.sql',
+    markdown: `# 24. Aliases
+
+\`AS\` renames columns or tables in query results:
+
+\`\`\`sql
+SELECT column AS alias_name FROM table AS table_alias;
+\`\`\`
+
+The \`AS\` keyword is optional: \`SELECT column alias FROM table t\`.
+
+**Goal:** Write a query that returns \`name\` renamed to \`user_name\` and \`age\` renamed to \`user_age\` from the \`users\` table.`,
+    seed: SEED_USERS,
+    check: { type: 'result', expectedSql: 'SELECT name AS user_name, age AS user_age FROM users;' },
+  },
+  // ── Module 5: Joins ─────────────────────────────────────────────────────
+  {
+    id: '25-inner-join',
+    module: 5,
+    title: 'INNER JOIN',
+    type: 'practice',
+    file: 'tutorial/25-inner-join.sql',
+    markdown: `# 25. INNER JOIN
+
+\`INNER JOIN\` combines rows from two tables where a condition matches:
+
+\`\`\`sql
+SELECT a.col, b.col FROM table_a
+INNER JOIN table_b ON a.id = b.foreign_id;
+\`\`\`
+
+Only rows with matches in both tables appear.
+
+**Goal:** Write a query that shows each customer name alongside their order item. Use \`INNER JOIN\` on \`customers.id = orders.customer_id\`.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;' },
+  },
+  {
+    id: '26-left-join',
+    module: 5,
+    title: 'LEFT JOIN',
+    type: 'practice',
+    file: 'tutorial/26-left-join.sql',
+    markdown: `# 26. LEFT JOIN
+
+\`LEFT JOIN\` keeps ALL rows from the left table, even without matches. Unmatched right columns show \`NULL\`:
+
+\`\`\`sql
+SELECT a.col, b.col FROM table_a
+LEFT JOIN table_b ON a.id = b.foreign_id;
+\`\`\`
+
+**Goal:** Write a query that shows ALL customers and their order items. Customers without orders should still appear (item shows NULL).`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;' },
+  },
+  {
+    id: '27-right-join',
+    module: 5,
+    title: 'RIGHT JOIN (Theory)',
+    type: 'theory',
+    file: 'tutorial/27-right-join.md',
+    markdown: `# 27. RIGHT JOIN
+
+\`RIGHT JOIN\` keeps ALL rows from the right table. SQLite does not support it — use \`LEFT JOIN\` and swap the tables.
+
+**Goal:** know how to simulate RIGHT JOIN.`,
+    question: {
+      prompt: 'How do you simulate RIGHT JOIN in SQLite?',
+      options: ['Use RIGHT JOIN anyway', 'Swap tables and use LEFT JOIN', 'Use INNER JOIN', 'Use CROSS JOIN'],
+      answer: 1,
+      explanation: 'Swap the table order and use LEFT JOIN to get the same effect.',
+    },
+    seed: SEED_SHOP,
+  },
+  {
+    id: '28-full-join',
+    module: 5,
+    title: 'FULL OUTER JOIN (Theory)',
+    type: 'theory',
+    file: 'tutorial/28-full-join.md',
+    markdown: `# 28. FULL OUTER JOIN
+
+\`FULL OUTER JOIN\` keeps rows from both sides. Not supported in SQLite — combine LEFT JOIN and RIGHT JOIN with \`UNION\`.
+
+**Goal:** know the concept even if SQLite cannot run it.`,
+    question: {
+      prompt: 'Which SQL operation combines LEFT JOIN and RIGHT JOIN results?',
+      options: ['UNION', 'INTERSECT', 'EXCEPT', 'CROSS JOIN'],
+      answer: 0,
+      explanation: 'UNION combines the results of LEFT JOIN and RIGHT JOIN to simulate FULL OUTER JOIN.',
+    },
+    seed: SEED_SHOP,
+  },
+  {
+    id: '29-self-join',
+    module: 5,
+    title: 'Self Joins',
+    type: 'practice',
+    file: 'tutorial/29-self-join.sql',
+    markdown: `# 29. Self joins
+
+A self join joins a table to itself. Use different aliases to tell them apart:
+
+\`\`\`sql
+SELECT a.col, b.col FROM table AS a
+INNER JOIN table AS b ON a.id = b.ref_id;
+\`\`\`
+
+The \`employees\` table has \`manager_id\` referencing \`id\` in the same table.
+
+**Goal:** Write a query that shows each employee name alongside their manager name. Use \`LEFT JOIN\` so top-level employees (no manager) still appear.`,
+    seed: SEED_EMPLOYEES,
+    check: { type: 'result', expectedSql: 'SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;' },
+  },
+  {
+    id: '30-multi-join',
+    module: 5,
+    title: 'Joining Multiple Tables',
+    type: 'practice',
+    file: 'tutorial/30-multi-join.sql',
+    markdown: `# 30. Joining multiple tables
+
+Chain multiple \`JOIN\` clauses to combine three or more tables:
+
+\`\`\`sql
+SELECT a.col, b.col, c.col
+FROM table_a a
+INNER JOIN table_b b ON a.id = b.a_id
+INNER JOIN table_c c ON b.id = c.b_id;
+\`\`\`
+
+**Goal:** Write a query showing each customer name, product name, and order quantity by joining \`customers\`, \`orders\`, and \`products\`.`,
+    seed: SEED_SHOP_EXT,
+    check: { type: 'result', expectedSql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },
+  },
+  // ── Module 6: Subqueries & CTEs ─────────────────────────────────────────
+  {
+    id: '31-subquery-where',
+    module: 6,
+    title: 'Subquery in WHERE',
+    type: 'practice',
+    file: 'tutorial/31-subquery-where.sql',
+    markdown: `# 31. Subquery in WHERE
+
+A subquery is a query inside another query. Use it in \`WHERE\` with \`IN\`:
+
+\`\`\`sql
+SELECT columns FROM table
+WHERE id IN (SELECT foreign_id FROM other_table WHERE condition);
+\`\`\`
+
+**Goal:** Write a query that returns the names of customers who have placed orders worth more than 100. Use a subquery with \`WHERE id IN\`.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders WHERE price > 100);' },
+  },
+  {
+    id: '32-subquery-select',
+    module: 6,
+    title: 'Subquery in SELECT',
+    type: 'practice',
+    file: 'tutorial/32-subquery-select.sql',
+    markdown: `# 32. Subquery in SELECT
+
+A subquery in \`SELECT\` computes a value for each row. It must return a single value:
+
+\`\`\`sql
+SELECT column, (SELECT COUNT(*) FROM other WHERE other.id = main.id) AS alias
+FROM table;
+\`\`\`
+
+The subquery runs once per row — it references the outer query's values.
+
+**Goal:** Write a query that shows each customer name alongside the number of orders they placed. Use a subquery in SELECT with \`COUNT(*)\`.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT name, (SELECT COUNT(*) FROM orders WHERE customer_id = customers.id) AS order_count FROM customers;' },
+  },
+  {
+    id: '33-subquery-from',
+    module: 6,
+    title: 'Subquery in FROM',
+    type: 'practice',
+    file: 'tutorial/33-subquery-from.sql',
+    markdown: `# 33. Subquery in FROM
+
+A subquery in \`FROM\` acts like a temporary table. It must have an alias:
+
+\`\`\`sql
+SELECT columns FROM (SELECT ...) AS alias WHERE condition;
+\`\`\`
+
+**Goal:** Write a query that finds all expensive items (price > 50) by querying from a subquery that selects all orders. Use \`FROM (SELECT * FROM orders) AS expensive\` and filter with WHERE.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT item, price FROM (SELECT * FROM orders) AS expensive WHERE price > 50;' },
+  },
+  {
+    id: '34-correlated',
+    module: 6,
+    title: 'Correlated Subqueries',
+    type: 'practice',
+    file: 'tutorial/34-correlated.sql',
+    markdown: `# 34. Correlated subqueries
+
+A correlated subquery references the outer query's values and runs once per outer row:
+
+\`\`\`sql
+SELECT columns FROM table_a AS a
+WHERE column > (SELECT AVG(column) FROM table_b WHERE b.id = a.id);
+\`\`\`
+
+**Goal:** Write a query that returns items from \`orders\` that cost more than the average price across all orders.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT item, price FROM orders WHERE price > (SELECT AVG(price) FROM orders);' },
+  },
+  {
+    id: '35-exists',
+    module: 6,
+    title: 'EXISTS',
+    type: 'practice',
+    file: 'tutorial/35-exists.sql',
+    markdown: `# 35. EXISTS
+
+\`EXISTS\` checks whether a subquery returns any rows. It is often faster than \`IN\`:
+
+\`\`\`sql
+SELECT columns FROM table_a AS a
+WHERE EXISTS (SELECT 1 FROM table_b WHERE b.ref_id = a.id);
+\`\`\`
+
+**Goal:** Write a query that returns the names of customers who have placed at least one order. Use \`EXISTS\`.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'SELECT name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE customer_id = customers.id);' },
+  },
+  {
+    id: '36-cte',
+    module: 6,
+    title: 'Common Table Expressions',
+    type: 'practice',
+    file: 'tutorial/36-cte.sql',
+    markdown: `# 36. Common Table Expressions
+
+A CTE (WITH clause) names a subquery for reuse in the main query:
+
+\`\`\`sql
+WITH name AS (
+  SELECT ... FROM ...
+)
+SELECT columns FROM name WHERE condition;
+\`\`\`
+
+**Goal:** Write a query using a CTE called \`avg_price\` that calculates the average price, then use it to find all items with a price above that average.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: 'WITH avg_price AS (SELECT AVG(price) AS avg FROM orders) SELECT item, price FROM orders, avg_price WHERE price > avg_price.avg;' },
+  },
+  {
+    id: '37-recursive-cte',
+    module: 6,
+    title: 'Recursive CTEs (Theory)',
+    type: 'theory',
+    file: 'tutorial/37-recursive-cte.md',
+    markdown: `# 37. Recursive CTEs
+
+Recursive CTEs reference themselves to handle hierarchical data (org charts, trees, graphs). Use \`UNION ALL\` to combine the anchor and recursive steps.
+
+**Goal:** know when recursive CTEs are useful.`,
+    question: {
+      prompt: 'What kind of data is a recursive CTE best for?',
+      options: ['Flat tables', 'Hierarchical data like org charts', 'Single-row results', 'Aggregated data'],
+      answer: 1,
+      explanation: 'Recursive CTEs excel at querying tree structures like employee hierarchies.',
+    },
+    seed: SEED_EMPLOYEES,
+  },
+  // ── Module 7: Normalization ─────────────────────────────────────────────
+  {
+    id: '38-why-normalize',
+    module: 7,
+    title: 'Why Normalize?',
+    type: 'theory',
+    file: 'tutorial/38-why-normalize.md',
+    markdown: `# 38. Why normalize?
+
+Normalization reduces data redundancy and prevents anomalies (update, insert, delete). Split data into related tables instead of one big table.
+
+**Goal:** know the main benefit of normalization.`,
+    question: {
+      prompt: 'What is the main benefit of normalization?',
+      options: ['Faster queries', 'Less data redundancy', 'More storage used', 'More columns'],
+      answer: 1,
+      explanation: 'Normalization eliminates redundant data, preventing inconsistencies.',
+    },
+    seed: SEED_NORMALIZE,
+  },
+  {
+    id: '39-1nf',
+    module: 7,
+    title: 'First Normal Form (1NF)',
+    type: 'practice',
+    file: 'tutorial/39-1nf.sql',
+    markdown: `# 39. First Normal Form
+
+A table is in 1NF when:
+- Each column has atomic (indivisible) values
+- Each row has a primary key
+- No repeating groups
+
+The \`orders_denorm\` table repeats customer info per order. Split it into two tables:
+
+\`\`\`sql
+CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, city TEXT NOT NULL);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL, product TEXT NOT NULL, price REAL NOT NULL);
+\`\`\`
+
+**Goal:** Create the \`customers\` and \`orders\` tables as shown above to achieve 1NF.`,
+    seed: SEED_NORMALIZE,
+    check: { type: 'schema', table: 'customers', columns: ['id', 'name', 'city'] },
+  },
+  {
+    id: '40-2nf',
+    module: 7,
+    title: 'Second Normal Form (2NF)',
+    type: 'practice',
+    file: 'tutorial/40-2nf.sql',
+    markdown: `# 40. Second Normal Form
+
+A table is in 2NF when:
+- It is in 1NF
+- Every non-key column depends on the WHOLE primary key (no partial dependency)
+
+The \`orders_denorm\` table has \`product\` depending on \`id\` but \`category\` depends on \`product\`, not the order. Create three tables:
+
+\`\`\`sql
+CREATE TABLE customers (...);
+CREATE TABLE products (...);
+CREATE TABLE orders (...);
+\`\`\`
+
+**Goal:** Create \`customers\` (id, name, city), \`products\` (id, name, category), and \`orders\` (id, customer_id, product_id) tables.`,
+    seed: SEED_NORMALIZE,
+    check: { type: 'schema', table: 'products', columns: ['id', 'name', 'category'] },
+  },
+  {
+    id: '41-3nf',
+    module: 7,
+    title: 'Third Normal Form (3NF)',
+    type: 'practice',
+    file: 'tutorial/41-3nf.sql',
+    markdown: `# 41. Third Normal Form
+
+A table is in 3NF when:
+- It is in 2NF
+- No transitive dependency (a non-key column depends on another non-key column)
+
+Here \`customer_city\` depends on \`customer\`, not on the order id. You already split this in 1NF. The \`orders_denorm\` violates 3NF because \`customer_city\` depends on \`customer\`, not the order primary key.
+
+**Goal:** Create \`customers\` (id, name, city) and \`orders\` (id, customer_id, product, price). Make \`customer_id\` a foreign key referencing \`customers(id)\`.`,
+    seed: SEED_NORMALIZE,
+    check: { type: 'fk', table: 'orders', column: 'customer_id' },
+  },
+  {
+    id: '42-denormalization',
+    module: 7,
+    title: 'Denormalization',
+    type: 'theory',
+    file: 'tutorial/42-denormalization.md',
+    markdown: `# 42. Denormalization
+
+Denormalization intentionally adds redundancy for read performance. Used in reporting / analytics where writes are rare.
+
+**Goal:** know when to denormalize.`,
+    question: {
+      prompt: 'When is denormalization useful?',
+      options: ['Always', 'When read performance matters more than write efficiency', 'When data must be unique', 'Never'],
+      answer: 1,
+      explanation: 'Denormalization speeds up reads by reducing joins, at the cost of redundant data.',
+    },
+    seed: SEED_NORMALIZE,
+  },
+  // ── Module 8: Indexes & Performance ─────────────────────────────────────
+  {
+    id: '43-what-index',
+    module: 8,
+    title: 'What is an Index?',
+    type: 'theory',
+    file: 'tutorial/43-what-index.md',
+    markdown: `# 43. What is an index?
+
+An index is a data structure (B-Tree) that speeds up lookups. Like a book index — instead of scanning every page, jump to the right spot. Trade-off: faster reads, slower writes.
+
+**Goal:** know what an index does.`,
+    question: {
+      prompt: 'What is the trade-off of adding an index?',
+      options: ['Faster reads and writes', 'Faster reads, slower writes', 'Slower reads, faster writes', 'No trade-off'],
+      answer: 1,
+      explanation: 'Indexes speed up SELECT but slow down INSERT/UPDATE/DELETE because the index must be updated.',
+    },
+    seed: SEED_INVENTORY,
+  },
+  {
+    id: '44-create-index',
+    module: 8,
+    title: 'Creating Indexes',
+    type: 'practice',
+    file: 'tutorial/44-create-index.sql',
+    markdown: `# 44. Creating indexes
+
+Use \`CREATE INDEX\` to add an index:
+
+\`\`\`sql
+CREATE INDEX index_name ON table (column);
+\`\`\`
+
+**Goal:** Create an index named \`idx_category\` on the \`products\` table for the \`category\` column.`,
+    seed: SEED_INVENTORY,
+    check: { type: 'success' },
+  },
+  {
+    id: '45-explain-plan',
+    module: 8,
+    title: 'Query Planning',
+    type: 'practice',
+    file: 'tutorial/45-explain-plan.sql',
+    markdown: `# 45. Query planning
+
+\`EXPLAIN QUERY PLAN\` shows how SQLite executes a query. Use it to see if indexes are used:
+
+\`\`\`sql
+EXPLAIN QUERY PLAN SELECT * FROM table WHERE column = value;
+\`\`\`
+
+**Goal:** Run \`EXPLAIN QUERY PLAN\` on a query that selects from \`products\` where category is 'Electronics'.`,
+    seed: SEED_INVENTORY,
+    check: { type: 'success' },
+  },
+  {
+    id: '46-composite-index',
+    module: 8,
+    title: 'Composite Indexes',
+    type: 'practice',
+    file: 'tutorial/46-composite-index.sql',
+    markdown: `# 46. Composite indexes
+
+A composite index covers multiple columns:
+
+\`\`\`sql
+CREATE INDEX index_name ON table (col1, col2);
+\`\`\`
+
+The column order matters — leftmost columns first.
+
+**Goal:** Create a composite index named \`idx_cat_price\` on \`products\` covering \`category\` then \`price\`. Then create an index named \`idx_stock\` on \`stock\`.`,
+    seed: SEED_INVENTORY,
+    check: { type: 'changes', min: 0 },
+  },
+  {
+    id: '47-no-index',
+    module: 8,
+    title: 'When NOT to Index',
+    type: 'theory',
+    file: 'tutorial/47-no-index.md',
+    markdown: `# 47. When NOT to index
+
+Avoid indexes on:
+- Small tables (full scan is fast enough)
+- Columns updated frequently (index maintenance cost)
+- Columns with few unique values (low selectivity)
+
+**Goal:** know when indexes hurt more than help.`,
+    question: {
+      prompt: 'Which column is a bad candidate for an index?',
+      options: ['A primary key', 'A column with many unique values', 'A column with only two possible values', 'A foreign key'],
+      answer: 2,
+      explanation: 'Low-selectivity columns (few unique values) make poor indexes since they don't narrow results much.',
+    },
+    seed: SEED_INVENTORY,
+  },
+  // ── Module 9: Transactions ─────────────────────────────────────────────
+  {
+    id: '48-acid',
+    module: 9,
+    title: 'ACID Properties',
+    type: 'theory',
+    file: 'tutorial/48-acid.md',
+    markdown: `# 48. ACID properties
+
+Transactions guarantee:
+- **Atomicity** — all or nothing
+- **Consistency** — data stays valid
+- **Isolation** — concurrent transactions don't interfere
+- **Durability** — committed data persists
+
+**Goal:** know what ACID stands for.`,
+    question: {
+      prompt: 'What does the I in ACID stand for?',
+      options: ['Index', 'Isolation', 'Integrity', 'Insert'],
+      answer: 1,
+      explanation: 'Isolation ensures concurrent transactions do not interfere with each other.',
+    },
+    seed: SEED_EMPTY,
+  },
+  {
+    id: '49-begin',
+    module: 9,
+    title: 'Starting Transactions',
+    type: 'practice',
+    file: 'tutorial/49-begin.sql',
+    markdown: `# 49. Starting transactions
+
+Wrap operations in \`BEGIN TRANSACTION\` and \`COMMIT\`:
+
+\`\`\`sql
+BEGIN TRANSACTION;
+CREATE TABLE ...;
+INSERT INTO ...;
+COMMIT;
+\`\`\`
+
+**Goal:** Create a table \`tasks\` with columns \`id\` (INTEGER PRIMARY KEY) and \`title\` (TEXT NOT NULL) inside a transaction, then COMMIT.`,
+    seed: SEED_EMPTY,
+    check: { type: 'schema', table: 'tasks', columns: ['id', 'title'] },
+  },
+  {
+    id: '50-commit',
+    module: 9,
+    title: 'Committing',
+    type: 'practice',
+    file: 'tutorial/50-commit.sql',
+    markdown: `# 50. Committing
+
+\`COMMIT\` saves all changes made since \`BEGIN TRANSACTION\`. Changes become visible and permanent.
+
+**Goal:** Insert a row into the \`tasks\` table (created in previous lesson) inside a transaction and COMMIT. The table already exists from the seed.`,
+    seed: SEED_EMPTY,
+    check: { type: 'changes', min: 1 },
+  },
+  {
+    id: '51-rollback',
+    module: 9,
+    title: 'Rolling Back',
+    type: 'practice',
+    file: 'tutorial/51-rollback.sql',
+    markdown: `# 51. Rolling back
+
+\`ROLLBACK\` undoes all changes since \`BEGIN TRANSACTION\`:
+
+\`\`\`sql
+BEGIN;
+DELETE FROM table;
+ROLLBACK; -- nothing happened
+\`\`\`
+
+**Goal:** Delete all rows from \`tasks\` inside a transaction, then ROLLBACK. The rows should still exist after. Check with \`SELECT COUNT(*) FROM tasks\` to verify.`,
+    seed: SEED_EMPTY,
+    check: { type: 'success' },
+  },
+  {
+    id: '52-savepoint',
+    module: 9,
+    title: 'Savepoints',
+    type: 'practice',
+    file: 'tutorial/52-savepoint.sql',
+    markdown: `# 52. Savepoints
+
+Savepoints allow partial rollbacks within a transaction:
+
+\`\`\`sql
+SAVEPOINT sp;
+... some work ...
+ROLLBACK TO sp; -- undo to savepoint
+COMMIT;
+\`\`\`
+
+**Goal:** Insert two rows into \`tasks\` after a SAVEPOINT, then ROLLBACK TO that savepoint, insert one more row, and COMMIT. Only the last row persists.`,
+    seed: SEED_EMPTY,
+    check: { type: 'changes', min: 1 },
+  },
+  // ── Module 10: Advanced Topics ──────────────────────────────────────────
+  {
+    id: '53-views',
+    module: 10,
+    title: 'Views',
+    type: 'practice',
+    file: 'tutorial/53-views.sql',
+    markdown: `# 53. Views
+
+A view is a saved query that acts like a virtual table:
+
+\`\`\`sql
+CREATE VIEW view_name AS SELECT ...;
+\`\`\`
+
+**Goal:** Create a view called \`customer_orders\` that shows customer names alongside their order items (use INNER JOIN).`,
+    seed: SEED_SHOP,
+    check: { type: 'success' },
+  },
+  {
+    id: '54-triggers',
+    module: 10,
+    title: 'Triggers',
+    type: 'practice',
+    file: 'tutorial/54-triggers.sql',
+    markdown: `# 54. Triggers
+
+A trigger runs automatically before or after an INSERT, UPDATE, or DELETE:
+
+\`\`\`sql
+CREATE TRIGGER trigger_name
+BEFORE DELETE ON table
+BEGIN
+  ... actions ...
+END;
+\`\`\`
+
+**Goal:** Create a trigger named \`prevent_empty\` that prevents deleting the last product in any category. Use \`BEFORE DELETE\` on \`products\` with \`RAISE(ABORT, '...')\` when the category would become empty.`,
+    seed: SEED_INVENTORY,
+    check: { type: 'success' },
+  },
+  {
+    id: '55-window',
+    module: 10,
+    title: 'Window Functions',
+    type: 'practice',
+    file: 'tutorial/55-window.sql',
+    markdown: `# 55. Window functions
+
+Window functions compute values across a set of rows related to the current row:
+
+\`\`\`sql
+SELECT column, ROW_NUMBER() OVER (ORDER BY col) AS rank FROM table;
+\`\`\`
+
+\`ROW_NUMBER()\`, \`RANK()\`, \`SUM() OVER\` are common window functions.
+
+**Goal:** Write a query that returns each product name, price, and a row number ordered by price descending (most expensive first).`,
+    seed: SEED_INVENTORY,
+    check: { type: 'result', expectedSql: 'SELECT name, price, ROW_NUMBER() OVER (ORDER BY price DESC) AS rank FROM products;' },
+  },
+  {
+    id: '56-case',
+    module: 10,
+    title: 'CASE Statements',
+    type: 'practice',
+    file: 'tutorial/56-case.sql',
+    markdown: `# 56. CASE statements
+
+\`CASE\` adds conditional logic to queries:
+
+\`\`\`sql
+SELECT column,
+  CASE WHEN condition THEN value ELSE other END AS alias
+FROM table;
+\`\`\`
+
+**Goal:** Write a query that returns each product name and a label column: 'Cheap' if price < 100, 'Moderate' if price BETWEEN 100 AND 500, 'Expensive' if price > 500. Sort by price ascending.`,
+    seed: SEED_INVENTORY,
+    check: { type: 'result', expectedSql: "SELECT name, CASE WHEN price < 100 THEN 'Cheap' WHEN price BETWEEN 100 AND 500 THEN 'Moderate' ELSE 'Expensive' END AS label FROM products ORDER BY price;" },
+  },
+  {
+    id: '57-datetime',
+    module: 10,
+    title: 'Date and Time Functions',
+    type: 'practice',
+    file: 'tutorial/57-datetime.sql',
+    markdown: `# 57. Date and time functions
+
+SQLite has functions for date arithmetic:
+
+\`\`\`sql
+DATE('now')           -- today
+DATE('now', '+1 day') -- tomorrow
+STRFTIME('%Y', col)   -- extract year
+\`\`\`
+
+The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-MM-DD').
+
+**Goal:** Write a query that returns event names and their month number (1-12) extracted from \`event_date\`. Use \`STRFTIME('%m', event_date)\` and alias it as \`month\`. Sort by event_date.`,
+    seed: SEED_DATES,
+    check: { type: 'result', expectedSql: "SELECT name, STRFTIME('%m', event_date) AS month FROM events ORDER BY event_date;" },
   },
 ];
 
