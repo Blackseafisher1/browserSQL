@@ -2,6 +2,10 @@
 
 In-browser SQLite editor with CodeMirror 6, schema explorer, file management, and mobile support.
 
+Access at:
+
+**https://blackseafisher1.github.io/browserSQL/public**
+
 ## Features
 
 - **SQL Editor** — CodeMirror 6 with SQLite dialect, table/column autocomplete, syntax highlighting
