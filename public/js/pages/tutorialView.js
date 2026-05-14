@@ -1097,12 +1097,14 @@ Denormalization intentionally adds redundancy for read performance. Used in repo
 
 An index is a data structure (B-Tree) that speeds up lookups. Like a book index — instead of scanning every page, jump to the right spot. Trade-off: faster reads, slower writes.
 
-**Goal:** know what an index does.`,
+\`PRIMARY KEY\` columns are automatically indexed — and this index is faster than a manual index on a regular column because the B-Tree is built on a unique, non-null key.
+
+**Goal:** know what an index does and that PKs get a free index.`,
     question: {
-      prompt: 'What is the trade-off of adding an index?',
-      options: ['Faster reads and writes', 'Faster reads, slower writes', 'Slower reads, faster writes', 'No trade-off'],
+      prompt: 'Which columns are indexed automatically in SQLite?',
+      options: ['All columns', 'PRIMARY KEY columns', 'TEXT columns', 'No columns'],
       answer: 1,
-      explanation: 'Indexes speed up SELECT but slow down INSERT/UPDATE/DELETE because the index must be updated.',
+      explanation: 'PRIMARY KEY columns get an automatic B-Tree index, which is faster than a manual index on a non-PK column.',
     },
     seed: SEED_INVENTORY,
   },
@@ -1119,6 +1121,8 @@ Use \`CREATE INDEX\` to add an index:
 \`\`\`sql
 CREATE INDEX index_name ON table (column);
 \`\`\`
+
+Note: \`PRIMARY KEY\` columns are already indexed automatically — they don't need (and can't have) a duplicate manual index. This is for non-PK columns.
 
 **Goal:** Create an index named \`idx_category\` on the \`products\` table for the \`category\` column.`,
     seed: SEED_INVENTORY,
@@ -1180,7 +1184,7 @@ Avoid indexes on:
       prompt: 'Which column is a bad candidate for an index?',
       options: ['A primary key', 'A column with many unique values', 'A column with only two possible values', 'A foreign key'],
       answer: 2,
-      explanation: 'Low-selectivity columns (few unique values) make poor indexes since they don't narrow results much.',
+      explanation: 'Low-selectivity columns (few unique values) make poor indexes since they do not narrow results much.',
     },
     seed: SEED_INVENTORY,
   },
@@ -1386,6 +1390,121 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
 **Goal:** Write a query that returns event names and their month number (1-12) extracted from \`event_date\`. Use \`STRFTIME('%m', event_date)\` and alias it as \`month\`. Sort by event_date.`,
     seed: SEED_DATES,
     check: { type: 'result', expectedSql: "SELECT name, STRFTIME('%m', event_date) AS month FROM events ORDER BY event_date;" },
+  },
+  // ── ALTER TABLE & Inter-table Operations ────────────────────────────────
+  {
+    id: '58-alter-table',
+    module: 2,
+    title: 'ALTER TABLE',
+    type: 'practice',
+    file: 'tutorial/58-alter-table.sql',
+    markdown: `# 58. ALTER TABLE
+
+Modify existing tables with \`ALTER TABLE\`:
+
+\`\`\`sql
+ALTER TABLE table ADD COLUMN column TYPE;
+ALTER TABLE table RENAME COLUMN old TO new;
+ALTER TABLE table DROP COLUMN column;
+\`\`\`
+
+The \`users\` table already exists.
+
+**Goal:** Add a column \`phone\` (TEXT) to \`users\`, then rename \`phone\` to \`phone_number\`.`,
+    seed: SEED_USERS,
+    check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
+  },
+  {
+    id: '59-insert-select',
+    module: 3,
+    title: 'INSERT INTO SELECT',
+    type: 'practice',
+    file: 'tutorial/59-insert-select.sql',
+    markdown: `# 59. INSERT INTO ... SELECT
+
+Copy rows from one table into another:
+
+\`\`\`sql
+INSERT INTO target_table (columns)
+SELECT columns FROM source_table WHERE condition;
+\`\`\`
+
+Both tables must exist. The column types must match.
+
+**Goal:** Create a table \`admins\` with the same columns as \`users\`, then copy only users from Berlin into it.`,
+    seed: SEED_USERS,
+    check: { type: 'result', expectedSql: 'SELECT name, city FROM admins ORDER BY name;' },
+  },
+  // ── Combined / Mastery Lessons ─────────────────────────────────────────
+  {
+    id: '60-crud-mastery',
+    module: 3,
+    title: 'CRUD Mastery',
+    type: 'practice',
+    file: 'tutorial/60-crud-mastery.sql',
+    markdown: `# 60. CRUD mastery
+
+Combine everything you learned: create, insert, update, delete, and query.
+
+**Goal:**
+1. Create a table \`inventory\` with columns \`id\` (INTEGER PRIMARY KEY), \`item\` (TEXT NOT NULL), \`quantity\` (INTEGER NOT NULL)
+2. Insert 3 items: 'Laptop' (5), 'Mouse' (20), 'Keyboard' (15)
+3. Update 'Mouse' quantity to 25
+4. Delete 'Keyboard'
+5. Write a SELECT to show remaining items sorted by item name`,
+    seed: SEED_EMPTY,
+    check: { type: 'result', expectedSql: "SELECT item, quantity FROM inventory ORDER BY item;" },
+  },
+  {
+    id: '61-query-mastery',
+    module: 4,
+    title: 'Query Mastery',
+    type: 'practice',
+    file: 'tutorial/61-query-mastery.sql',
+    markdown: `# 61. Query mastery
+
+Combine grouping, filtering, sorting, and aggregates into one query.
+
+The \`users\` table has users in multiple cities with different ages.
+
+**Goal:** Write a query that shows for each city: the city name, the number of users, and the average age — but only for cities with at least 2 users. Sort by average age descending.`,
+    seed: SEED_USERS_EXT,
+    check: { type: 'result', expectedSql: 'SELECT city, COUNT(*) AS cnt, AVG(age) AS avg_age FROM users GROUP BY city HAVING cnt >= 2 ORDER BY avg_age DESC;' },
+  },
+  {
+    id: '62-join-mastery',
+    module: 5,
+    title: 'Join Mastery',
+    type: 'practice',
+    file: 'tutorial/62-join-mastery.sql',
+    markdown: `# 62. Join mastery
+
+Combine joins, aggregation, and ordering across multiple tables.
+
+The database has \`customers\`, \`orders\`, and \`products\` tables.
+
+**Goal:** Write a query that shows each customer name, the total quantity of products they ordered, and the number of distinct products they bought. Only show customers who ordered at least 2 total items. Sort by total quantity descending.`,
+    seed: SEED_SHOP_EXT,
+    check: { type: 'result', expectedSql: 'SELECT customers.name, SUM(orders.quantity) AS total_qty, COUNT(DISTINCT orders.product_id) AS distinct_products FROM customers INNER JOIN orders ON customers.id = orders.customer_id GROUP BY customers.id HAVING total_qty >= 2 ORDER BY total_qty DESC;' },
+  },
+  {
+    id: '63-capstone',
+    module: 10,
+    title: 'Final Capstone',
+    type: 'practice',
+    file: 'tutorial/63-capstone.sql',
+    markdown: `# 63. Final capstone
+
+Build a library system from scratch. Create the schema, add data, and write queries.
+
+**Goal:**
+1. Create \`members\` (id INTEGER PK, name TEXT NOT NULL, joined_date TEXT)
+2. Create \`books\` (id INTEGER PK, title TEXT NOT NULL, author TEXT NOT NULL)
+3. Create \`loans\` (id INTEGER PK, member_id INTEGER FK, book_id INTEGER FK, loan_date TEXT, returned INTEGER DEFAULT 0)
+4. Insert 2 members, 3 books, and 2 loans
+5. Write a query showing which books are currently on loan (returned = 0), including member name and book title — use JOIN`,
+    seed: SEED_EMPTY_FK,
+    check: { type: 'schema', table: 'loans', columns: ['id', 'member_id', 'book_id', 'loan_date', 'returned'] },
   },
 ];
 
