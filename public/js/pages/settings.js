@@ -130,6 +130,12 @@ export function initSettings() {
   });
 
   $('#setting-skip')?.addEventListener('change', (e) => {
+    if (e.target.checked && !settings.skipEnabled) {
+      if (!confirm('Only enable skip to view all lessons for testing.\nIf you really want to learn, keep it disabled.\nEnable anyway?')) {
+        e.target.checked = false;
+        return;
+      }
+    }
     settings.skipEnabled = e.target.checked;
     saveSettings();
     applySettings();
