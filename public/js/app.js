@@ -241,62 +241,6 @@ function pinToolbarToKeyboard() {
   if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
   toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
 }
-  function hide() { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; }
-  hide();
-  const editorEl = document.querySelector('.cm-editor');
-  if (!editorEl) return;
-  if (!isPWA) {
-    editorEl.addEventListener('focus', () => show(), true);
-    editorEl.addEventListener('blur', () => setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200), true);
-  } else {
-    editorEl.addEventListener('focus', () => {
-      let tries = 0;
-      const iv = setInterval(() => {
-        tries++;
-        const kb = window.innerHeight - (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-        if (kb > 50 || tries > 8) { show(kb > 50 ? kb : 0); clearInterval(iv); }
-      }, 80);
-    }, true);
-    editorEl.addEventListener('blur', () => setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200), true);
-  }
-}
-
-function initEditorResize() {
-  const handle = document.getElementById('editor-resize-handle');
-  if (!handle) return;
-  const editor = document.querySelector('.editor-split');
-  const results = document.getElementById('results-container');
-  if (!editor || !results) return;
-  function getY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-  function startResize(e) {
-    const y = getY(e);
-    const total = editor.parentElement.clientHeight;
-    startY = y;
-    startEditor = editor.getBoundingClientRect().height;
-    startResults = results.getBoundingClientRect().height;
-  }
-  function moveResize(e) {
-    const dy = getY(e) - startY;
-    const total = editor.parentElement.clientHeight;
-    let edPct = ((startEditor + dy) / total * 100);
-    let rsPct = ((startResults - dy) / total * 100);
-    if (edPct < 10) { edPct = 10; rsPct = 90; }
-    if (rsPct < 10) { rsPct = 10; edPct = 90; }
-    editor.style.flex = `1 1 ${edPct}%`;
-    results.style.flex = `1 1 ${rsPct}%`;
-  }
-  function endResize() {
-    document.removeEventListener('mousemove', moveResize);
-    document.removeEventListener('mouseup', endResize);
-    document.removeEventListener('touchmove', moveResize);
-    document.removeEventListener('touchend', endResize);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  }
-  let startY, startEditor, startResults;
-  handle.addEventListener('mousedown', (e) => { startResize(e); document.addEventListener('mousemove', moveResize); document.addEventListener('mouseup', endResize); document.body.style.cursor = 'row-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); });
-  handle.addEventListener('touchstart', (e) => { startResize(e); document.addEventListener('touchmove', moveResize, { passive: false }); document.addEventListener('touchend', endResize); e.preventDefault(); }, { passive: false });
-}
 
 function wireSchemaToolbar() {
   const map = {
