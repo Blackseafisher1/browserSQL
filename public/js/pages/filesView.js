@@ -387,6 +387,7 @@ export function initFilesView() {
       if (selectedFolder) name = selectedFolder + '/' + name;
       if (getFiles()[name]) { alert('File exists'); input.focus(); return; }
       createFile(name);
+      if (selectedFolder) expandedFolders.add(selectedFolder);
       input.remove();
     };
     input.addEventListener('keydown', (e) => {
@@ -414,7 +415,9 @@ export function initFilesView() {
       const marker = name + '/.gitkeep';
       if (marker in files) return;
       files[marker] = ''; saveFiles(files);
-      expandedFolders.add(name.split('/')[0]); renderTree();
+      expandedFolders.add(name);
+      if (selectedFolder) expandedFolders.add(selectedFolder);
+      renderTree();
     };
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { input.blur(); }
