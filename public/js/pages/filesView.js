@@ -375,15 +375,16 @@ export function initFilesView() {
     const list = document.getElementById('files-tree');
     const input = document.createElement('input');
     input.className = 'file-rename-input';
-    input.value = selectedFolder ? selectedFolder + '/.sql' : '.sql';
+    input.value = '.sql';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
     list.insertBefore(input, list.firstChild);
     input.focus();
-    input.setSelectionRange(selectedFolder ? selectedFolder.length + 1 : 0, selectedFolder ? selectedFolder.length + 1 : 0);
+    input.setSelectionRange(0, 0);
     const finish = () => {
       let name = input.value.trim();
       if (!name || name === '.sql') { input.remove(); return; }
       if (!name.includes('.')) name += '.sql';
+      if (selectedFolder) name = selectedFolder + '/' + name;
       if (getFiles()[name]) { alert('File exists'); input.focus(); return; }
       createFile(name);
       input.remove();
@@ -400,7 +401,7 @@ export function initFilesView() {
     const list = document.getElementById('files-tree');
     const input = document.createElement('input');
     input.className = 'file-rename-input';
-    input.placeholder = selectedFolder ? 'folder name inside ' + selectedFolder : 'folder name';
+    input.placeholder = 'folder name';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
     list.insertBefore(input, list.firstChild);
     input.focus();
