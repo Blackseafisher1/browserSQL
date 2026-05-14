@@ -139,6 +139,7 @@ export function initSettings() {
     settings.skipEnabled = e.target.checked;
     saveSettings();
     applySettings();
+    window.dispatchEvent(new CustomEvent('settings-changed'));
   });
 
   document.addEventListener('keydown', (e) => {

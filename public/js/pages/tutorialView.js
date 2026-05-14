@@ -1586,6 +1586,7 @@ function getPanel() {
     progress: $('#tutorial-progress'),
     files: $('#tutorial-files'),
     start: $('#btn-tutorial-start'),
+    end: $('#btn-tutorial-end'),
     prev: $('#btn-tutorial-prev'),
     next: $('#btn-tutorial-next'),
     status: $('#tutorial-status'),
@@ -1620,7 +1621,8 @@ function renderTutorialPanel() {
   if (panel.files) {
     panel.files.innerHTML = `<strong>Lesson file:</strong> ${lesson.file}`;
   }
-  if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart tutorial' : 'Start tutorial';
+  if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
+  if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
   const completed = isComplete(state.tutorialStep);
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
@@ -1803,6 +1805,10 @@ export async function initTutorialMode() {
     e.stopPropagation();
     startTutorialMode(true);
   });
+  panel.end?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    void exitTutorialMode();
+  });
   panel.prev?.addEventListener('click', (e) => {
     e.stopPropagation();
     goToLesson(state.tutorialStep - 1);
@@ -1831,6 +1837,10 @@ export async function initTutorialMode() {
       const idx = getModuleIndices(Number(e.target.value))[0];
       if (idx !== undefined) goToLesson(idx);
     }
+  });
+
+  window.addEventListener('settings-changed', () => {
+    if (state.tutorialActive) renderTutorialPanel();
   });
 
   if (localStorage.getItem(ACTIVE_KEY) === '1') {
