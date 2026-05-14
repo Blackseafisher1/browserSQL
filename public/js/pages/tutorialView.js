@@ -2,7 +2,7 @@ import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { renderMarkdown } from './marker.js';
 import { loadTutorialDatabase, openLastDB, saveCurrentToLocal } from './dbManager.js';
-import { ensureDefaultFiles, getActiveFileName, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
+import { ensureDefaultFiles, getActiveFileName, getFiles, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
 import { getSettings } from './settings.js';
 
 const ACTIVE_KEY = 'browsersql-tutorial-active';
@@ -1875,16 +1875,18 @@ export async function startTutorialMode(resetProgress = true) {
   localStorage.setItem(ACTIVE_KEY, '1');
   const lesson = lessons[setStep(resetProgress ? 0 : getStep())];
   currentModule = lesson.module;
-  if (resetProgress) {
+  const dbOk = await loadTutorialDatabase(lesson.seed || SEED_USERS);
+  if (!dbOk) {
+    state.tutorialMode = false;
+    state.tutorialActive = false;
+    localStorage.removeItem(ACTIVE_KEY);
+    renderTutorialPanel();
+    return false;
+  }
+  const files = getFiles();
+  const hasFiles = Object.keys(files).length > 0;
+  if (resetProgress || !hasFiles) {
     resetCompletion();
-    const dbOk = await loadTutorialDatabase(lesson.seed || SEED_USERS);
-    if (!dbOk) {
-      state.tutorialMode = false;
-      state.tutorialActive = false;
-      localStorage.removeItem(ACTIVE_KEY);
-      renderTutorialPanel();
-      return false;
-    }
     await seedTutorialWorkspace(lesson.file, currentModule);
   } else {
     renderTree();

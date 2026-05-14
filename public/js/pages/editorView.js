@@ -256,7 +256,7 @@ export async function executeQuery() {
       showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
-    saveCurrentFile();
+    try { saveCurrentFile(); } catch (_) {}
     if (state.renderSchema) state.renderSchema();
     evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
