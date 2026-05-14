@@ -351,7 +351,7 @@ export async function loadTestSchema() {
  * Creates a fresh tutorial database with a small, stable learning schema.
  * @returns {Promise<boolean>}
  */
-export async function loadTutorialDatabase() {
+export async function loadTutorialDatabase(seedSql = TUTORIAL_SCHEMA) {
   if (!state.sqlite3) return false;
   try {
     state.db?.close();
@@ -359,7 +359,9 @@ export async function loadTutorialDatabase() {
   try {
     state.db = new state.sqlite3.oo1.DB();
     resetState();
-    state.db.exec(TUTORIAL_SCHEMA, { rowMode: 'object' });
+    if (seedSql && seedSql.trim()) {
+      state.db.exec(seedSql, { rowMode: 'object' });
+    }
     state.dbName = TUTORIAL_DB_NAME;
     dbNameInput.value = TUTORIAL_DB_NAME;
     if (state.renderSchema) state.renderSchema();

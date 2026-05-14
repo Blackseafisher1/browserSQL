@@ -4,7 +4,7 @@ import { state } from '../state.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, topMargin: 0, hideHeader: false, showTutorial: true };
 }
 
 let settings = loadSettings();
@@ -48,6 +48,9 @@ export function applySettings() {
   applyHideHeader();
   const hhCb = $('#setting-hideheader');
   if (hhCb) hhCb.checked = settings.hideHeader;
+  applyTutorialVisibility();
+  const stCb = $('#setting-showtutorial');
+  if (stCb) stCb.checked = settings.showTutorial !== false;
 }
 
 /**
@@ -55,6 +58,15 @@ export function applySettings() {
  */
 function applyHideHeader() {
   document.getElementById('header').style.display = settings.hideHeader && window.innerWidth > 768 ? 'none' : '';
+}
+
+function applyTutorialVisibility() {
+  const header = document.querySelector('.section-header[data-section="tutorial"]');
+  const node = header?.closest('.section-node');
+  const handle = document.getElementById('tutorial-resize-handle');
+  const shouldShow = settings.showTutorial !== false;
+  if (node) node.style.display = shouldShow ? '' : 'none';
+  if (handle) handle.style.display = shouldShow ? '' : 'none';
 }
 
 /**
@@ -103,6 +115,12 @@ export function initSettings() {
 
   $('#setting-hideheader')?.addEventListener('change', (e) => {
     settings.hideHeader = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-showtutorial')?.addEventListener('change', (e) => {
+    settings.showTutorial = e.target.checked;
     saveSettings();
     applySettings();
   });

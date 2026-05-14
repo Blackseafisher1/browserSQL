@@ -189,6 +189,20 @@
     letter-spacing: 0.04em;
   }
 
+  .tutorial-status {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    min-height: 16px;
+  }
+
+  .tutorial-status.is-success {
+    color: var(--color-accent);
+  }
+
+  .tutorial-status.is-error {
+    color: var(--color-error);
+  }
+
   .tutorial-content {
     flex: 1;
     min-height: 80px;

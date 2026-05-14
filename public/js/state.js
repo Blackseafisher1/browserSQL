@@ -15,6 +15,7 @@
  *   tutorialMode: boolean,
  *   tutorialStep: number,
  *   tutorialActive: boolean,
+ *   tutorialLessonType: null | 'theory' | 'practice' | 'hands-on',
  * }}
  */
 export const state = {
@@ -32,6 +33,7 @@ export const state = {
   tutorialMode: false,
   tutorialStep: 0,
   tutorialActive: false,
+  tutorialLessonType: null,
 };
 
 /**

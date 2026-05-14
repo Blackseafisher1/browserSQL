@@ -11,6 +11,7 @@ import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
 import { showResults, showError, showReady, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
+import { evaluateTutorialQuery } from './tutorialView.js';
 import { $ } from '../utils.js';
 
 const container0 = $('#editor-container-0');
@@ -246,6 +247,10 @@ function sqlesc(name) { return `"${name.replace(/"/g, '""')}"`; }
 
 export async function executeQuery() {
   if (!view) return;
+  if (state.tutorialActive && state.tutorialLessonType === 'theory') {
+    showError('This lesson is a quiz. Answer it in the editor panel.');
+    return;
+  }
   const sel = view.state.selection.main;
   let code = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
   code = code.trim();
@@ -257,14 +262,16 @@ export async function executeQuery() {
   try {
     const rows = state.db.exec(code, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer) || 0;
     if (rows.length > 0) showResults(rows, elapsed);
     else {
-      const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer);
       showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
     }
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
+    evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
     showError(`${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
+    evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
   }
 }

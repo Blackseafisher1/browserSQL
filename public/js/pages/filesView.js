@@ -54,6 +54,18 @@ function ensureDefault() {
 }
 
 /**
+ * Ensures a default file exists in the current storage scope.
+ */
+export function ensureDefaultFiles() {
+  const files = getFiles();
+  if (Object.keys(files).length === 0) {
+    files[DEFAULT_FILE] = DEFAULT_CONTENT;
+    saveFiles(files);
+  }
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(DEFAULT_FILE);
+}
+
+/**
  * Saves the current editor content back into the active file entry.
  */
 export function saveCurrentFile() {
@@ -249,6 +261,18 @@ export function deleteFile(name) {
   return true;
 }
 
+/**
+ * Opens a single file and clears other tabs, used for tutorial isolation.
+ * @param {string} name File name.
+ */
+export function openSingleFile(name) {
+  paneTabs = [[name], []];
+  activePane = 0;
+  showEditors(1);
+  switchFile(name, 0, true);
+  renderTabs();
+}
+
 function buildTree(paths) {
   const root = {};
   for (const p of paths) {
@@ -407,6 +431,23 @@ export function initFilesView() {
       arrow.textContent = collapsed ? '▸' : '▾';
       const node = hdr.closest('.section-node');
       if (node) node.style.flex = collapsed ? '0 0 auto' : '';
+    });
+    panel.addEventListener('contextmenu', (e) => {
+      const node = e.target.closest('.section-node');
+      if (!node) return;
+      const hdr = node.querySelector('.section-header');
+      if (!hdr) return;
+      const section = hdr.dataset.section;
+      if (section !== 'tutorial') return;
+      e.preventDefault();
+      const body = document.getElementById('section-' + section);
+      const arrow = hdr.querySelector('.section-arrow');
+      if (!body || !arrow) return;
+      const collapsed = !body.classList.contains('collapsed');
+      if (collapsed) { body.classList.add('collapsed'); body.style.display = 'none'; } else { body.classList.remove('collapsed'); body.style.display = ''; }
+      localStorage.setItem('browsersql-section-' + section, collapsed ? '1' : '');
+      arrow.textContent = collapsed ? '▸' : '▾';
+      node.style.flex = collapsed ? '0 0 auto' : '';
     });
     document.querySelectorAll('.section-header').forEach(hdr => {
       const section = hdr.dataset.section; const body = document.getElementById('section-' + section); const arrow = hdr.querySelector('.section-arrow');
