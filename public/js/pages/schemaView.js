@@ -78,7 +78,11 @@ async function renderSchema() {
       tableList.push({ name: t.name, columns });
     }
     state.tables = tableList;
-    renderTree(tableList);
+    const views = state.db.exec(
+      `SELECT name FROM sqlite_master WHERE type='view' ORDER BY name`,
+      { rowMode: 'object' }
+    );
+    renderTree(tableList, views);
     if (state.refreshEditorSchema) {
       state.refreshEditorSchema(tableList);
     }
@@ -100,9 +104,9 @@ function escId(name) {
  * Renders the schema tree HTML from the discovered tables.
  * @param {Array<{name: string, columns: Array<{name: string, type: string, pk: boolean, fk: boolean, nn: boolean, uq: boolean, ai: boolean}>}>} tables Table metadata.
  */
-function renderTree(tables) {
-  if (tables.length === 0) {
-    tree.innerHTML = '<div class="schema-empty">No tables</div>';
+function renderTree(tables, views) {
+  if (tables.length === 0 && (!views || views.length === 0)) {
+    tree.innerHTML = '<div class="schema-empty">No tables or views</div>';
     return;
   }
   let html = '';
@@ -136,6 +140,12 @@ function renderTree(tables) {
     }
     html += `</div>`;
   }
+  if (views && views.length > 0) {
+    html += `<div class="schema-section-label">Views</div>`;
+    for (const v of views) {
+      html += `<div class="schema-table"><div class="schema-table-name" data-view-name="${esc(v.name)}"><span class="schema-table-label">👁 ${esc(v.name)}</span></div></div>`;
+    }
+  }
   tree.innerHTML = html;
 }
 
@@ -144,6 +154,18 @@ function renderTree(tables) {
  * @param {MouseEvent} e Click event.
  */
 function handleTreeClick(e) {
+  const viewEl = e.target.closest('[data-view-name]');
+  if (viewEl) {
+    const viewName = viewEl.dataset.viewName;
+    try {
+      const sql = `SELECT * FROM ${escId(viewName)} LIMIT 100`;
+      const rows = state.db.exec(sql, { rowMode: 'object' });
+      import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
+    } catch (err) {
+      import('./resultsView.js').then(r => r.showError(err.message));
+    }
+    return;
+  }
   const ddlBtn = e.target.closest('[data-ddl]');
   if (ddlBtn) {
     showDDLModal(ddlBtn.dataset.ddl);

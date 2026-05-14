@@ -418,6 +418,16 @@
     user-select: none;
   }
 
+  .schema-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    padding: var(--space-2) var(--space-2) 2px;
+    margin-top: var(--space-1);
+  }
+
   .schema-table-name {
     display: flex;
     align-items: center;
