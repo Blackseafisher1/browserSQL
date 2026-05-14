@@ -432,23 +432,7 @@ export function initFilesView() {
       const node = hdr.closest('.section-node');
       if (node) node.style.flex = collapsed ? '0 0 auto' : '';
     });
-    panel.addEventListener('contextmenu', (e) => {
-      const node = e.target.closest('.section-node');
-      if (!node) return;
-      const hdr = node.querySelector('.section-header');
-      if (!hdr) return;
-      const section = hdr.dataset.section;
-      if (section !== 'tutorial') return;
-      e.preventDefault();
-      const body = document.getElementById('section-' + section);
-      const arrow = hdr.querySelector('.section-arrow');
-      if (!body || !arrow) return;
-      const collapsed = !body.classList.contains('collapsed');
-      if (collapsed) { body.classList.add('collapsed'); body.style.display = 'none'; } else { body.classList.remove('collapsed'); body.style.display = ''; }
-      localStorage.setItem('browsersql-section-' + section, collapsed ? '1' : '');
-      arrow.textContent = collapsed ? '▸' : '▾';
-      node.style.flex = collapsed ? '0 0 auto' : '';
-    });
+
     document.querySelectorAll('.section-header').forEach(hdr => {
       const section = hdr.dataset.section; const body = document.getElementById('section-' + section); const arrow = hdr.querySelector('.section-arrow');
       if (body && arrow && localStorage.getItem('browsersql-section-' + section) === '1') {
