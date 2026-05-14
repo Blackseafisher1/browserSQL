@@ -65,7 +65,7 @@ async function main() {
     state.renderSchema();
   }
   openLastDB();
-  try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js'); } catch (_) {}
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 function initSidebarResize() {
