@@ -10,13 +10,12 @@ export function downloadAsZip(files, archiveName) {
     const crc = crc32(dataBytes);
     const size = dataBytes.length;
 
-    // Local file header (30 bytes + filename)
     const local = new Uint8Array(30 + nameBytes.length);
     const dv = new DataView(local.buffer);
     dv.setUint32(0, 0x04034b50, true);
     dv.setUint16(4, 20, true);
-    dv.setUint16(6, 0x0800, true); // UTF-8 flag
-    dv.setUint16(8, 0, true); // stored method
+    dv.setUint16(6, 0x0800, true);
+    dv.setUint16(8, 0, true);
     dv.setUint16(10, 0, true);
     dv.setUint16(12, 0, true);
     dv.setUint32(14, crc, true);
@@ -29,7 +28,6 @@ export function downloadAsZip(files, archiveName) {
     localBlocks.push(local);
     localBlocks.push(dataBytes);
 
-    // Central directory entry (46 bytes + filename)
     const central = new Uint8Array(46 + nameBytes.length);
     const cdv = new DataView(central.buffer);
     cdv.setUint32(0, 0x02014b50, true);
@@ -55,7 +53,6 @@ export function downloadAsZip(files, archiveName) {
     offset += local.length + dataBytes.length;
   }
 
-  // Build central directory + EOCD
   const cdSize = centralBlocks.reduce((s, b) => s + b.length, 0);
   const eocd = new Uint8Array(22);
   const edv = new DataView(eocd.buffer);
@@ -75,6 +72,59 @@ export function downloadAsZip(files, archiveName) {
   a.download = archiveName.replace(/\.zip$/, '') + '.zip';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function readZip(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const buf = reader.result;
+        const dv = new DataView(buf);
+        const len = buf.byteLength;
+
+        // Find EOCD (search backward for PK\x05\x06)
+        let eocdPos = -1;
+        for (let i = len - 22; i >= 0; i--) {
+          if (dv.getUint32(i, true) === 0x06054b50) { eocdPos = i; break; }
+        }
+        if (eocdPos < 0) { reject(new Error('Not a valid ZIP')); return; }
+
+        const cdOffset = dv.getUint32(eocdPos + 16, true);
+        const cdCount = dv.getUint16(eocdPos + 8, true);
+        const files = {};
+
+        let cdPos = cdOffset;
+        for (let i = 0; i < cdCount; i++) {
+          if (dv.getUint32(cdPos, true) !== 0x02014b50) break;
+          const nameLen = dv.getUint16(cdPos + 28, true);
+          const extraLen = dv.getUint16(cdPos + 30, true);
+          const commentLen = dv.getUint16(cdPos + 32, true);
+          const localOffset = dv.getUint32(cdPos + 42, true);
+          const compSize = dv.getUint32(cdPos + 20, true);
+          const uncompSize = dv.getUint32(cdPos + 24, true);
+          const method = dv.getUint16(cdPos + 10, true);
+
+          const nameBytes = new Uint8Array(buf, cdPos + 46, nameLen);
+          const name = new TextDecoder().decode(nameBytes);
+          if (name.endsWith('/')) { cdPos += 46 + nameLen + extraLen + commentLen; continue; }
+
+          // Read local file data — read extraLen from local header too
+          const localExtraLen = dv.getUint16(localOffset + 28, true);
+          const localHdr = localOffset + 30 + nameLen + localExtraLen;
+          const raw = new Uint8Array(buf, localHdr, compSize);
+
+          if (method === 0) {
+            files[name] = new TextDecoder().decode(raw);
+          }
+          cdPos += 46 + nameLen + extraLen + commentLen;
+        }
+        resolve(files);
+      } catch (e) { reject(e); }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 function crc32(data) {

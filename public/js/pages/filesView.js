@@ -469,4 +469,33 @@ export function initFilesView() {
   document.getElementById('btn-export-files')?.addEventListener('click', () => {
     import('./zip.js').then(z => z.downloadAsZip(getFiles(), 'browsersql-files'));
   });
+
+  const zipInput = document.createElement('input');
+  zipInput.type = 'file';
+  zipInput.accept = '.zip';
+  zipInput.style.display = 'none';
+  document.body.appendChild(zipInput);
+  document.getElementById('btn-import-files')?.addEventListener('click', () => zipInput.click());
+  zipInput.addEventListener('change', async () => {
+    const file = zipInput.files?.[0];
+    if (!file) return;
+    zipInput.value = '';
+    const { readZip, downloadAsZip } = await import('./zip.js');
+    let imported;
+    try { imported = await readZip(file); } catch { alert('Invalid ZIP file.'); return; }
+    if (!imported || !Object.keys(imported).length) { alert('No files found in archive.'); return; }
+    const existing = getFiles();
+    const visible = Object.keys(existing).filter(n => !n.startsWith('_'));
+    if (visible.length > 0 && !confirm('Importing will overwrite existing files. Export current files first?')) {
+      if (confirm('Export current files before importing?')) {
+        downloadAsZip(existing, 'backup-before-import');
+      }
+      if (!confirm('Continue importing anyway?')) return;
+    }
+    const merged = { ...existing, ...imported };
+    saveFiles(merged);
+    renderTree();
+    renderTabs();
+    if (!(getActiveFileName() in merged)) switchFile(Object.keys(merged)[0], 0);
+  });
 }
