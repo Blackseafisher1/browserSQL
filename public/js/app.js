@@ -306,20 +306,6 @@ function pinToolbarToKeyboard() {
     }
   }, true);
 
-  // Android: second tap closes keyboard
-  if (isAndroid) {
-    let isKeyboardOpen = false;
-    editorEl.addEventListener('focus', () => { isKeyboardOpen = true; });
-    editorEl.addEventListener('blur', () => { isKeyboardOpen = false; });
-    editorEl.addEventListener('pointerdown', (e) => {
-      if (isKeyboardOpen) {
-        setTimeout(() => {
-          if (document.activeElement === editorEl) editorEl.blur();
-        }, 10);
-      }
-    }, true);
-  }
-
   editorEl.addEventListener('blur', () => {
     setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200);
   }, true);

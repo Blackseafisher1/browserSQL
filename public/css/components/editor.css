@@ -137,17 +137,6 @@
     word-break: break-word !important;
   }
 
-  /* Android: Allow space-bar gesture for cursor movement */
-  .cm-editor .cm-scroller {
-    touch-action: pan-y !important;
-  }
-
-  .cm-editor .cm-content {
-    -webkit-touch-callout: none !important;
-    touch-action: pan-y !important;
-  }
-  }
-
   .cm-editor .cm-cursor {
     border-left: 2px solid var(--color-text) !important;
     z-index: 1;
