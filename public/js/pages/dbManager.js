@@ -98,7 +98,7 @@ export function initDBManager() {
   btnDelete.addEventListener('click', deleteCurrentFromLocal);
   btnRecent.addEventListener('click', refreshRecentDBsList);
   fileInput.addEventListener('change', handleFileOpen);
-  document.addEventListener('keydown', handleShortcuts, { capture: true });
+  document.addEventListener('keydown', handleShortcuts);
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.recent-wrap')) {
       recentDropdown.classList.add('hidden');
@@ -449,12 +449,10 @@ async function deleteCurrentFromLocal() {
  */
 function handleShortcuts(e) {
   const ctrl = e.ctrlKey || e.metaKey;
-  if (!ctrl || !['s', 'o', 'n'].includes(e.key)) return;
-  e.preventDefault();
-  e.stopPropagation();
-  if (e.key === 's') exportDatabase();
-  if (e.key === 'o') fileInput.click();
-  if (e.key === 'n') newDatabase();
+  if (!ctrl) return;
+  if (e.shiftKey && e.key === 'S') { e.preventDefault(); exportDatabase(); }
+  if (e.shiftKey && e.key === 'O') { e.preventDefault(); fileInput.click(); }
+  if (e.shiftKey && e.key === 'N') { e.preventDefault(); newDatabase(); }
 }
 
 /**
