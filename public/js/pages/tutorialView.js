@@ -417,6 +417,7 @@ CHECK (price > 0)
 Then insert one valid row. After that, try inserting a row where age < 18 — you should get a CHECK constraint error. Try inserting a duplicate email — you should get a UNIQUE constraint error.`,
     seed: SEED_EMPTY,
     check: { type: 'constraints', table: 'accounts', tokens: ['not null', 'unique', 'default', 'check'] },
+    hint: 'CREATE TABLE accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT \'active\', age INTEGER CHECK (age >= 18)); then INSERT a row with valid data.',
   },
   {
     id: '09-schema',
@@ -542,9 +543,16 @@ SELECT columns FROM table WHERE column IS NULL;
 SELECT columns FROM table WHERE column IS NOT NULL;
 \`\`\`
 
+Use \`COALESCE(val, default)\` or \`IFNULL(val, default)\` to replace \`NULL\` with a fallback:
+
+\`\`\`sql
+SELECT name, COALESCE(email, 'no email') FROM users;
+\`\`\`
+
 **Goal:** Write a query that returns the names of users who do not have an email address.`,
     seed: SEED_USERS_NULL,
     check: { type: 'result', expectedSql: 'SELECT name FROM users WHERE email IS NULL;' },
+    hint: 'Use WHERE email IS NULL — not = NULL.',
   },
   {
     id: '14-like',
@@ -708,9 +716,12 @@ SELECT COUNT(*), AVG(column), SUM(column), MIN(column), MAX(column) FROM table;
 - \`SUM(col)\` — total
 - \`MIN(col)\` / \`MAX(col)\` — smallest / largest
 
-**Goal:** Write a query that returns the total number of users and their average age. Use \`COUNT(*)\` and \`AVG(age)\`.`,
+Combine with \`ROUND()\` to control decimal places: \`ROUND(AVG(age), 2)\`
+
+**Goal:** Write a query that returns the total number of users and their average age rounded to 2 decimals. Use \`COUNT(*)\` and \`ROUND(AVG(age), 2)\`.`,
     seed: SEED_USERS_EXT,
-    check: { type: 'result', expectedSql: 'SELECT COUNT(*), AVG(age) FROM users;' },
+    check: { type: 'result', expectedSql: 'SELECT COUNT(*), ROUND(AVG(age), 2) FROM users;' },
+    hint: 'SELECT COUNT(*), ROUND(AVG(age), 2) FROM users;',
   },
   {
     id: '22-group',
@@ -726,11 +737,16 @@ SELECT COUNT(*), AVG(column), SUM(column), MIN(column), MAX(column) FROM table;
 SELECT column, COUNT(*) FROM table GROUP BY column;
 \`\`\`
 
-Use \`HAVING\` to filter groups (like \`WHERE\` but for groups).
+Use \`HAVING\` to filter groups (like \`WHERE\` but for groups):
 
-**Goal:** Write a query that counts how many users live in each city. Show city name and count, sorted alphabetically by city.`,
+\`\`\`sql
+SELECT column, COUNT(*) FROM table GROUP BY column HAVING COUNT(*) > 1;
+\`\`\`
+
+**Goal:** Write a query that counts how many users live in each city. Show only cities with at least 2 users, sorted alphabetically.`,
     seed: SEED_USERS_EXT,
-    check: { type: 'result', expectedSql: 'SELECT city, COUNT(*) FROM users GROUP BY city ORDER BY city;' },
+    check: { type: 'result', expectedSql: 'SELECT city, COUNT(*) FROM users GROUP BY city HAVING COUNT(*) >= 2 ORDER BY city;' },
+    hint: 'GROUP BY city, then HAVING COUNT(*) >= 2',
   },
   {
     id: '23-distinct',
@@ -1553,6 +1569,103 @@ Build a library system from scratch. Create the schema, add data, and write quer
     seed: SEED_EMPTY_FK,
     check: { type: 'schema', table: 'loans', columns: ['id', 'member_id', 'book_id', 'loan_date', 'returned'] },
   },
+  // ── New Basics ──────────────────────────────────────────────────────────
+  {
+    id: '64-comments',
+    module: 1,
+    title: 'Comments in SQL',
+    type: 'theory',
+    file: '64-comments.md',
+    markdown: `# 64. Comments in SQL
+
+Comments make your SQL readable. They are ignored when the query runs:
+
+\`\`\`sql
+-- Single line comment
+SELECT * FROM users; -- inline comment
+
+/*
+Multi-line
+comment
+*/
+\`\`\`
+
+**Goal:** know both comment styles.`,
+    question: {
+      prompt: 'Which symbol starts a single-line comment in SQL?',
+      options: ['//', '--', '#', '/*'],
+      answer: 1,
+      explanation: '-- starts a single line comment. The rest of that line is ignored.',
+    },
+    seed: SEED_USERS,
+  },
+  {
+    id: '65-drop-table',
+    module: 2,
+    title: 'DROP TABLE',
+    type: 'practice',
+    file: '65-drop-table.sql',
+    markdown: `# 65. DROP TABLE
+
+\`DROP TABLE\` removes a table and all its data permanently:
+
+\`\`\`sql
+DROP TABLE table_name;
+DROP TABLE IF EXISTS table_name;  -- no error if missing
+\`\`\`
+
+**Goal:** Drop the \`users\` table. Then run \`SELECT * FROM sqlite_master WHERE type='table'\` to verify it's gone.`,
+    seed: SEED_USERS,
+    check: { type: 'success' },
+    hint: 'DROP TABLE users;',
+  },
+  {
+    id: '66-insert-multi',
+    module: 3,
+    title: 'INSERT Multiple Rows',
+    type: 'practice',
+    file: '66-insert-multi.sql',
+    markdown: `# 66. INSERT multiple rows
+
+Insert several rows in one statement by comma-separating the value lists:
+
+\`\`\`sql
+INSERT INTO table (col1, col2) VALUES
+  (val1a, val2a),
+  (val1b, val2b),
+  (val1c, val2c);
+\`\`\`
+
+The \`users\` table has columns: id, name, city, age, email. The \`id\` is auto-incrementing — omit it.
+
+**Goal:** Insert 3 new users at once into \`users\`.`,
+    seed: SEED_USERS,
+    check: { type: 'changes', min: 3 },
+    hint: 'INSERT INTO users (name, city, age) VALUES (\'A\', \'B\', 20), (\'C\', \'D\', 30), (\'E\', \'F\', 40);',
+  },
+  {
+    id: '67-union',
+    module: 4,
+    title: 'UNION',
+    type: 'practice',
+    file: '67-union.sql',
+    markdown: `# 67. UNION
+
+\`UNION\` combines results from two queries into one set. Duplicates are removed automatically. Use \`UNION ALL\` to keep duplicates:
+
+\`\`\`sql
+SELECT column FROM table_a
+UNION
+SELECT column FROM table_b;
+\`\`\`
+
+Both SELECTs must have the same number of columns with compatible types.
+
+**Goal:** Write a query that returns all unique city names from \`customers\` and all unique city names from \`users\` combined into one list, sorted alphabetically.`,
+    seed: SEED_SHOP,
+    check: { type: 'result', expectedSql: "SELECT city FROM customers UNION SELECT city FROM users ORDER BY city;" },
+    hint: 'SELECT city FROM customers UNION SELECT city FROM users ORDER BY city;',
+  },
 ];
 
 let completion = loadCompletion();
@@ -1647,6 +1760,10 @@ function renderTutorialPanel() {
   }
   if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
   if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
+  const hintBtn = document.getElementById('btn-tutorial-hint');
+  if (hintBtn) {
+    hintBtn.style.display = state.tutorialActive && lesson.hint ? '' : 'none';
+  }
   const completed = isComplete(state.tutorialStep);
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
@@ -1815,7 +1932,8 @@ export function evaluateTutorialQuery(result) {
     setStatus('Nice. This step is complete.', 'success');
     renderTutorialPanel();
   } else {
-    setStatus('Not quite. Compare your output with the goal and try again.', 'error');
+    const hint = lesson.hint ? ' 💡 ' + lesson.hint : '';
+    setStatus('Not quite. Check the goal and try again.' + hint, 'error');
   }
 }
 
@@ -1854,6 +1972,11 @@ export async function initTutorialMode() {
       }
     }
     goToLesson(state.tutorialStep + 1);
+  });
+
+  document.getElementById('btn-tutorial-hint')?.addEventListener('click', () => {
+    const lesson = lessons[state.tutorialStep];
+    if (lesson?.hint) setStatus('💡 ' + lesson.hint, '');
   });
 
   document.addEventListener('change', (e) => {
