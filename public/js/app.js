@@ -273,47 +273,38 @@ function initSidebarSectionResize() {
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar) return;
-  if (!window.matchMedia('(max-width: 768px)').matches) return;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  if (!isMobile) { toolbar.style.display = 'none'; return; }
   const kbd = getKbdSettings();
-  if (!kbd.kbdEnabled) return;
+  if (!kbd.kbdEnabled) { toolbar.style.display = 'none'; return; }
 
-  let wasOpen = false;
-  let kbHeight = 0;
+  function show(bottom) {
+    toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:' + (bottom || 0) + 'px;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto';
+  }
+  function hide() { toolbar.style.display = 'none'; }
+  hide();
 
-  // Use screen.availHeight as stable reference (never changes with keyboard)
-  const screenH = screen.availHeight || document.documentElement.clientHeight;
+  const editorEl = document.querySelector('.cm-editor');
+  if (!editorEl) return;
 
-  window.visualViewport?.addEventListener('resize', () => {
-    const vp = window.visualViewport;
-    kbHeight = Math.max(80, screenH - vp.height);
-    if (wasOpen) toolbar.style.bottom = kbHeight + 'px';
-  });
+  const isPWA = window.navigator.standalone === true;
 
-  setInterval(() => {
-    const active = document.activeElement;
-    const isCM = active?.closest('.cm-editor') || active?.closest('.cm-content');
-
-    if (isCM && !wasOpen) {
-      const vp = window.visualViewport;
-      kbHeight = Math.max(80, screenH - vp.height);
-      toolbar.style.position = 'fixed';
-      toolbar.style.left = '0';
-      toolbar.style.right = '0';
-      toolbar.style.bottom = kbHeight + 'px';
-      toolbar.style.zIndex = '50';
-      toolbar.style.display = 'flex';
-      toolbar.style.visibility = 'visible';
-      toolbar.style.padding = 'var(--space-1) var(--space-3)';
-      toolbar.style.gap = 'var(--space-1)';
-      toolbar.style.background = 'var(--color-bg-surface)';
-      toolbar.style.borderBottom = '1px solid var(--color-border)';
-      toolbar.style.overflowX = 'auto';
-      wasOpen = true;
-    } else if (!isCM && wasOpen) {
-      toolbar.style.display = 'none';
-      wasOpen = false;
+  editorEl.addEventListener('focus', () => {
+    if (isPWA) {
+      let tries = 0;
+      const iv = setInterval(() => {
+        tries++;
+        const kb = window.innerHeight - (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+        if (kb > 50 || tries > 8) { show(kb > 50 ? kb : 0); clearInterval(iv); }
+      }, 80);
+    } else {
+      show();
     }
-  }, 200);
+  }, true);
+
+  editorEl.addEventListener('blur', () => {
+    setTimeout(() => { if (!editorEl.contains(document.activeElement)) hide(); }, 200);
+  }, true);
 }
 
 /**
