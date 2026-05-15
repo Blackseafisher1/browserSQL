@@ -376,21 +376,45 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     title: 'Constraints',
     type: 'practice',
     file: '08-constraints.sql',
-    sql: 'CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT \'active\',\n  age INTEGER CHECK (age >= 18)\n);\n',
+    sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
     markdown: `# 8. Constraints
 
 Constraints enforce rules on your data:
 
 \`\`\`sql
-column TYPE NOT NULL UNIQUE DEFAULT value CHECK (condition)
+CREATE TABLE table (
+  col1 TYPE CONSTRAINT,
+  col2 TYPE CONSTRAINT
+);
 \`\`\`
 
-- \`NOT NULL\` — column must have a value
-- \`UNIQUE\` — all values in the column must be different
-- \`DEFAULT\` — provides a fallback value
-- \`CHECK\` — validates values against a condition
+Constraint types:
 
-**Goal:** Create an \`accounts\` table with all four constraint types above. Include \`id\` as PRIMARY KEY.`,
+| Constraint | What it does | Example |
+|---|---|---|
+| \`NOT NULL\` | column must have a value | \`name TEXT NOT NULL\` |
+| \`UNIQUE\` | all values must be different | \`email TEXT UNIQUE\` |
+| \`DEFAULT\` | fallback value if omitted | \`status TEXT DEFAULT 'active'\` |
+| \`CHECK\` | validate against a condition | \`age INTEGER CHECK (age >= 18)\` |
+
+\`CHECK\` can use comparisons (\`=\`, \`>\`, \`>=\`, \`LIKE\`, \`IN\`, etc.):
+
+\`\`\`sql
+CHECK (age >= 18)
+CHECK (status IN ('active', 'inactive'))
+CHECK (email LIKE '%@%')
+CHECK (price > 0)
+\`\`\`
+
+**Important:** \`PRIMARY KEY\` already implies \`NOT NULL\` + \`UNIQUE\` automatically — do NOT add them to the PK column. Put them on other columns instead.
+
+**Goal:** Create an \`accounts\` table with:
+- \`id\` (INTEGER PRIMARY KEY)
+- \`email\` (TEXT, NOT NULL, UNIQUE)
+- \`status\` (TEXT, NOT NULL, DEFAULT 'active')
+- \`age\` (INTEGER, CHECK that age >= 18)
+
+Then insert one valid row. After that, try inserting a row where age < 18 — you should get a CHECK constraint error. Try inserting a duplicate email — you should get a UNIQUE constraint error.`,
     seed: SEED_EMPTY,
     check: { type: 'constraints', table: 'accounts', tokens: ['not null', 'unique', 'default', 'check'] },
   },
