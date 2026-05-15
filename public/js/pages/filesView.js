@@ -446,6 +446,7 @@ export function initFilesView() {
   if (panel) {
     panel.addEventListener('click', (e) => {
       const hdr = e.target.closest('.section-header'); if (!hdr) return;
+      if (e.target.closest('button, input, select, textarea, .section-add-btn')) return;
       const section = hdr.dataset.section; const body = document.getElementById('section-' + section); const arrow = hdr.querySelector('.section-arrow');
       if (!body || !arrow) return;
       const collapsed = !body.classList.contains('collapsed');
