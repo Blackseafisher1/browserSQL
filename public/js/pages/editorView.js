@@ -58,7 +58,11 @@ function makeEditor(doc, parent) {
       bracketMatching(), closeBrackets(), autocompletion({ tooltipClass: () => 'notranslate' }),
       rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
-      keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
+      keymap.of([
+        { key: 'Ctrl-Enter', run: () => { executeQuery(); return true; } },
+        { key: 'Shift-Ctrl-Enter', run: () => { executeAll(); return true; } },
+        ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap
+      ]),
       lc.of(makeSql()),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({

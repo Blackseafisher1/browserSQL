@@ -449,18 +449,11 @@ async function deleteCurrentFromLocal() {
  */
 function handleShortcuts(e) {
   const ctrl = e.ctrlKey || e.metaKey;
-  if (ctrl && e.key === 's') {
-    e.preventDefault();
-    exportDatabase();
-  }
-  if (ctrl && e.key === 'o') {
-    e.preventDefault();
-    fileInput.click();
-  }
-  if (ctrl && e.key === 'n') {
-    e.preventDefault();
-    newDatabase();
-  }
+  if (!ctrl) return;
+  if (e.key === 's' || e.key === 'o' || e.key === 'n') e.preventDefault();
+  if (e.key === 's') exportDatabase();
+  if (e.key === 'o') fileInput.click();
+  if (e.key === 'n') newDatabase();
 }
 
 /**
