@@ -186,12 +186,12 @@ async function sqlite3Init() {
  */
 function newDatabase() {
   if (!state.sqlite3) return;
-  try {
-    state.db?.close();
-  } catch (_) {}
+  const name = prompt('Database name:', 'untitled');
+  if (!name) return;
+  try { state.db?.close(); } catch (_) {}
   state.db = new state.sqlite3.oo1.DB();
   resetState();
-  updateDBName('untitled');
+  updateDBName(name.trim());
   if (state.renderSchema) state.renderSchema();
   showReadyInResults();
   localStorage.removeItem(LAST_DB_KEY);
