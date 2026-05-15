@@ -274,10 +274,60 @@ function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar) return;
   const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  if (!isMobile) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
+  if (!isMobile) return;
   const kbd = getKbdSettings();
-  if (!kbd.kbdEnabled) { toolbar.style.cssText = 'height:0;overflow:hidden;visibility:hidden;padding:0'; return; }
-  toolbar.style.cssText = 'display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;height:auto;visibility:visible;padding:var(--space-1) var(--space-3);gap:var(--space-1);background:var(--color-bg-surface);border-bottom:1px solid var(--color-border);overflow-x:auto;-webkit-overflow-scrolling:touch';
+  if (!kbd.kbdEnabled) return;
+
+  let kbdVisible = false;
+
+  function positionAboveKb() {
+    if (!window.visualViewport) { toolbar.style.bottom = '0'; return; }
+    const vp = window.visualViewport;
+    const kbHeight = window.innerHeight - vp.height;
+    if (kbHeight > 50) {
+      toolbar.style.position = 'fixed';
+      toolbar.style.left = '0';
+      toolbar.style.right = '0';
+      toolbar.style.bottom = kbHeight + 'px';
+      toolbar.style.width = vp.width + 'px';
+      toolbar.style.zIndex = '50';
+      toolbar.style.display = 'flex';
+      toolbar.style.visibility = 'visible';
+      toolbar.style.padding = 'var(--space-1) var(--space-3)';
+      toolbar.style.gap = 'var(--space-1)';
+      toolbar.style.background = 'var(--color-bg-surface)';
+      toolbar.style.borderBottom = '1px solid var(--color-border)';
+      toolbar.style.overflowX = 'auto';
+      toolbar.style.WebkitOverflowScrolling = 'touch';
+      kbdVisible = true;
+    } else {
+      toolbar.style.display = 'none';
+      kbdVisible = false;
+    }
+  }
+
+  function show() {
+    if (kbdVisible) return;
+    toolbar.style.display = 'flex';
+    positionAboveKb();
+  }
+
+  function hide() {
+    toolbar.style.display = 'none';
+    kbdVisible = false;
+  }
+
+  // Show/hide on editor focus/blur
+  const editorEl = state.editorView?.dom;
+  if (editorEl) {
+    editorEl.addEventListener('focus', show);
+    editorEl.addEventListener('blur', hide);
+  }
+
+  // Reposition when virtual keyboard opens/closes
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', positionAboveKb);
+  }
 }
 
 /**
