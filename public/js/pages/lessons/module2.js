@@ -123,8 +123,8 @@ The \`users\` table already has columns: id, name, city, age, email.
     module: 2,
     title: 'Schema Design',
     type: 'theory',
-    file: '09-schema.md',
-    markdown: `# 9. Schema design
+    file: '10-schema.md',
+    markdown: `# 10. Schema design
 
 Relationships can be one-to-one, one-to-many, or many-to-many.
 
