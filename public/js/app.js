@@ -172,10 +172,10 @@ function initMobileToggles() {
 function getKbdSettings() {
   try {
     const raw = localStorage.getItem('browsersql-settings');
-    if (!raw) return { kbdEnabled: true, kbdHeight: 40 };
+    if (!raw) return { kbdEnabled: true, kbdHeight: 40, kbdOffset: 0 };
     const s = JSON.parse(raw);
-    return { kbdEnabled: s.kbdEnabled !== false, kbdHeight: s.kbdHeight || 40 };
-  } catch { return { kbdEnabled: true, kbdHeight: 40 }; }
+    return { kbdEnabled: s.kbdEnabled !== false, kbdHeight: s.kbdHeight || 40, kbdOffset: s.kbdOffset || 0 };
+  } catch { return { kbdEnabled: true, kbdHeight: 40, kbdOffset: 0 }; }
 }
 
 function initEditorResize() {
@@ -292,14 +292,8 @@ function pinToolbarToKeyboard() {
 
   editorEl.addEventListener('focus', () => {
     if (isAndroid) {
-      const focusVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      let tries = 0;
-      const iv = setInterval(() => {
-        tries++;
-        const currentVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        const kb = focusVp - currentVp;
-        if (kb > 50 || tries > 12) { show(kb > 50 ? kb : 0); clearInterval(iv); }
-      }, 80);
+      const kbd = getKbdSettings();
+      show(kbd.kbdOffset);
     } else if (isPWA) {
       let tries = 0;
       const iv = setInterval(() => {
