@@ -11,7 +11,6 @@ const contextMenu = $('#context-menu');
 export function initSchemaView() {
   state.renderSchema = renderSchema;
   tree.addEventListener('click', handleTreeClick);
-  tree.addEventListener('dblclick', handleTreeDblClick);
   document.addEventListener('click', hideContextMenu);
   document.addEventListener('contextmenu', handleContextMenu);
   contextMenu.addEventListener('click', handleContextMenuClick);
@@ -199,26 +198,6 @@ function handleTreeClick(e) {
     import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
   } catch (err) {
     import('./resultsView.js').then(r => r.showError(err.message));
-  }
-}
-
-/**
- * Handles double-clicking a table to insert a SELECT statement.
- * @param {MouseEvent} e Double-click event.
- */
-function handleTreeDblClick(e) {
-  const tableEl = e.target.closest('[data-table-name]');
-  if (!tableEl) return;
-  const tableName = tableEl.dataset.tableName;
-  state.activeTable = tableName;
-  updateActiveState(tableName);
-  if (!state.db) return;
-  try {
-    const sql = `SELECT * FROM ${sqlesc(tableName)} LIMIT 100`;
-    const rows = state.db.exec(sql, { rowMode: 'object' });
-    import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
-  } catch (err) {
-    // ignore
   }
 }
 
