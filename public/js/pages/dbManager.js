@@ -452,7 +452,7 @@ function handleShortcuts(e) {
   if (!ctrl) return;
   if (e.key === 's') { e.preventDefault(); exportDatabase(); }
   if (e.key === 'o') { e.preventDefault(); fileInput.click(); }
-  if (e.key === 'n' && e.shiftKey) { e.preventDefault(); newDatabase(); }
+  if (e.key === 'm') { e.preventDefault(); newDatabase(); }
 }
 
 /**
