@@ -7,7 +7,7 @@ export const module6 = [
     title: 'Subquery in WHERE',
     type: 'practice',
     file: '31-subquery-where.sql',
-    markdown: `# 31. Subquery in WHERE
+    markdown: `# Subquery in WHERE
 
 A subquery is a query inside another query. Use it in \`WHERE\` with \`IN\`:
 
@@ -26,7 +26,7 @@ WHERE id IN (SELECT foreign_id FROM other_table WHERE condition);
     title: 'Subquery in SELECT',
     type: 'practice',
     file: '32-subquery-select.sql',
-    markdown: `# 32. Subquery in SELECT
+    markdown: `# Subquery in SELECT
 
 A subquery in \`SELECT\` computes a value for each row. It must return a single value:
 
@@ -47,7 +47,7 @@ The subquery runs once per row — it references the outer query's values.
     title: 'Subquery in FROM',
     type: 'practice',
     file: '33-subquery-from.sql',
-    markdown: `# 33. Subquery in FROM
+    markdown: `# Subquery in FROM
 
 A subquery in \`FROM\` acts like a temporary table. It must have an alias:
 
@@ -65,7 +65,7 @@ SELECT columns FROM (SELECT ...) AS alias WHERE condition;
     title: 'Correlated Subqueries',
     type: 'practice',
     file: '34-correlated.sql',
-    markdown: `# 34. Correlated subqueries
+    markdown: `# Correlated subqueries
 
 A correlated subquery references the outer query's values and runs once per outer row:
 
@@ -84,7 +84,7 @@ WHERE column > (SELECT AVG(column) FROM table_b WHERE b.id = a.id);
     title: 'EXISTS',
     type: 'practice',
     file: '35-exists.sql',
-    markdown: `# 35. EXISTS
+    markdown: `# EXISTS
 
 \`EXISTS\` checks whether a subquery returns any rows. It is often faster than \`IN\`:
 
@@ -103,7 +103,7 @@ WHERE EXISTS (SELECT 1 FROM table_b WHERE b.ref_id = a.id);
     title: 'Common Table Expressions',
     type: 'practice',
     file: '36-cte.sql',
-    markdown: `# 36. Common Table Expressions
+    markdown: `# Common Table Expressions
 
 A CTE (WITH clause) names a subquery for reuse in the main query:
 
@@ -124,7 +124,7 @@ SELECT columns FROM name WHERE condition;
     title: 'Recursive CTEs (Theory)',
     type: 'theory',
     file: '37-recursive-cte.md',
-    markdown: `# 37. Recursive CTEs
+    markdown: `# Recursive CTEs
 
 Recursive CTEs reference themselves to handle hierarchical data (org charts, trees, graphs). Use \`UNION ALL\` to combine the anchor and recursive steps.
 

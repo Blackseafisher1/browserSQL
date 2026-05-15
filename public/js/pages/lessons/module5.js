@@ -7,7 +7,7 @@ export const module5 = [
     title: 'INNER JOIN',
     type: 'practice',
     file: '25-inner-join.sql',
-    markdown: `# 25. INNER JOIN
+    markdown: `# INNER JOIN
 
 \`INNER JOIN\` combines rows from two tables where a condition matches:
 
@@ -28,7 +28,7 @@ Only rows with matches in both tables appear.
     title: 'LEFT JOIN',
     type: 'practice',
     file: '26-left-join.sql',
-    markdown: `# 26. LEFT JOIN
+    markdown: `# LEFT JOIN
 
 \`LEFT JOIN\` keeps ALL rows from the left table, even without matches. Unmatched right columns show \`NULL\`:
 
@@ -47,7 +47,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     title: 'RIGHT JOIN (Theory)',
     type: 'theory',
     file: '27-right-join.md',
-    markdown: `# 27. RIGHT JOIN
+    markdown: `# RIGHT JOIN
 
 \`RIGHT JOIN\` keeps ALL rows from the right table. SQLite does not support it — use \`LEFT JOIN\` and swap the tables.
 
@@ -66,7 +66,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     title: 'FULL OUTER JOIN (Theory)',
     type: 'theory',
     file: '28-full-join.md',
-    markdown: `# 28. FULL OUTER JOIN
+    markdown: `# FULL OUTER JOIN
 
 \`FULL OUTER JOIN\` keeps rows from both sides. Not supported in SQLite — combine LEFT JOIN and RIGHT JOIN with \`UNION\`.
 
@@ -85,7 +85,7 @@ LEFT JOIN table_b ON a.id = b.foreign_id;
     title: 'Self Joins',
     type: 'practice',
     file: '29-self-join.sql',
-    markdown: `# 29. Self joins
+    markdown: `# Self joins
 
 A self join joins a table to itself. Use different aliases to tell them apart:
 
@@ -106,7 +106,7 @@ The \`employees\` table has \`manager_id\` referencing \`id\` in the same table.
     title: 'Joining Multiple Tables',
     type: 'practice',
     file: '30-multi-join.sql',
-    markdown: `# 30. Joining multiple tables
+    markdown: `# Joining multiple tables
 
 Chain multiple \`JOIN\` clauses to combine three or more tables:
 
@@ -127,7 +127,7 @@ INNER JOIN table_c c ON b.id = c.b_id;
     title: 'Join Mastery',
     type: 'practice',
     file: '31-join-mastery.sql',
-    markdown: `# 31. Join mastery
+    markdown: `# Join mastery
 
 Combine joins, aggregation, and ordering across multiple tables.
 

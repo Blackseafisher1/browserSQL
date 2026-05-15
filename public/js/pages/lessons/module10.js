@@ -7,7 +7,7 @@ export const module10 = [
     title: 'Views',
     type: 'practice',
     file: '53-views.sql',
-    markdown: `# 53. Views
+    markdown: `# Views
 
 A view is a saved query that acts like a virtual table:
 
@@ -25,7 +25,7 @@ CREATE VIEW view_name AS SELECT ...;
     title: 'Triggers',
     type: 'practice',
     file: '54-triggers.sql',
-    markdown: `# 54. Triggers
+    markdown: `# Triggers
 
 A trigger runs automatically before or after an INSERT, UPDATE, or DELETE:
 
@@ -47,7 +47,7 @@ END;
     title: 'Window Functions',
     type: 'practice',
     file: '55-window.sql',
-    markdown: `# 55. Window functions
+    markdown: `# Window functions
 
 Window functions compute values across a set of rows related to the current row:
 
@@ -67,7 +67,7 @@ SELECT column, ROW_NUMBER() OVER (ORDER BY col) AS rank FROM table;
     title: 'CASE Statements',
     type: 'practice',
     file: '56-case.sql',
-    markdown: `# 56. CASE statements
+    markdown: `# CASE statements
 
 \`CASE\` adds conditional logic to queries:
 
@@ -87,7 +87,7 @@ FROM table;
     title: 'Date and Time Functions',
     type: 'practice',
     file: '57-datetime.sql',
-    markdown: `# 57. Date and time functions
+    markdown: `# Date and time functions
 
 SQLite has functions for date arithmetic:
 
@@ -109,7 +109,7 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
     title: 'Final Capstone',
     type: 'practice',
     file: '58-capstone.sql',
-    markdown: `# 58. Final capstone
+    markdown: `# Final capstone
 
 Build a library system from scratch. Create the schema, add data, and write queries.
 

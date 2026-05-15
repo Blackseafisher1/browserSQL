@@ -7,7 +7,7 @@ export const module8 = [
     title: 'What is an Index?',
     type: 'theory',
     file: '43-what-index.md',
-    markdown: `# 43. What is an index?
+    markdown: `# What is an index?
 
 An index is a data structure (B-Tree) that speeds up lookups. Like a book index — instead of scanning every page, jump to the right spot. Trade-off: faster reads, slower writes.
 
@@ -28,7 +28,7 @@ An index is a data structure (B-Tree) that speeds up lookups. Like a book index 
     title: 'Creating Indexes',
     type: 'practice',
     file: '44-create-index.sql',
-    markdown: `# 44. Creating indexes
+    markdown: `# Creating indexes
 
 Use \`CREATE INDEX\` to add an index:
 
@@ -48,7 +48,7 @@ Note: \`PRIMARY KEY\` columns are already indexed automatically — they don't n
     title: 'Query Planning',
     type: 'practice',
     file: '45-explain-plan.sql',
-    markdown: `# 45. Query planning
+    markdown: `# Query planning
 
 \`EXPLAIN QUERY PLAN\` shows how SQLite executes a query. Use it to see if indexes are used:
 
@@ -66,7 +66,7 @@ EXPLAIN QUERY PLAN SELECT * FROM table WHERE column = value;
     title: 'Composite Indexes',
     type: 'practice',
     file: '46-composite-index.sql',
-    markdown: `# 46. Composite indexes
+    markdown: `# Composite indexes
 
 A composite index covers multiple columns:
 
@@ -86,7 +86,7 @@ The column order matters — leftmost columns first.
     title: 'When NOT to Index',
     type: 'theory',
     file: '47-no-index.md',
-    markdown: `# 47. When NOT to index
+    markdown: `# When NOT to index
 
 Avoid indexes on:
 - Small tables (full scan is fast enough)

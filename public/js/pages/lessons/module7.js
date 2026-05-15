@@ -7,7 +7,7 @@ export const module7 = [
     title: 'Why Normalize?',
     type: 'theory',
     file: '38-why-normalize.md',
-    markdown: `# 38. Why normalize?
+    markdown: `# Why normalize?
 
 Normalization reduces data redundancy and prevents anomalies (update, insert, delete). Split data into related tables instead of one big table.
 
@@ -26,7 +26,7 @@ Normalization reduces data redundancy and prevents anomalies (update, insert, de
     title: 'First Normal Form (1NF)',
     type: 'practice',
     file: '39-1nf.sql',
-    markdown: `# 39. First Normal Form
+    markdown: `# First Normal Form
 
 A table is in 1NF when:
 - Each column has atomic (indivisible) values
@@ -50,7 +50,7 @@ CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL, produ
     title: 'Second Normal Form (2NF)',
     type: 'practice',
     file: '40-2nf.sql',
-    markdown: `# 40. Second Normal Form
+    markdown: `# Second Normal Form
 
 A table is in 2NF when:
 - It is in 1NF
@@ -74,7 +74,7 @@ CREATE TABLE orders (...);
     title: 'Third Normal Form (3NF)',
     type: 'practice',
     file: '41-3nf.sql',
-    markdown: `# 41. Third Normal Form
+    markdown: `# Third Normal Form
 
 A table is in 3NF when:
 - It is in 2NF
@@ -92,7 +92,7 @@ Here \`customer_city\` depends on \`customer\`, not on the order id. You already
     title: 'Denormalization',
     type: 'theory',
     file: '42-denormalization.md',
-    markdown: `# 42. Denormalization
+    markdown: `# Denormalization
 
 Denormalization intentionally adds redundancy for read performance. Used in reporting / analytics where writes are rare.
 

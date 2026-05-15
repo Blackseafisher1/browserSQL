@@ -7,7 +7,7 @@ export const module1 = [
     title: 'What is a Database?',
     type: 'theory',
     file: '01-intro.md',
-    markdown: `# 1. What is a database?
+    markdown: `# What is a database?
 
 A database stores information in tables. Tables have rows and columns.
 
@@ -26,7 +26,7 @@ A database stores information in tables. Tables have rows and columns.
     title: 'SQL vs NoSQL',
     type: 'theory',
     file: '02-nosql.md',
-    markdown: `# 2. SQL vs NoSQL
+    markdown: `# SQL vs NoSQL
 
 SQL databases use tables and a structured schema. NoSQL systems can be document, key-value, or graph based.
 
@@ -45,7 +45,7 @@ SQL databases use tables and a structured schema. NoSQL systems can be document,
     title: 'Comments in SQL',
     type: 'theory',
     file: '03-comments.md',
-    markdown: `# 3. Comments in SQL
+    markdown: `# Comments in SQL
 
 Comments make your SQL readable. They are ignored when the query runs:
 
@@ -75,7 +75,7 @@ comment
     type: 'practice',
     file: '04-create.sql',
     sql: 'CREATE TABLE people (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  age INTEGER NOT NULL\n);\n',
-    markdown: `# 4. Creating tables
+    markdown: `# Creating tables
 
 Use \`CREATE TABLE\` to define a new table. Specify column names, data types, and constraints.
 
@@ -98,7 +98,7 @@ CREATE TABLE tablename (
     title: 'Data Types Deep Dive',
     type: 'theory',
     file: '05-types.md',
-    markdown: `# 5. Data types
+    markdown: `# Data types
 
 SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
 

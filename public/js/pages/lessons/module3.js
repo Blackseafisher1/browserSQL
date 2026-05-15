@@ -8,7 +8,7 @@ export const module3 = [
     type: 'practice',
     file: '03-attach.sql',
     sql: 'SELECT name FROM sqlite_master WHERE type = \'table\';\n',
-    markdown: `# 12. Your first database
+    markdown: `# Your first database
 
 Use \`SELECT\` to read data from a table:
 
@@ -33,7 +33,7 @@ Try querying \`sqlite_master\` to discover what tables exist in this database.
     type: 'practice',
     file: '10-select.sql',
     sql: 'SELECT * FROM users;\n',
-    markdown: `# 13. Reading data
+    markdown: `# Reading data
 
 Use \`SELECT\` to read data from a table:
 
@@ -68,7 +68,7 @@ The \`AS\` keyword is optional: \`SELECT u.name FROM users u\`.
     type: 'practice',
     file: '11-where.sql',
     sql: "SELECT name FROM users WHERE city = 'Berlin';\n",
-    markdown: `# 14. Filtering
+    markdown: `# Filtering
 
 The \`WHERE\` clause filters rows based on a condition.
 
@@ -89,7 +89,7 @@ Use \`=\` to compare values. String literals go in single quotes.
     type: 'practice',
     file: '12-advanced-where.sql',
     sql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;\n",
-    markdown: `# 15. Advanced filtering
+    markdown: `# Advanced filtering
 
 Combine multiple operators for precise filtering:
 
@@ -122,7 +122,7 @@ ORDER BY column;
     type: 'practice',
     file: '13-null.sql',
     sql: 'SELECT name FROM users WHERE email IS NULL;\n',
-    markdown: `# 16. Working with NULL
+    markdown: `# Working with NULL
 
 \`NULL\` represents missing or unknown data. You cannot use \`= NULL\` — instead use \`IS NULL\` or \`IS NOT NULL\`.
 
@@ -149,7 +149,7 @@ SELECT name, COALESCE(email, 'no email') FROM users;
     type: 'practice',
     file: '14-like.sql',
     sql: "SELECT name FROM users WHERE name LIKE '%a%' ORDER BY name;\n",
-    markdown: `# 17. Pattern matching
+    markdown: `# Pattern matching
 
 \`LIKE\` enables pattern matching with wildcards:
 - \`%\` — matches any sequence of characters
@@ -170,7 +170,7 @@ SELECT columns FROM table WHERE column LIKE pattern;
     type: 'practice',
     file: '15-insert.sql',
     sql: "INSERT INTO users (name, city, age, email) VALUES ('Kai', 'Berlin', 27, 'kai@example.com');\n",
-    markdown: `# 18. Inserting data
+    markdown: `# Inserting data
 
 Use \`INSERT\` to add rows to a table.
 
@@ -191,7 +191,7 @@ The \`users\` table has columns: id, name, city, age, email. The \`id\` column i
     type: 'practice',
     file: '16-update.sql',
     sql: "UPDATE users SET city = 'Bremen' WHERE name = 'Mia';\n",
-    markdown: `# 19. Updating data
+    markdown: `# Updating data
 
 Use \`UPDATE\` to modify existing rows.
 
@@ -212,7 +212,7 @@ Always include a \`WHERE\` clause — without it, every row gets updated!
     type: 'practice',
     file: '17-delete.sql',
     sql: "DELETE FROM users WHERE name = 'Liam';\n",
-    markdown: `# 20. Deleting data
+    markdown: `# Deleting data
 
 Use \`DELETE\` to remove rows.
 
@@ -232,7 +232,7 @@ Always include a \`WHERE\` clause — without it, all rows are deleted!
     title: 'Danger of DELETE',
     type: 'theory',
     file: '18-delete-danger.md',
-    markdown: `# 21. Danger of DELETE
+    markdown: `# Danger of DELETE
 
 Always include WHERE unless you truly want to delete everything.
 
@@ -251,7 +251,7 @@ Always include WHERE unless you truly want to delete everything.
     title: 'INSERT INTO SELECT',
     type: 'practice',
     file: '22-insert-select.sql',
-    markdown: `# 22. INSERT INTO ... SELECT
+    markdown: `# INSERT INTO ... SELECT
 
 Copy rows from one table into another:
 
@@ -272,7 +272,7 @@ Both tables must exist. The column types must match.
     title: 'CRUD Mastery',
     type: 'practice',
     file: '23-crud-mastery.sql',
-    markdown: `# 23. CRUD mastery
+    markdown: `# CRUD mastery
 
 Combine everything you learned: create, insert, update, delete, and query.
 
@@ -291,7 +291,7 @@ Combine everything you learned: create, insert, update, delete, and query.
     title: 'INSERT Multiple Rows',
     type: 'practice',
     file: '24-insert-multi.sql',
-    markdown: `# 24. INSERT multiple rows
+    markdown: `# INSERT multiple rows
 
 Insert several rows in one statement by comma-separating the value lists:
 

@@ -8,7 +8,7 @@ export const module2 = [
     type: 'practice',
     file: '06-primary.sql',
     sql: 'CREATE TABLE projects (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  name TEXT NOT NULL\n);\nINSERT INTO projects (name) VALUES (\'Apollo\');\n',
-    markdown: `# 6. Primary keys
+    markdown: `# Primary keys
 
 A \`PRIMARY KEY\` uniquely identifies each row. Use \`INTEGER PRIMARY KEY AUTOINCREMENT\` to have SQLite automatically assign increasing IDs.
 
@@ -30,7 +30,7 @@ CREATE TABLE tablename (
     type: 'practice',
     file: '07-foreign.sql',
     sql: 'PRAGMA foreign_keys = ON;\nCREATE TABLE authors (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\nCREATE TABLE books (\n  id INTEGER PRIMARY KEY,\n  title TEXT NOT NULL,\n  author_id INTEGER NOT NULL,\n  FOREIGN KEY (author_id) REFERENCES authors(id)\n);\n',
-    markdown: `# 7. Foreign keys
+    markdown: `# Foreign keys
 
 A \`FOREIGN KEY\` links rows across tables. It references a \`PRIMARY KEY\` in another table.
 
@@ -53,7 +53,7 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     type: 'practice',
     file: '08-constraints.sql',
     sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
-    markdown: `# 8. Constraints
+    markdown: `# Constraints
 
 Constraints enforce rules on your data:
 
@@ -101,7 +101,7 @@ Then insert one valid row. After that, try inserting a row where age < 18 — yo
     title: 'ALTER TABLE',
     type: 'practice',
     file: '09-alter-table.sql',
-    markdown: `# 9. ALTER TABLE
+    markdown: `# ALTER TABLE
 
 Modify existing tables with \`ALTER TABLE\`:
 
@@ -124,7 +124,7 @@ The \`users\` table already has columns: id, name, city, age, email.
     title: 'Schema Design',
     type: 'theory',
     file: '10-schema.md',
-    markdown: `# 10. Schema design
+    markdown: `# Schema design
 
 Relationships can be one-to-one, one-to-many, or many-to-many.
 
@@ -143,7 +143,7 @@ Relationships can be one-to-one, one-to-many, or many-to-many.
     title: 'DROP TABLE',
     type: 'practice',
     file: '11-drop-table.sql',
-    markdown: `# 11. DROP TABLE
+    markdown: `# DROP TABLE
 
 \`DROP TABLE\` removes a table and all its data permanently:
 

@@ -7,7 +7,7 @@ export const module9 = [
     title: 'ACID Properties',
     type: 'theory',
     file: '48-acid.md',
-    markdown: `# 48. ACID properties
+    markdown: `# ACID properties
 
 Transactions guarantee:
 - **Atomicity** — all or nothing
@@ -30,7 +30,7 @@ Transactions guarantee:
     title: 'Starting Transactions',
     type: 'practice',
     file: '49-begin.sql',
-    markdown: `# 49. Starting transactions
+    markdown: `# Starting transactions
 
 Wrap operations in \`BEGIN TRANSACTION\` and \`COMMIT\`:
 
@@ -51,7 +51,7 @@ COMMIT;
     title: 'Committing',
     type: 'practice',
     file: '50-commit.sql',
-    markdown: `# 50. Committing
+    markdown: `# Committing
 
 \`COMMIT\` saves all changes made since \`BEGIN TRANSACTION\`. Changes become visible and permanent.
 
@@ -65,7 +65,7 @@ COMMIT;
     title: 'Rolling Back',
     type: 'practice',
     file: '51-rollback.sql',
-    markdown: `# 51. Rolling back
+    markdown: `# Rolling back
 
 \`ROLLBACK\` undoes all changes since \`BEGIN TRANSACTION\`:
 
@@ -85,7 +85,7 @@ ROLLBACK; -- nothing happened
     title: 'Savepoints',
     type: 'practice',
     file: '52-savepoint.sql',
-    markdown: `# 52. Savepoints
+    markdown: `# Savepoints
 
 Savepoints allow partial rollbacks within a transaction:
 

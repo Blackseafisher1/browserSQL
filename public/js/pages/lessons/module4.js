@@ -7,7 +7,7 @@ export const module4 = [
     title: 'Sorting',
     type: 'practice',
     file: '19-sort.sql',
-    markdown: `# 19. Sorting
+    markdown: `# Sorting
 
 Use \`ORDER BY\` to sort results:
 
@@ -27,7 +27,7 @@ Use \`ASC\` for ascending (default) or \`DESC\` for descending. Sort by multiple
     title: 'Limiting Results',
     type: 'practice',
     file: '20-limit.sql',
-    markdown: `# 20. Limiting results
+    markdown: `# Limiting results
 
 Use \`LIMIT\` to restrict how many rows are returned:
 
@@ -46,7 +46,7 @@ SELECT columns FROM table LIMIT count OFFSET skip;
     title: 'Aggregate Functions',
     type: 'practice',
     file: '21-aggregates.sql',
-    markdown: `# 21. Aggregate functions
+    markdown: `# Aggregate functions
 
 Aggregate functions summarize many rows into one value:
 
@@ -72,7 +72,7 @@ Combine with \`ROUND()\` to control decimal places: \`ROUND(AVG(age), 2)\`
     title: 'Grouping',
     type: 'practice',
     file: '22-group.sql',
-    markdown: `# 22. Grouping
+    markdown: `# Grouping
 
 \`GROUP BY\` groups rows that share a value, so aggregate functions work per group:
 
@@ -97,7 +97,7 @@ SELECT column, COUNT(*) FROM table GROUP BY column HAVING COUNT(*) > 1;
     title: 'Distinct Values',
     type: 'practice',
     file: '23-distinct.sql',
-    markdown: `# 23. Distinct values
+    markdown: `# Distinct values
 
 \`DISTINCT\` removes duplicate values from results:
 
@@ -115,7 +115,7 @@ SELECT DISTINCT column FROM table;
     title: 'Aliases',
     type: 'practice',
     file: '24-alias.sql',
-    markdown: `# 24. Aliases
+    markdown: `# Aliases
 
 \`AS\` renames columns or tables in query results:
 
@@ -135,7 +135,7 @@ The \`AS\` keyword is optional: \`SELECT column alias FROM table t\`.
     title: 'Query Mastery',
     type: 'practice',
     file: '25-query-mastery.sql',
-    markdown: `# 25. Query mastery
+    markdown: `# Query mastery
 
 Combine grouping, filtering, sorting, and aggregates into one query.
 
@@ -151,7 +151,7 @@ The \`users\` table has users in multiple cities with different ages.
     title: 'UNION',
     type: 'practice',
     file: '26-union.sql',
-    markdown: `# 26. UNION
+    markdown: `# UNION
 
 \`UNION\` combines results from two queries into one set. Duplicates are removed automatically. Use \`UNION ALL\` to keep duplicates:
 
