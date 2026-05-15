@@ -60,7 +60,7 @@ function makeEditor(doc, parent) {
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
       lc.of(makeSql()),
-      EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
+      EditorView.contentAttributes.of({ class: 'cm-lineWrapping', inputmode: 'text', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false' }),
       EditorView.theme({
         '&': { height: '100%' },
         '.cm-scroller': { overflow: 'auto' },
