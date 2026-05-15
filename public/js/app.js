@@ -255,8 +255,9 @@ function initSidebarSectionResize() {
     function startResize(e) {
       const topBody = topNode.querySelector('.section-body');
       const bottomBody = bottomNode.querySelector('.section-body');
-      if (topBody && topBody.classList.contains('collapsed')) return;
-      if (bottomBody && bottomBody.classList.contains('collapsed')) return;
+      const topCollapsed = topBody?.classList.contains('collapsed');
+      const bottomCollapsed = bottomBody?.classList.contains('collapsed');
+      if (topCollapsed && bottomCollapsed) return;
       startY = getY(e);
       startTop = topNode.getBoundingClientRect().height;
       startBottom = bottomNode.getBoundingClientRect().height;
@@ -268,6 +269,31 @@ function initSidebarSectionResize() {
       document.body.style.cursor = 'row-resize';
       document.body.style.userSelect = 'none';
       e.preventDefault();
+    }
+
+    function moveResize(e) {
+      const dy = getY(e) - startY;
+      const minPx = 70;
+      const topBody = topNode.querySelector('.section-body');
+      const bottomBody = bottomNode.querySelector('.section-body');
+      const topCollapsed = topBody?.classList.contains('collapsed');
+      const bottomCollapsed = bottomBody?.classList.contains('collapsed');
+
+      if (topCollapsed || bottomCollapsed) {
+        if (bottomCollapsed) {
+          const topPx = Math.max(minPx, startTop + dy);
+          topNode.style.flex = '0 0 ' + topPx + 'px';
+        } else {
+          const bottomPx = Math.max(minPx, startBottom - dy);
+          bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
+        }
+      } else {
+        let topPx = startTop + dy;
+        topPx = Math.max(minPx, Math.min(total - minPx, topPx));
+        const bottomPx = total - topPx;
+        topNode.style.flex = '0 0 ' + topPx + 'px';
+        bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
+      }
     }
 
     handle.addEventListener('mousedown', startResize);
