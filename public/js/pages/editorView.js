@@ -215,12 +215,17 @@ function insertAtCursor(text) {
 
 function setupExecuteShortcut() {
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); executeQuery(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (e.shiftKey) executeAll();
+      else executeQuery();
+    }
   });
 }
 
 function setupExecuteButton() {
   executeBtn.addEventListener('click', executeQuery);
+  document.getElementById('btn-execute-all')?.addEventListener('click', executeAll);
 }
 
 function setupPreviewButton() {
@@ -263,13 +268,52 @@ export async function executeQuery() {
     showError('This lesson is a quiz. Answer it in the editor panel.');
     return;
   }
+  
+  let code;
   const sel = view.state.selection.main;
-  let code = sel.empty ? view.state.doc.toString() : view.state.sliceDoc(sel.from, sel.to);
+
+  // Case 1: Text is selected → run selection
+  if (!sel.empty) {
+    code = view.state.sliceDoc(sel.from, sel.to);
+  }
+  // Case 2: No selection → find statement at cursor using ; delimiters
+  else {
+    const fullText = view.state.doc.toString();
+    let cursor = sel.head;
+
+    // If cursor is right after a semicolon, step back so we catch the statement before it
+    if (cursor > 0 && fullText[cursor - 1] === ';') {
+      cursor = cursor - 1;
+    }
+
+    // Find start of statement: last ; before cursor
+    let start = 0;
+    for (let i = cursor - 1; i >= 0; i--) {
+      if (fullText[i] === ';') {
+        start = i + 1;
+        break;
+      }
+    }
+
+    // Find end of statement: next ; from cursor onward
+    let end = fullText.length;
+    for (let i = cursor; i < fullText.length; i++) {
+      if (fullText[i] === ';') {
+        end = i;
+        break;
+      }
+    }
+
+    code = fullText.substring(start, end).trim();
+  }
+  
   code = code.trim();
   if (!code) return;
+  
   if (state.activeFileIsJS) { showError('JS Shell is not available.'); return; }
   if (state.activeFileIsMD) { document.getElementById('btn-preview')?.click(); return; }
   if (!state.db) { showError('No database loaded.'); return; }
+  
   const startTime = performance.now();
   try {
     const rows = state.db.exec(code, { rowMode: 'object' });
@@ -285,5 +329,24 @@ export async function executeQuery() {
   } catch (err) {
     showError(`${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
     evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
+  }
+}
+
+export async function executeAll() {
+  if (!view) return;
+  if (!state.db) { showError('No database loaded.'); return; }
+  const code = view.state.doc.toString().trim();
+  if (!code) return;
+  const wrapped = 'BEGIN TRANSACTION;\n' + code + '\nCOMMIT;';
+  const startTime = performance.now();
+  try {
+    state.db.exec(wrapped, { rowMode: 'object' });
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    showNoResults(`All statements executed successfully | ${elapsed}ms`);
+    if (state.dbName !== 'untitled') saveCurrentToLocal();
+    if (state.renderSchema) state.renderSchema();
+  } catch (err) {
+    try { state.db.exec('ROLLBACK;'); } catch (_) {}
+    showError(`Transaction rolled back: ${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
   }
 }

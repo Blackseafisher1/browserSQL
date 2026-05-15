@@ -69,6 +69,7 @@ async function main() {
   initMobileToggles();
   pinToolbarToKeyboard();
   initResultsZoom();
+  initShortcutsHelp();
 
   const tutorialStarted = await initTutorialMode();
   if (!tutorialStarted) {
@@ -408,6 +409,20 @@ function initResultsZoom() {
     display.textContent = slider.value;
     document.documentElement.style.setProperty('--results-font-size', slider.value + 'px');
     localStorage.setItem(key, slider.value);
+  });
+}
+
+function initShortcutsHelp() {
+  const overlay = document.getElementById('shortcuts-overlay');
+  const closeBtn = document.getElementById('shortcuts-modal-close');
+  closeBtn?.addEventListener('click', () => overlay?.classList.add('hidden'));
+  overlay?.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (document.activeElement?.closest('.cm-editor, input, textarea, select, [contenteditable]')) return;
+      e.preventDefault();
+      overlay?.classList.remove('hidden');
+    }
   });
 }
 

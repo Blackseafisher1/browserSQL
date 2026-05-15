@@ -170,6 +170,7 @@
       </div>
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
+        <button id="btn-execute-all" class="btn btn-sm" data-action="execute-all" title="Run all (Ctrl+Shift+Enter)">Run All</button>
         <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>
         <span class="execute-hint">Ctrl+Enter</span>
         <span class="execute-spacer"></span>
@@ -277,6 +278,24 @@
         <div style="margin-top:var(--space-4)">
           <a href="https://github.com/Blackseafisher1/browserSQL" target="_blank" rel="noopener">github.com/Blackseafisher1/browserSQL</a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shortcuts-overlay" class="modal-overlay hidden">
+    <div id="shortcuts-modal" class="modal" style="min-width:320px;max-width:450px">
+      <div class="modal-header">
+        <span class="modal-title">Keyboard Shortcuts</span>
+        <button id="shortcuts-modal-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:var(--space-4)">
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Enter</span><span>Execute statement at cursor</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Shift+Enter</span><span>Run all statements</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+S</span><span>Export database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+O</span><span>Open database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+N</span><span>New database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Space</span><span>Trigger autocomplete</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Esc</span><span>Close modal</span></div>
       </div>
     </div>
   </div>
