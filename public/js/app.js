@@ -243,16 +243,16 @@ function initSidebarSectionResize() {
       bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
     }
 
-    function endResize() {
+    const endResize = () => {
       document.removeEventListener('mousemove', moveResize);
       document.removeEventListener('mouseup', endResize);
       document.removeEventListener('touchmove', moveResize);
       document.removeEventListener('touchend', endResize);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-    }
+    };
 
-    function startResize(e) {
+    const startResize = (e) => {
       const topBody = topNode.querySelector('.section-body');
       const bottomBody = bottomNode.querySelector('.section-body');
       const topCollapsed = topBody?.classList.contains('collapsed');
@@ -269,9 +269,9 @@ function initSidebarSectionResize() {
       document.body.style.cursor = 'row-resize';
       document.body.style.userSelect = 'none';
       e.preventDefault();
-    }
+    };
 
-    function moveResize(e) {
+    const moveResize = (e) => {
       const dy = getY(e) - startY;
       const minPx = 70;
       const topBody = topNode.querySelector('.section-body');
@@ -294,7 +294,7 @@ function initSidebarSectionResize() {
         topNode.style.flex = '0 0 ' + topPx + 'px';
         bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
       }
-    }
+    };
 
     handle.addEventListener('mousedown', startResize);
     handle.addEventListener('touchstart', startResize, { passive: false });
