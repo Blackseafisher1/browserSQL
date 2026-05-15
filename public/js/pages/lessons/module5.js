@@ -122,12 +122,12 @@ INNER JOIN table_c c ON b.id = c.b_id;
     check: { type: 'result', expectedSql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },
   },
   {
-    id: '62-join-mastery',
+    id: '31-join-mastery',
     module: 5,
     title: 'Join Mastery',
     type: 'practice',
-    file: '62-join-mastery.sql',
-    markdown: `# 62. Join mastery
+    file: '31-join-mastery.sql',
+    markdown: `# 31. Join mastery
 
 Combine joins, aggregation, and ordering across multiple tables.
 

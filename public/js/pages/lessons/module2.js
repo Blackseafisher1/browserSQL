@@ -138,12 +138,12 @@ Relationships can be one-to-one, one-to-many, or many-to-many.
     seed: SEED_USERS,
   },
   {
-    id: '65-drop-table',
+    id: '11-drop-table',
     module: 2,
     title: 'DROP TABLE',
     type: 'practice',
-    file: '65-drop-table.sql',
-    markdown: `# 65. DROP TABLE
+    file: '11-drop-table.sql',
+    markdown: `# 11. DROP TABLE
 
 \`DROP TABLE\` removes a table and all its data permanently:
 

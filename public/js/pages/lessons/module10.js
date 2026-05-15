@@ -104,12 +104,12 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
     check: { type: 'result', expectedSql: "SELECT name, STRFTIME('%m', event_date) AS month FROM events ORDER BY event_date;" },
   },
   {
-    id: '63-capstone',
+    id: '58-capstone',
     module: 10,
     title: 'Final Capstone',
     type: 'practice',
-    file: '63-capstone.sql',
-    markdown: `# 63. Final capstone
+    file: '58-capstone.sql',
+    markdown: `# 58. Final capstone
 
 Build a library system from scratch. Create the schema, add data, and write queries.
 

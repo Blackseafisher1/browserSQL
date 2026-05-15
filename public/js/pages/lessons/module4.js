@@ -130,12 +130,12 @@ The \`AS\` keyword is optional: \`SELECT column alias FROM table t\`.
     check: { type: 'result', expectedSql: 'SELECT name AS user_name, age AS user_age FROM users;' },
   },
   {
-    id: '61-query-mastery',
+    id: '25-query-mastery',
     module: 4,
     title: 'Query Mastery',
     type: 'practice',
-    file: '61-query-mastery.sql',
-    markdown: `# 61. Query mastery
+    file: '25-query-mastery.sql',
+    markdown: `# 25. Query mastery
 
 Combine grouping, filtering, sorting, and aggregates into one query.
 
@@ -146,12 +146,12 @@ The \`users\` table has users in multiple cities with different ages.
     check: { type: 'result', expectedSql: 'SELECT city, COUNT(*) AS cnt, AVG(age) AS avg_age FROM users GROUP BY city HAVING cnt >= 2 ORDER BY avg_age DESC;' },
   },
   {
-    id: '67-union',
+    id: '26-union',
     module: 4,
     title: 'UNION',
     type: 'practice',
-    file: '67-union.sql',
-    markdown: `# 67. UNION
+    file: '26-union.sql',
+    markdown: `# 26. UNION
 
 \`UNION\` combines results from two queries into one set. Duplicates are removed automatically. Use \`UNION ALL\` to keep duplicates:
 

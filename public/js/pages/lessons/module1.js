@@ -40,12 +40,12 @@ SQL databases use tables and a structured schema. NoSQL systems can be document,
     seed: SEED_USERS,
   },
   {
-    id: '64-comments',
+    id: '03-comments',
     module: 1,
     title: 'Comments in SQL',
     type: 'theory',
-    file: '64-comments.md',
-    markdown: `# 64. Comments in SQL
+    file: '03-comments.md',
+    markdown: `# 3. Comments in SQL
 
 Comments make your SQL readable. They are ignored when the query runs:
 
