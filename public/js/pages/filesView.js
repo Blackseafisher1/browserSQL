@@ -31,7 +31,13 @@ function saveFiles(files) { localStorage.setItem(getStorageKeys().files, JSON.st
  * Returns the active file name, falling back to the default query file.
  * @returns {string}
  */
-export function getActiveFileName() { return localStorage.getItem(getStorageKeys().active) || DEFAULT_FILE; }
+export function getActiveFileName() {
+  const saved = localStorage.getItem(getStorageKeys().active);
+  if (saved) return saved;
+  const files = getFiles();
+  const visible = Object.keys(files).filter(f => !f.startsWith('_'));
+  return visible[0] || '_scratch.sql';
+}
 function setActiveFileName(n) { localStorage.setItem(getStorageKeys().active, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
 
 /**
@@ -42,15 +48,15 @@ function setActiveFileName(n) { localStorage.setItem(getStorageKeys().active, n)
 export function replaceFiles(files, activeName) {
   saveFiles(files);
   const names = Object.keys(files);
-  const nextActive = activeName && activeName in files ? activeName : names[0] || DEFAULT_FILE;
+  const nextActive = activeName && activeName in files ? activeName : names[0] || '_scratch.sql';
   localStorage.setItem(getStorageKeys().active, nextActive);
   activeFile = null;
 }
 
 function ensureDefault() {
   const files = getFiles();
-  if (Object.keys(files).length === 0) { files[DEFAULT_FILE] = DEFAULT_CONTENT; saveFiles(files); setActiveFileName(DEFAULT_FILE); }
-  if (!(getActiveFileName() in getFiles())) setActiveFileName(DEFAULT_FILE);
+  if (Object.keys(files).length === 0) { files['_scratch.sql'] = DEFAULT_CONTENT; saveFiles(files); setActiveFileName('_scratch.sql'); }
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_scratch.sql');
 }
 
 /**
@@ -59,10 +65,10 @@ function ensureDefault() {
 export function ensureDefaultFiles() {
   const files = getFiles();
   if (Object.keys(files).length === 0) {
-    files[DEFAULT_FILE] = DEFAULT_CONTENT;
+    files['_scratch.sql'] = DEFAULT_CONTENT;
     saveFiles(files);
   }
-  if (!(getActiveFileName() in getFiles())) setActiveFileName(DEFAULT_FILE);
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_scratch.sql');
 }
 
 /**
@@ -110,8 +116,9 @@ function renderTabs() {
     const bar = document.getElementById('tab-bar-' + p);
     if (!bar) continue;
     bar.innerHTML = '';
-    bar.style.display = paneTabs[p].length > 0 ? 'flex' : 'none';
-    for (const name of paneTabs[p]) {
+    const visible = paneTabs[p].filter(n => !n.startsWith('_'));
+    bar.style.display = visible.length > 0 ? 'flex' : 'none';
+    for (const name of visible) {
       const tab = document.createElement('div');
       tab.className = 'tab-item' + (name === activeFile && activePane === p ? ' active' : '');
       const label = name.includes('/') ? name.split('/').pop() : name;
@@ -148,10 +155,10 @@ function renderTabs() {
         } else if (pane === 0 && paneTabs[0].length === 0) {
           // Auto-create scratch file if left pane has no tabs
           const files = getFiles();
-          files['scratch.sql'] = '';
+          files['_scratch.sql'] = '';
           saveFiles(files);
-          paneTabs[0] = ['scratch.sql'];
-          switchFile('scratch.sql', 0);
+          paneTabs[0] = ['_scratch.sql'];
+          switchFile('_scratch.sql', 0);
         }
         renderTabs();
       });
@@ -249,7 +256,7 @@ export function deleteFile(name) {
   const files = getFiles();
   if (!(name in files)) return false;
   delete files[name];
-  if (Object.keys(files).length === 0) files['scratch.sql'] = '';
+  if (Object.keys(files).length === 0) files['_scratch.sql'] = '';
   saveFiles(files);
   for (let p = 0; p < 2; p++) paneTabs[p] = paneTabs[p].filter(f => f !== name);
   if (activeFile === name || !(getActiveFileName() in getFiles())) {
@@ -294,7 +301,8 @@ export function renderTree() {
   const el = $('#files-tree');
   if (!el) return;
   const files = getFiles(); const active = activeFile || getActiveFileName(); const names = Object.keys(files).sort();
-  if (names.length === 0) { el.innerHTML = '<div class="panel-empty">No files</div>'; return; }
+  const visible = names.filter(n => !n.startsWith('_'));
+  if (visible.length === 0) { el.innerHTML = '<div class="panel-empty">No files</div>'; return; }
   el.innerHTML = renderNode(buildTree(names), '', active, 0);
 }
 
@@ -311,7 +319,7 @@ function renderNode(node, prefix, active, depth) {
     if (expanded) html += renderNode(node[folder], fullPrefix, active, depth + 1);
   }
   for (const fp of fileList) {
-    if (fp.endsWith('/.gitkeep')) continue;
+    if (fp.endsWith('/.gitkeep') || fp.startsWith('_')) continue;
     const label = prefix ? fp.split('/').pop() : fp;
     html += `<div class="file-tree-item${fp === active ? ' active' : ''}" data-file="${fp}" style="padding-left:${12 + pad}px"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
   }
@@ -337,7 +345,7 @@ export function initFilesView() {
   tree.addEventListener('click', (e) => {
     const del = e.target.closest('[data-del]'); const delf = e.target.closest('[data-delfolder]'); const item = e.target.closest('[data-file]'); const folder = e.target.closest('[data-folder]');
     if (del) { e.stopPropagation(); const n = del.dataset.del; if (confirm(`Delete "${n}"?`)) deleteFile(n); return; }
-    if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['scratch.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
+    if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['_scratch.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
     if (folder) { e.stopPropagation(); const f = folder.dataset.folder; const toggle = e.target.closest('.folder-toggle'); if (toggle) { if (expandedFolders.has(f)) expandedFolders.delete(f); else expandedFolders.add(f); renderTree(); } else { selectedFolder = selectedFolder === f ? null : f; renderTree(); } return; }
     if (item) { selectedFolder = null; e.stopPropagation(); switchFile(item.dataset.file, 0); return; }
     selectedFolder = null; renderTree();
