@@ -253,6 +253,10 @@ function initSidebarSectionResize() {
     }
 
     function startResize(e) {
+      const topBody = topNode.querySelector('.section-body');
+      const bottomBody = bottomNode.querySelector('.section-body');
+      if (topBody && topBody.classList.contains('collapsed')) return;
+      if (bottomBody && bottomBody.classList.contains('collapsed')) return;
       startY = getY(e);
       startTop = topNode.getBoundingClientRect().height;
       startBottom = bottomNode.getBoundingClientRect().height;
