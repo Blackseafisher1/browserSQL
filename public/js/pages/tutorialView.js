@@ -1619,7 +1619,7 @@ function renderTutorialPanel() {
   if (prog) prog.textContent = `Lesson ${posInMod} of ${modIndices.length} · ${lesson.title}`;
   panel.content.innerHTML = renderMarkdown(lesson.markdown);
   if (panel.files) {
-    panel.files.innerHTML = `<strong class="notranslate">Lesson file:</strong> <span class="notranslate">${lesson.file}</span>`;
+    panel.files.innerHTML = '';
   }
   if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
   if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
