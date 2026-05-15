@@ -480,17 +480,24 @@ export function initFilesView() {
     const file = zipInput.files?.[0];
     if (!file) return;
     zipInput.value = '';
-    const { readZip, downloadAsZip } = await import('./zip.js');
+    const { readZip } = await import('./zip.js');
     let imported;
     try { imported = await readZip(file); } catch { alert('Invalid ZIP file.'); return; }
     if (!imported || !Object.keys(imported).length) { alert('No files found in archive.'); return; }
     const existing = getFiles();
     const visible = Object.keys(existing).filter(n => !n.startsWith('_'));
-    if (visible.length > 0 && !confirm('Importing will overwrite existing files. Export current files first?')) {
-      if (confirm('Export current files before importing?')) {
-        downloadAsZip(existing, 'backup-before-import');
+    if (visible.length > 0) {
+      let folder = 'old-files';
+      let idx = 0;
+      while (Object.keys(existing).some(k => k === folder || k.startsWith(folder + '/'))) {
+        idx++;
+        folder = 'old-files' + idx;
       }
-      if (!confirm('Continue importing anyway?')) return;
+      for (const k of Object.keys(existing)) {
+        if (k.startsWith('_')) continue;
+        existing[folder + '/' + k] = existing[k];
+        delete existing[k];
+      }
     }
     const merged = { ...existing, ...imported };
     saveFiles(merged);
