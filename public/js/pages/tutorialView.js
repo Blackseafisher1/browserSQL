@@ -387,6 +387,11 @@ async function exitTutorialMode() {
   if (state.editorView?.dom) state.editorView.dom.style.display = '';
   const executeBtn = document.getElementById('btn-execute');
   if (executeBtn) executeBtn.disabled = false;
+  if (confirm('Tutorial complete! Export your lesson files as ZIP?')) {
+    const { getFiles } = await import('./filesView.js');
+    const { downloadAsZip } = await import('./zip.js');
+    downloadAsZip(getFiles(), 'browsersql-tutorial-lessons');
+  }
 }
 
 /**

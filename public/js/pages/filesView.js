@@ -465,4 +465,8 @@ export function initFilesView() {
       }
     });
   }
+
+  document.getElementById('btn-export-files')?.addEventListener('click', () => {
+    import('./zip.js').then(z => z.downloadAsZip(getFiles(), 'browsersql-files'));
+  });
 }
