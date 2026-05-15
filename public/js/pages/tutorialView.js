@@ -420,7 +420,30 @@ Then insert one valid row. After that, try inserting a row where age < 18 — yo
     hint: 'CREATE TABLE accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT \'active\', age INTEGER CHECK (age >= 18)); then INSERT a row with valid data.',
   },
   {
-    id: '09-schema',
+    id: '09-alter-table',
+    module: 2,
+    title: 'ALTER TABLE',
+    type: 'practice',
+    file: '09-alter-table.sql',
+    markdown: `# 9. ALTER TABLE
+
+Modify existing tables with \`ALTER TABLE\`:
+
+\`\`\`sql
+ALTER TABLE table ADD COLUMN column TYPE;
+ALTER TABLE table RENAME COLUMN old TO new;
+ALTER TABLE table DROP COLUMN column;
+\`\`\`
+
+The \`users\` table already has columns: id, name, city, age, email.
+
+**Goal:** Add a column \`phone\` (TEXT) to \`users\`, then rename \`phone\` to \`phone_number\`.`,
+    seed: SEED_USERS,
+    check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
+    hint: 'ALTER TABLE users ADD COLUMN phone TEXT; then ALTER TABLE users RENAME COLUMN phone TO phone_number;',
+  },
+  {
+    id: '10-schema',
     module: 2,
     title: 'Schema Design',
     type: 'theory',
@@ -1453,29 +1476,6 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
 **Goal:** Write a query that returns event names and their month number (1-12) extracted from \`event_date\`. Use \`STRFTIME('%m', event_date)\` and alias it as \`month\`. Sort by event_date.`,
     seed: SEED_DATES,
     check: { type: 'result', expectedSql: "SELECT name, STRFTIME('%m', event_date) AS month FROM events ORDER BY event_date;" },
-  },
-  // ── ALTER TABLE & Inter-table Operations ────────────────────────────────
-  {
-    id: '09-alter-table',
-    module: 2,
-    title: 'ALTER TABLE',
-    type: 'practice',
-    file: '58-alter-table.sql',
-    markdown: `# 58. ALTER TABLE
-
-Modify existing tables with \`ALTER TABLE\`:
-
-\`\`\`sql
-ALTER TABLE table ADD COLUMN column TYPE;
-ALTER TABLE table RENAME COLUMN old TO new;
-ALTER TABLE table DROP COLUMN column;
-\`\`\`
-
-The \`users\` table already exists.
-
-**Goal:** Add a column \`phone\` (TEXT) to \`users\`, then rename \`phone\` to \`phone_number\`.`,
-    seed: SEED_USERS,
-    check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
   },
   {
     id: '18-insert-select',
