@@ -3,18 +3,19 @@ import { state } from '../state.js';
 
 const info = $('#results-info');
 const output = $('#results-output');
+let lastRows = null;
+let lastCols = null;
 
-/**
- * Renders a result set as an HTML table.
- * @param {Array<Record<string, unknown>>} rows Query rows in object form.
- * @param {string} queryTime Execution time in milliseconds as a string.
- */
+export function getLastResults() { return { rows: lastRows, cols: lastCols }; }
+
 export function showResults(rows, queryTime) {
   if (!rows || rows.length === 0) {
     showNoResults('0 rows');
     return;
   }
   const cols = Object.keys(rows[0]);
+  lastRows = rows;
+  lastCols = cols;
   const rowCount = rows.length;
   info.textContent = `${rowCount} row${rowCount !== 1 ? 's' : ''} | ${queryTime}ms`;
 
@@ -44,36 +45,23 @@ export function showResults(rows, queryTime) {
   }
   table += '</tbody></table></div>';
   output.innerHTML = table;
-  addCsvButton(rows, cols);
 }
 
-function addCsvButton(rows, cols) {
-  const header = document.querySelector('.results-header');
-  if (!header) return;
-  let btn = document.getElementById('btn-csv-export');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'btn-csv-export';
-    btn.className = 'btn btn-sm';
-    btn.textContent = '📊 CSV';
-    btn.style.marginLeft = 'auto';
-    header.appendChild(btn);
+export function csvFromLastResult() {
+  if (!lastRows || !lastCols) return;
+  let csv = lastCols.map(c => '"' + c.replace(/"/g, '""') + '"').join(',') + '\n';
+  for (const row of lastRows) {
+    csv += lastCols.map(c => {
+      const v = row[c];
+      if (v === null || v === undefined) return '';
+      return '"' + String(v).replace(/"/g, '""') + '"';
+    }).join(',') + '\n';
   }
-  btn.onclick = () => {
-    let csv = cols.map(c => '"' + c.replace(/"/g, '""') + '"').join(',') + '\n';
-    for (const row of rows) {
-      csv += cols.map(c => {
-        const v = row[c];
-        if (v === null || v === undefined) return '';
-        return '"' + String(v).replace(/"/g, '""') + '"';
-      }).join(',') + '\n';
-    }
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'query_results.csv'; a.click();
-    URL.revokeObjectURL(url);
-  };
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'query_results.csv'; a.click();
+  URL.revokeObjectURL(url);
 }
 
 /**

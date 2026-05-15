@@ -230,6 +230,9 @@ function setupExecuteShortcut() {
 function setupExecuteButton() {
   executeBtn.addEventListener('click', executeQuery);
   document.getElementById('btn-execute-all')?.addEventListener('click', executeAll);
+  document.getElementById('btn-csv-export')?.addEventListener('click', () => {
+    import('./resultsView.js').then(r => r.csvFromLastResult());
+  });
 }
 
 function setupPreviewButton() {
