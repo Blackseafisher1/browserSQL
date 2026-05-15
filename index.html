@@ -260,6 +260,11 @@
 </button>
 
 <section class="hero">
+  <video class="hero-video" autoplay loop muted playsinline poster="poster.png">
+    <source src="public/demo.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  
   <div class="logo-container">
     <div class="logo">🗄️</div>
   </div>
@@ -270,6 +275,38 @@
     <span aria-hidden="true">→</span>
   </a>
 </section>
+
+<style>
+  .hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    pointer-events: none;
+    filter: blur(0.5px) saturate(0.6);
+    z-index: 0;
+  }
+
+  [data-theme="light"] .hero-video {
+    opacity: 0.5;
+    filter: blur(0.5px) saturate(0.4) brightness(1.3);
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at 50% 50%, 
+      transparent 20%, 
+      var(--bg) 85%
+    );
+    z-index: 0;
+    pointer-events: none;
+  }
+</style>
 
 <section class="features">
   <h2 class="section-title">Everything You Need</h2>
