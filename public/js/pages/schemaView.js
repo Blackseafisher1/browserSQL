@@ -1,7 +1,6 @@
 import { $, $$, esc } from '../utils.js';
 import { state } from '../state.js';
 import { showDDLModal } from './ddlModal.js';
-import { executeQuery } from './editorView.js';
 
 const tree = $('#schema-tree');
 const contextMenu = $('#context-menu');
@@ -216,23 +215,10 @@ function handleTreeDblClick(e) {
   if (!state.db) return;
   try {
     const sql = `SELECT * FROM ${sqlesc(tableName)} LIMIT 100`;
-    insertInEditor(sql);
-    executeQuery();
+    const rows = state.db.exec(sql, { rowMode: 'object' });
+    import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
   } catch (err) {
     // ignore
-  }
-}
-
-/**
- * Inserts SQL into the active editor.
- * @param {string} text SQL text.
- */
-function insertInEditor(text) {
-  if (state.editorView) {
-    state.editorView.dispatch({
-      changes: { from: 0, to: state.editorView.state.doc.length, insert: text },
-    });
-    state.editorView.focus();
   }
 }
 
