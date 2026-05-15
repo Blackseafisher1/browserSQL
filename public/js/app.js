@@ -306,12 +306,16 @@ function pinToolbarToKeyboard() {
     }
   }, true);
 
-  // Android: tap on focused editor toggles keyboard off
+  // Android: second tap closes keyboard
   if (isAndroid) {
+    let isKeyboardOpen = false;
+    editorEl.addEventListener('focus', () => { isKeyboardOpen = true; });
+    editorEl.addEventListener('blur', () => { isKeyboardOpen = false; });
     editorEl.addEventListener('pointerdown', (e) => {
-      if (document.activeElement === editorEl) {
-        editorEl.blur();
-        e.preventDefault();
+      if (isKeyboardOpen) {
+        setTimeout(() => {
+          if (document.activeElement === editorEl) editorEl.blur();
+        }, 10);
       }
     }, true);
   }
