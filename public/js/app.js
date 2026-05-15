@@ -287,15 +287,29 @@ function pinToolbarToKeyboard() {
   const editorEl = document.querySelector('.cm-editor');
   if (!editorEl) return;
 
+  const isPWA = window.navigator.standalone === true;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
   editorEl.addEventListener('focus', () => {
-    const focusVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    let tries = 0;
-    const iv = setInterval(() => {
-      tries++;
-      const currentVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      const kb = focusVp - currentVp;
-      if (kb > 50 || tries > 10) { show(kb > 50 ? kb : 0); clearInterval(iv); }
-    }, 80);
+    if (isAndroid) {
+      const focusVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      let tries = 0;
+      const iv = setInterval(() => {
+        tries++;
+        const currentVp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const kb = focusVp - currentVp;
+        if (kb > 50 || tries > 12) { show(kb > 50 ? kb : 0); clearInterval(iv); }
+      }, 80);
+    } else if (isPWA) {
+      let tries = 0;
+      const iv = setInterval(() => {
+        tries++;
+        const kb = window.innerHeight - (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+        if (kb > 50 || tries > 8) { show(kb > 50 ? kb : 0); clearInterval(iv); }
+      }, 80);
+    } else {
+      show();
+    }
   }, true);
 
   editorEl.addEventListener('blur', () => {
