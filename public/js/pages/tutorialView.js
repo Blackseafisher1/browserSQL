@@ -258,8 +258,8 @@ SQL databases use tables and a structured schema. NoSQL systems can be document,
     seed: SEED_USERS,
   },
   {
-    id: '03-attach',
-    module: 1,
+    id: '11-attach',
+    module: 3,
     title: 'Your First Database',
     type: 'practice',
     file: '03-attach.sql',
@@ -528,7 +528,7 @@ ORDER BY column;
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;" },
   },
   {
-    id: '13-null',
+    id: '16-null',
     module: 3,
     title: 'Working with NULL',
     type: 'practice',
@@ -1456,7 +1456,7 @@ The \`events\` table has \`name\` and \`event_date\` (TEXT in ISO format 'YYYY-M
   },
   // ── ALTER TABLE & Inter-table Operations ────────────────────────────────
   {
-    id: '58-alter-table',
+    id: '09-alter-table',
     module: 2,
     title: 'ALTER TABLE',
     type: 'practice',
@@ -1478,7 +1478,7 @@ The \`users\` table already exists.
     check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
   },
   {
-    id: '59-insert-select',
+    id: '18-insert-select',
     module: 3,
     title: 'INSERT INTO SELECT',
     type: 'practice',
