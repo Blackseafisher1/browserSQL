@@ -112,6 +112,12 @@ export function switchFile(name, targetPane, skipSave = false) {
 }
 
 function renderTabs() {
+  const allNames = paneTabs.flat();
+  const nameCount = {};
+  for (const n of allNames) {
+    const base = n.includes('/') ? n.split('/').pop() : n;
+    nameCount[base] = (nameCount[base] || 0) + 1;
+  }
   for (let p = 0; p < 2; p++) {
     const bar = document.getElementById('tab-bar-' + p);
     if (!bar) continue;
@@ -121,7 +127,8 @@ function renderTabs() {
     for (const name of visible) {
       const tab = document.createElement('div');
       tab.className = 'tab-item' + (name === activeFile && activePane === p ? ' active' : '');
-      const label = name.includes('/') ? name.split('/').pop() : name;
+      const base = name.includes('/') ? name.split('/').pop() : name;
+      const label = nameCount[base] > 1 ? name : base;
       tab.innerHTML = `<span>${esc(label)}</span><span class="tab-close" data-tabclose="${p}:${name}">✕</span>`;
       tab.addEventListener('click', (e) => {
         if (e.target.closest('[data-tabclose]')) return;
