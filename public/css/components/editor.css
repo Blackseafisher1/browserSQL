@@ -137,6 +137,13 @@
     word-break: break-word !important;
   }
 
+  /* Android: fix space-bar cursor movement */
+  .cm-editor .cm-content {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+
   .cm-editor .cm-cursor {
     border-left: 2px solid var(--color-text) !important;
     z-index: 1;

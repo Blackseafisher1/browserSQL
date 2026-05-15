@@ -308,17 +308,12 @@ function pinToolbarToKeyboard() {
 
   // Android: tap on focused editor toggles keyboard off
   if (isAndroid) {
-    let tapClosed = false;
     editorEl.addEventListener('pointerdown', (e) => {
-      if (document.activeElement && editorEl.contains(document.activeElement) && !tapClosed) {
-        tapClosed = true;
+      if (document.activeElement === editorEl) {
         editorEl.blur();
         e.preventDefault();
-      } else {
-        tapClosed = false;
       }
     }, true);
-    editorEl.addEventListener('focus', () => { tapClosed = false; }, true);
   }
 
   editorEl.addEventListener('blur', () => {
