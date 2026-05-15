@@ -273,23 +273,35 @@ function initSidebarSectionResize() {
 function pinToolbarToKeyboard() {
   const toolbar = document.getElementById('sql-keyboard');
   if (!toolbar) return;
-  const isMobile = window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  if (!isMobile) return;
+  if (!window.matchMedia('(max-width: 768px)').matches) return;
   const kbd = getKbdSettings();
   if (!kbd.kbdEnabled) return;
 
-  let kbdVisible = false;
+  let wasOpen = false;
+  let kbHeight = 0;
+  let initialHeight = document.documentElement.clientHeight;
 
-  function positionAboveKb() {
-    if (!window.visualViewport) { toolbar.style.bottom = '0'; return; }
+  // Track keyboard height on viewport resize
+  window.visualViewport?.addEventListener('resize', () => {
     const vp = window.visualViewport;
-    const kbHeight = window.innerHeight - vp.height;
-    if (kbHeight > 50) {
+    kbHeight = Math.max(0, initialHeight - vp.height);
+    if (wasOpen && kbHeight > 80) {
+      toolbar.style.bottom = kbHeight + 'px';
+    } else if (!wasOpen) {
+      initialHeight = document.documentElement.clientHeight;
+    }
+  });
+
+  // Poll every 200ms for focus changes
+  setInterval(() => {
+    const active = document.activeElement;
+    const isCM = active?.closest('.cm-editor') || active?.closest('.cm-content');
+
+    if (isCM && !wasOpen) {
       toolbar.style.position = 'fixed';
       toolbar.style.left = '0';
       toolbar.style.right = '0';
       toolbar.style.bottom = kbHeight + 'px';
-      toolbar.style.width = vp.width + 'px';
       toolbar.style.zIndex = '50';
       toolbar.style.display = 'flex';
       toolbar.style.visibility = 'visible';
@@ -298,36 +310,14 @@ function pinToolbarToKeyboard() {
       toolbar.style.background = 'var(--color-bg-surface)';
       toolbar.style.borderBottom = '1px solid var(--color-border)';
       toolbar.style.overflowX = 'auto';
-      toolbar.style.WebkitOverflowScrolling = 'touch';
-      kbdVisible = true;
-    } else {
+      wasOpen = true;
+    } else if (!isCM && wasOpen) {
       toolbar.style.display = 'none';
-      kbdVisible = false;
+      wasOpen = false;
+      kbHeight = 0;
+      initialHeight = document.documentElement.clientHeight;
     }
-  }
-
-  function show() {
-    if (kbdVisible) return;
-    toolbar.style.display = 'flex';
-    positionAboveKb();
-  }
-
-  function hide() {
-    toolbar.style.display = 'none';
-    kbdVisible = false;
-  }
-
-  // Show/hide on editor focus/blur
-  const editorEl = state.editorView?.dom;
-  if (editorEl) {
-    editorEl.addEventListener('focus', show);
-    editorEl.addEventListener('blur', hide);
-  }
-
-  // Reposition when virtual keyboard opens/closes
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', positionAboveKb);
-  }
+  }, 200);
 }
 
 /**
