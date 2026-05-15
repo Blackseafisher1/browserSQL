@@ -44,6 +44,36 @@ export function showResults(rows, queryTime) {
   }
   table += '</tbody></table></div>';
   output.innerHTML = table;
+  addCsvButton(rows, cols);
+}
+
+function addCsvButton(rows, cols) {
+  const header = document.querySelector('.results-header');
+  if (!header) return;
+  let btn = document.getElementById('btn-csv-export');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'btn-csv-export';
+    btn.className = 'btn btn-sm';
+    btn.textContent = '📊 CSV';
+    btn.style.marginLeft = 'auto';
+    header.appendChild(btn);
+  }
+  btn.onclick = () => {
+    let csv = cols.map(c => '"' + c.replace(/"/g, '""') + '"').join(',') + '\n';
+    for (const row of rows) {
+      csv += cols.map(c => {
+        const v = row[c];
+        if (v === null || v === undefined) return '';
+        return '"' + String(v).replace(/"/g, '""') + '"';
+      }).join(',') + '\n';
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'query_results.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
 }
 
 /**

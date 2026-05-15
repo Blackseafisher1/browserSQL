@@ -112,6 +112,7 @@ function renderTutorialPanel() {
   }
   const prog = document.getElementById('tutorial-lesson-progress');
   if (prog) prog.textContent = `Lesson ${posInMod} of ${modIndices.length} · ${lesson.title}`;
+  renderProgressBar();
   panel.content.innerHTML = renderMarkdown(lesson.markdown);
   if (panel.files) {
     panel.files.innerHTML = '';
@@ -130,6 +131,18 @@ function renderTutorialPanel() {
     panel.next.disabled = !state.tutorialActive || (!completed && !getSettings().skipEnabled);
   }
   if (!state.tutorialActive) setStatus('Start the tutorial to begin.', '');
+}
+
+function renderProgressBar() {
+  const total = lessons.filter(l => l.type === 'practice' || l.type === 'theory').length;
+  const done = Object.keys(completion).length;
+  const pct = Math.round((done / total) * 100);
+  const bar = document.getElementById('tutorial-progress-bar');
+  if (!bar) return;
+  const fill = bar.querySelector('.tutorial-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+  const label = bar.querySelector('.tutorial-progress-label');
+  if (label) label.textContent = `${done}/${total}`;
 }
 
 function ensureQuizPanel() {

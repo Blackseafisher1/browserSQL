@@ -157,4 +157,29 @@ DROP TABLE IF EXISTS table_name;  -- no error if missing
     check: { type: 'success' },
     hint: 'DROP TABLE users;',
   },
+  {
+    id: '12-pk-vs-unique',
+    module: 2,
+    title: 'PRIMARY KEY vs UNIQUE',
+    type: 'theory',
+    file: '12-pk-vs-unique.md',
+    markdown: `# PRIMARY KEY vs UNIQUE
+
+Both ensure unique values, but:
+
+| Feature | PRIMARY KEY | UNIQUE |
+|---------|-------------|--------|
+| Allowed per table | Only 1 | Multiple |
+| Allows NULL | No | Yes |
+| Auto-indexed | Yes | Yes |
+
+**Goal:** know the difference.`,
+    question: {
+      prompt: 'How many PRIMARY KEYs can a table have?',
+      options: ['Unlimited', 'One', 'Two', 'Depends on columns'],
+      answer: 1,
+      explanation: 'A table can have only one PRIMARY KEY, but multiple UNIQUE constraints.',
+    },
+    seed: SEED_EMPTY,
+  },
 ];

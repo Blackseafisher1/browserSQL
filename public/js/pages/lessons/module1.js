@@ -111,4 +111,26 @@ SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
     },
     seed: SEED_USERS,
   },
+  {
+    id: '06-calc',
+    module: 1,
+    title: 'Basic Calculations',
+    type: 'practice',
+    file: '06-calc.sql',
+    seed: SEED_EMPTY,
+    markdown: `# Basic Calculations
+
+SQL can do math and string operations without a table:
+
+\`\`\`sql
+SELECT 2 + 2;
+SELECT 10 * 5;
+SELECT 'Hello' || ' ' || 'World';
+\`\`\`
+
+The \`||\` operator concatenates strings.
+
+**Goal:** Write a query that returns 100 divided by 4.`,
+    check: { type: 'result', expectedSql: 'SELECT 100 / 4;' },
+  },
 ];

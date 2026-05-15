@@ -206,11 +206,30 @@ Always include a \`WHERE\` clause — without it, every row gets updated!
     check: { type: 'changes', min: 1 },
   },
   {
-    id: '20-delete',
+    id: '20-update-multi',
+    module: 3,
+    title: 'UPDATE Multiple Columns',
+    type: 'practice',
+    file: '20-update-multi.sql',
+    markdown: `# Update multiple columns
+
+Set multiple columns in one \`UPDATE\` by comma-separating them:
+
+\`\`\`sql
+UPDATE users SET city = 'Berlin', age = 30 WHERE name = 'Mia';
+\`\`\`
+
+**Goal:** Update both the city and the age of a user in the \`users\` table.`,
+    seed: SEED_USERS,
+    check: { type: 'changes', min: 1 },
+    hint: 'UPDATE users SET city = \'X\', age = Y WHERE name = \'Z\';',
+  },
+  {
+    id: '21-delete',
     module: 3,
     title: 'Deleting Data',
     type: 'practice',
-    file: '17-delete.sql',
+    file: '21-delete.sql',
     sql: "DELETE FROM users WHERE name = 'Liam';\n",
     markdown: `# Deleting data
 
@@ -227,11 +246,11 @@ Always include a \`WHERE\` clause — without it, all rows are deleted!
     check: { type: 'changes', min: 1 },
   },
   {
-    id: '21-delete-danger',
+    id: '22-delete-danger',
     module: 3,
     title: 'Danger of DELETE',
     type: 'theory',
-    file: '18-delete-danger.md',
+    file: '22-delete-danger.md',
     markdown: `# Danger of DELETE
 
 Always include WHERE unless you truly want to delete everything.
@@ -246,11 +265,11 @@ Always include WHERE unless you truly want to delete everything.
     seed: SEED_USERS,
   },
   {
-    id: '22-insert-select',
+    id: '23-insert-select',
     module: 3,
     title: 'INSERT INTO SELECT',
     type: 'practice',
-    file: '22-insert-select.sql',
+    file: '23-insert-select.sql',
     markdown: `# INSERT INTO ... SELECT
 
 Copy rows from one table into another:
@@ -267,11 +286,11 @@ Both tables must exist. The column types must match.
     check: { type: 'result', expectedSql: 'SELECT name, city FROM admins ORDER BY name;' },
   },
   {
-    id: '23-crud-mastery',
+    id: '24-crud-mastery',
     module: 3,
     title: 'CRUD Mastery',
     type: 'practice',
-    file: '23-crud-mastery.sql',
+    file: '24-crud-mastery.sql',
     markdown: `# CRUD mastery
 
 Combine everything you learned: create, insert, update, delete, and query.
@@ -286,11 +305,11 @@ Combine everything you learned: create, insert, update, delete, and query.
     check: { type: 'result', expectedSql: "SELECT item, quantity FROM inventory ORDER BY item;" },
   },
   {
-    id: '24-insert-multi',
+    id: '25-insert-multi',
     module: 3,
     title: 'INSERT Multiple Rows',
     type: 'practice',
-    file: '24-insert-multi.sql',
+    file: '25-insert-multi.sql',
     markdown: `# INSERT multiple rows
 
 Insert several rows in one statement by comma-separating the value lists:
