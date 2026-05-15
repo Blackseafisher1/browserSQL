@@ -138,7 +138,96 @@ Relationships can be one-to-one, one-to-many, or many-to-many.
     seed: SEED_USERS,
   },
   {
-    id: '11-drop-table',
+    id: '11-relationship-1-1',
+    module: 2,
+    title: 'One-to-One Relationships',
+    type: 'practice',
+    file: '11-relationship-1-1.sql',
+    markdown: `# One-to-One Relationships
+
+In a 1:1 relationship, one row in table A matches exactly one row in table B. Often the shared primary key enforces this:
+
+\`\`\`sql
+CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE profiles (id INTEGER PRIMARY KEY, bio TEXT, FOREIGN KEY (id) REFERENCES users(id));
+\`\`\`
+
+**Goal:** Create a \`passports\` table with \`id\` (INTEGER PK referencing \`citizens(id)\`) and \`number\` (TEXT). Create \`citizens\` with \`id\` (INTEGER PK) and \`name\` (TEXT).`,
+    seed: SEED_EMPTY,
+    check: { type: 'fk', table: 'passports', column: 'id' },
+    hint: 'CREATE TABLE citizens (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE passports (id INTEGER PRIMARY KEY, number TEXT, FOREIGN KEY (id) REFERENCES citizens(id));',
+  },
+  {
+    id: '12-relationship-1-n',
+    module: 2,
+    title: 'One-to-Many Relationships',
+    type: 'practice',
+    file: '12-relationship-1-n.sql',
+    markdown: `# One-to-Many Relationships
+
+In a 1:N relationship, one row in table A can match many rows in table B. A foreign key in the many-side table links back:
+
+\`\`\`sql
+CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, cat_id INTEGER REFERENCES categories(id));
+\`\`\`
+
+**Goal:** Create \`authors\` (id, name) and \`books\` (id, title, author_id FK) tables.`,
+    seed: SEED_EMPTY_FK,
+    check: { type: 'fk', table: 'books', column: 'author_id' },
+    hint: 'CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
+  },
+  {
+    id: '13-relationship-n-m',
+    module: 2,
+    title: 'Many-to-Many Relationships',
+    type: 'practice',
+    file: '13-relationship-n-m.sql',
+    markdown: `# Many-to-Many Relationships
+
+N:M requires a junction table linking the two sides with foreign keys:
+
+\`\`\`sql
+CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE courses (id INTEGER PRIMARY KEY, title TEXT);
+CREATE TABLE enrollments (student_id INTEGER, course_id INTEGER, FOREIGN KEY (student_id) REFERENCES students(id), FOREIGN KEY (course_id) REFERENCES courses(id));
+\`\`\`
+
+**Goal:** Create \`actors\`, \`movies\`, and a junction table \`cast\` linking them. Each table needs an id and a name/title column.`,
+    seed: SEED_EMPTY_FK,
+    check: { type: 'fk', table: 'cast', column: 'actor_id' },
+    hint: 'CREATE TABLE actors (...); CREATE TABLE movies (...); CREATE TABLE cast (actor_id INTEGER REFERENCES actors(id), movie_id INTEGER REFERENCES movies(id));',
+  },
+  {
+    id: '14-composite-pk',
+    module: 2,
+    title: 'Composite Primary Keys',
+    type: 'practice',
+    file: '14-composite-pk.sql',
+    markdown: `# Composite Primary Keys
+
+A composite PK uses multiple columns as the unique identifier. Essential for junction tables in N:M relationships:
+
+\`\`\`sql
+CREATE TABLE enrollment (
+  student_id INTEGER,
+  course_id INTEGER,
+  grade TEXT,
+  PRIMARY KEY (student_id, course_id),
+  FOREIGN KEY (student_id) REFERENCES students(id),
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+\`\`\`
+
+This prevents duplicate enrollments — the same pair cannot appear twice.
+
+**Goal:** Create an \`orders\` and \`products\` table, and a junction table \`order_items\` with a composite primary key on (\`order_id\`, \`product_id\`). Include a \`quantity\` column.`,
+    seed: SEED_EMPTY_FK,
+    check: { type: 'constraints', table: 'order_items', tokens: ['primary key'] },
+    hint: 'CREATE TABLE orders (id INTEGER PRIMARY KEY, date TEXT); CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE order_items (order_id INTEGER, product_id INTEGER, quantity INTEGER, PRIMARY KEY (order_id, product_id), FOREIGN KEY (order_id) REFERENCES orders(id), FOREIGN KEY (product_id) REFERENCES products(id));',
+  },
+  {
+    id: '15-drop-table',
     module: 2,
     title: 'DROP TABLE',
     type: 'practice',
@@ -158,7 +247,7 @@ DROP TABLE IF EXISTS table_name;  -- no error if missing
     hint: 'DROP TABLE users;',
   },
   {
-    id: '12-pk-vs-unique',
+    id: '16-pk-vs-unique',
     module: 2,
     title: 'PRIMARY KEY vs UNIQUE',
     type: 'theory',
