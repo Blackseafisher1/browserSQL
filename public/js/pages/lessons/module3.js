@@ -6,7 +6,7 @@ export const module3 = [
     module: 3,
     title: 'Your First Database',
     type: 'practice',
-    file: '03-attach.sql',
+    file: '12-attach.sql',
     sql: 'SELECT name FROM sqlite_master WHERE type = \'table\';\n',
     markdown: `# Your first database
 
@@ -31,7 +31,7 @@ Try querying \`sqlite_master\` to discover what tables exist in this database.
     module: 3,
     title: 'Reading Data',
     type: 'practice',
-    file: '10-select.sql',
+    file: '13-select.sql',
     sql: 'SELECT * FROM users;\n',
     markdown: `# Reading data
 

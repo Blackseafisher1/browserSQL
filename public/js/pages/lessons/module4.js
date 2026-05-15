@@ -164,7 +164,7 @@ SELECT column FROM table_b;
 Both SELECTs must have the same number of columns with compatible types.
 
 **Goal:** Write a query that returns all unique city names from \`customers\` and all unique city names from \`users\` combined into one list, sorted alphabetically.`,
-    seed: SEED_SHOP,
+    seed: SEED_SHOP + '\n' + SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT city FROM customers UNION SELECT city FROM users ORDER BY city;" },
     hint: 'SELECT city FROM customers UNION SELECT city FROM users ORDER BY city;',
   },
