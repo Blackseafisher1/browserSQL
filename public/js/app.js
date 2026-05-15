@@ -279,25 +279,23 @@ function pinToolbarToKeyboard() {
 
   let wasOpen = false;
   let kbHeight = 0;
-  let initialHeight = document.documentElement.clientHeight;
 
-  // Track keyboard height on viewport resize
+  // Use screen.availHeight as stable reference (never changes with keyboard)
+  const screenH = screen.availHeight || document.documentElement.clientHeight;
+
   window.visualViewport?.addEventListener('resize', () => {
     const vp = window.visualViewport;
-    kbHeight = Math.max(0, initialHeight - vp.height);
-    if (wasOpen && kbHeight > 80) {
-      toolbar.style.bottom = kbHeight + 'px';
-    } else if (!wasOpen) {
-      initialHeight = document.documentElement.clientHeight;
-    }
+    kbHeight = Math.max(80, screenH - vp.height);
+    if (wasOpen) toolbar.style.bottom = kbHeight + 'px';
   });
 
-  // Poll every 200ms for focus changes
   setInterval(() => {
     const active = document.activeElement;
     const isCM = active?.closest('.cm-editor') || active?.closest('.cm-content');
 
     if (isCM && !wasOpen) {
+      const vp = window.visualViewport;
+      kbHeight = Math.max(80, screenH - vp.height);
       toolbar.style.position = 'fixed';
       toolbar.style.left = '0';
       toolbar.style.right = '0';
@@ -314,8 +312,6 @@ function pinToolbarToKeyboard() {
     } else if (!isCM && wasOpen) {
       toolbar.style.display = 'none';
       wasOpen = false;
-      kbHeight = 0;
-      initialHeight = document.documentElement.clientHeight;
     }
   }, 200);
 }
