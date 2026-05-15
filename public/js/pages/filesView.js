@@ -36,7 +36,7 @@ export function getActiveFileName() {
   if (saved) return saved;
   const files = getFiles();
   const visible = Object.keys(files).filter(f => !f.startsWith('_'));
-  return visible[0] || '_scratch.sql';
+  return visible[0] || '_default_browserSQL.sql';
 }
 function setActiveFileName(n) { localStorage.setItem(getStorageKeys().active, n); activeFile = n; state.activeFileIsJS = n.endsWith('.js'); state.activeFileIsMD = n.endsWith('.md'); setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql'); }
 
@@ -48,15 +48,15 @@ function setActiveFileName(n) { localStorage.setItem(getStorageKeys().active, n)
 export function replaceFiles(files, activeName) {
   saveFiles(files);
   const names = Object.keys(files);
-  const nextActive = activeName && activeName in files ? activeName : names[0] || '_scratch.sql';
+  const nextActive = activeName && activeName in files ? activeName : names[0] || '_default_browserSQL.sql';
   localStorage.setItem(getStorageKeys().active, nextActive);
   activeFile = null;
 }
 
 function ensureDefault() {
   const files = getFiles();
-  if (Object.keys(files).length === 0) { files['_scratch.sql'] = DEFAULT_CONTENT; saveFiles(files); setActiveFileName('_scratch.sql'); }
-  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_scratch.sql');
+  if (Object.keys(files).length === 0) { files['_default_browserSQL.sql'] = DEFAULT_CONTENT; saveFiles(files); setActiveFileName('_default_browserSQL.sql'); }
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_default_browserSQL.sql');
 }
 
 /**
@@ -65,10 +65,10 @@ function ensureDefault() {
 export function ensureDefaultFiles() {
   const files = getFiles();
   if (Object.keys(files).length === 0) {
-    files['_scratch.sql'] = DEFAULT_CONTENT;
+    files['_default_browserSQL.sql'] = DEFAULT_CONTENT;
     saveFiles(files);
   }
-  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_scratch.sql');
+  if (!(getActiveFileName() in getFiles())) setActiveFileName(Object.keys(getFiles())[0] || '_default_browserSQL.sql');
 }
 
 /**
@@ -155,10 +155,10 @@ function renderTabs() {
         } else if (pane === 0 && paneTabs[0].length === 0) {
           // Auto-create scratch file if left pane has no tabs
           const files = getFiles();
-          files['_scratch.sql'] = '';
+          files['_default_browserSQL.sql'] = '';
           saveFiles(files);
-          paneTabs[0] = ['_scratch.sql'];
-          switchFile('_scratch.sql', 0);
+          paneTabs[0] = ['_default_browserSQL.sql'];
+          switchFile('_default_browserSQL.sql', 0);
         }
         renderTabs();
       });
@@ -256,7 +256,7 @@ export function deleteFile(name) {
   const files = getFiles();
   if (!(name in files)) return false;
   delete files[name];
-  if (Object.keys(files).length === 0) files['_scratch.sql'] = '';
+  if (Object.keys(files).length === 0) files['_default_browserSQL.sql'] = '';
   saveFiles(files);
   for (let p = 0; p < 2; p++) paneTabs[p] = paneTabs[p].filter(f => f !== name);
   if (activeFile === name || !(getActiveFileName() in getFiles())) {
@@ -345,7 +345,7 @@ export function initFilesView() {
   tree.addEventListener('click', (e) => {
     const del = e.target.closest('[data-del]'); const delf = e.target.closest('[data-delfolder]'); const item = e.target.closest('[data-file]'); const folder = e.target.closest('[data-folder]');
     if (del) { e.stopPropagation(); const n = del.dataset.del; if (confirm(`Delete "${n}"?`)) deleteFile(n); return; }
-    if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['_scratch.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
+    if (delf) { e.stopPropagation(); const f = delf.dataset.delfolder; if (confirm(`Delete folder "${f}" and all files inside?`)) { const fls = getFiles(); for (const k of Object.keys(fls)) { if (k === f || k.startsWith(f + '/')) delete fls[k]; } if (Object.keys(fls).length === 0) fls['_default_browserSQL.sql'] = ''; saveFiles(fls); if (activeFile && !(activeFile in fls)) switchFile(Object.keys(fls)[0], 0); renderTree(); } return; }
     if (folder) { e.stopPropagation(); const f = folder.dataset.folder; const toggle = e.target.closest('.folder-toggle'); if (toggle) { if (expandedFolders.has(f)) expandedFolders.delete(f); else expandedFolders.add(f); renderTree(); } else { selectedFolder = selectedFolder === f ? null : f; renderTree(); } return; }
     if (item) { selectedFolder = null; e.stopPropagation(); switchFile(item.dataset.file, 0); return; }
     selectedFolder = null; renderTree();
