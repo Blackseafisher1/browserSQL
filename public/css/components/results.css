@@ -168,4 +168,8 @@
   .markdown-preview strong { font-weight: 700; }
   .markdown-preview em { font-style: italic; }
   .markdown-preview br { display: block; margin: 0.3em 0; }
+  .markdown-preview table { width: 100%; border-collapse: collapse; margin: 0.5em 0; font-size: 12px; }
+  .markdown-preview th,
+  .markdown-preview td { padding: 4px 8px; border: 1px solid var(--color-border-light); text-align: left; }
+  .markdown-preview th { background: var(--color-bg); font-weight: 600; }
 }
