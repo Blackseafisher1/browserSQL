@@ -55,7 +55,7 @@ function makeEditor(doc, parent) {
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-      bracketMatching(), closeBrackets(), autocompletion(),
+      bracketMatching(), closeBrackets(), autocompletion({ tooltipClass: () => 'notranslate' }),
       rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap]),
