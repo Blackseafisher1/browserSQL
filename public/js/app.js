@@ -233,16 +233,6 @@ function initSidebarSectionResize() {
     let startBottom = 0;
     let total = 0;
 
-    function moveResize(e) {
-      const dy = getY(e) - startY;
-      const minPx = 70;
-      let topPx = startTop + dy;
-      topPx = Math.max(minPx, Math.min(total - minPx, topPx));
-      const bottomPx = total - topPx;
-      topNode.style.flex = '0 0 ' + topPx + 'px';
-      bottomNode.style.flex = '0 0 ' + bottomPx + 'px';
-    }
-
     const endResize = () => {
       document.removeEventListener('mousemove', moveResize);
       document.removeEventListener('mouseup', endResize);
