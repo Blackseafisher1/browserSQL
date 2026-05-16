@@ -272,30 +272,43 @@ function setupKeyboardButtons() {
 function sqlesc(name) { return `"${name.replace(/"/g, '""')}"`; }
 
 export async function executeQuery() {
+  // Early returns
   if (!view) return;
   if (state.tutorialActive && state.tutorialLessonType === 'theory') {
     showError('This lesson is a quiz. Answer it in the editor panel.');
     return;
   }
-  
+  if (state.activeFileIsJS) {
+    showError('JS Shell is not available.');
+    return;
+  }
+  if (state.activeFileIsMD) {
+    document.getElementById('btn-preview')?.click();
+    return;
+  }
+  if (!state.db) {
+    showError('No database loaded.');
+    return;
+  }
+
   let code;
   const sel = view.state.selection.main;
 
   // Case 1: Text is selected → run selection
   if (!sel.empty) {
     code = view.state.sliceDoc(sel.from, sel.to);
-  }
+  } 
   // Case 2: No selection → find statement at cursor using ; delimiters
   else {
     const fullText = view.state.doc.toString();
     let cursor = sel.head;
 
-    // If cursor is right after a semicolon, step back so we catch the statement before it
-    if (cursor > 0 && fullText[cursor - 1] === ';') {
-      cursor = cursor - 1;
+    // Move backwards over whitespace and semicolons
+    while (cursor > 0 && (/\s/.test(fullText[cursor - 1]) || fullText[cursor - 1] === ';')) {
+      cursor--;
     }
 
-    // Find start of statement: last ; before cursor
+    // Find start of statement (last ; before cursor)
     let start = 0;
     for (let i = cursor - 1; i >= 0; i--) {
       if (fullText[i] === ';') {
@@ -304,7 +317,7 @@ export async function executeQuery() {
       }
     }
 
-    // Find end of statement: next ; from cursor onward
+    // Find end of statement (next ; from cursor onward)
     let end = fullText.length;
     for (let i = cursor; i < fullText.length; i++) {
       if (fullText[i] === ';') {
@@ -318,25 +331,29 @@ export async function executeQuery() {
   
   code = code.trim();
   if (!code) return;
-  
-  if (state.activeFileIsJS) { showError('JS Shell is not available.'); return; }
-  if (state.activeFileIsMD) { document.getElementById('btn-preview')?.click(); return; }
-  if (!state.db) { showError('No database loaded.'); return; }
-  
+
+  // Execute query
   const startTime = performance.now();
   try {
     const rows = state.db.exec(code, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer) || 0;
-    if (rows.length > 0) showResults(rows, elapsed);
-    else {
-      showNoResults(changes > 0 ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms` : `0 rows | ${elapsed}ms`);
+    
+    if (rows.length > 0) {
+      showResults(rows, elapsed);
+    } else {
+      const message = changes > 0 
+        ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`
+        : `0 rows | ${elapsed}ms`;
+      showNoResults(message);
     }
+    
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
     evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
-    showError(`${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    showError(`${err.message || String(err)} (${elapsed}ms)`);
     evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
   }
 }
