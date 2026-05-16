@@ -52,8 +52,8 @@ In SQLite, \`INTEGER PRIMARY KEY\` automatically gets a value using \`max(rowid)
 **Goal:** know when AUTOINCREMENT matters.`,
     question: {
       prompt: 'Without AUTOINCREMENT, what ID does a new row get after deleting the last row (ID 5)?',
-      options: ['6', '5', '1', 'Random'],
-      answer: 1,
+      options: ['5', '6', '1', 'Random'],
+      answer: 0,
       explanation: 'Without AUTOINCREMENT, SQLite reuses the highest row ID (max(rowid)+1 = 5). With AUTOINCREMENT, it would be 6.',
     },
     seed: SEED_EMPTY,
@@ -126,14 +126,14 @@ Now deleting an author also deletes all their books. Other options:
     questions: [
       {
         prompt: 'ON DELETE CASCADE deletes child rows when?',
-        options: ['When the child row is updated', 'When the parent row is deleted', 'When a new parent is inserted', 'When the foreign key is created'],
-        answer: 1,
+        options: [ 'When the parent row is deleted', 'When the child row is updated', 'When a new parent is inserted', 'When the foreign key is created'],
+        answer: 0,
         explanation: 'CASCADE automatically deletes child rows when the parent they reference is deleted.',
       },
       {
         prompt: 'Which scenario is a BAD use of ON DELETE CASCADE?',
-        options: ['Deleting order_items when an order is deleted', 'Deleting invoices when a customer is deleted', 'Deleting blog comments when a post is deleted', 'Deleting book records when an author is deleted'],
-        answer: 1,
+        options: ['Deleting order_items when an order is deleted','Deleting book records when an author is deleted' , 'Deleting blog comments when a post is deleted',  'Deleting invoices when a customer is deleted'],
+        answer: 3,
         explanation: 'Deleting invoices when a customer is removed is dangerous — invoices are business records that should be kept for accounting even if the customer is deleted.',
       },
     ],
@@ -374,8 +374,8 @@ Both ensure unique values, but:
 **Goal:** know the difference.`,
     question: {
       prompt: 'How many PRIMARY KEYs can a table have?',
-      options: ['Unlimited', 'One', 'Two', 'Depends on columns'],
-      answer: 1,
+      options: ['Unlimited', 'Two', 'One', 'Depends on columns'],
+      answer: 2,
       explanation: 'A table can have only one PRIMARY KEY, but multiple UNIQUE constraints.',
     },
     seed: SEED_EMPTY,

@@ -390,6 +390,22 @@ async function refreshRecentDBsList() {
         const date = new Date(db.savedAt);
         const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         item.innerHTML = `<span class="item-name">${esc(db.name)}</span><span class="item-date">${dateStr}</span>`;
+        item.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const oldName = item.dataset.name;
+          const newName = prompt('Rename database:', oldName);
+          if (!newName || newName === oldName) return;
+          (async () => {
+            try {
+              const data = await loadFromLocal(oldName);
+              if (!data) { alert('Database not found.'); return; }
+              await saveToLocal(newName, data);
+              await deleteFromLocal(oldName);
+              refreshRecentDBsList();
+            } catch (err) { alert('Rename failed: ' + (err.message || err)); }
+          })();
+        });
         recentDropdown.appendChild(item);
       }
     }
