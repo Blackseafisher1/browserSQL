@@ -137,31 +137,8 @@
     word-break: break-word !important;
   }
 
-  .cm-editor .cm-cursor {
-    border-left: 2px solid var(--color-text) !important;
-    z-index: 1;
-    animation: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    width: 2px !important;
-    background: var(--color-text) !important;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cm-editor .cm-cursor {
-      border-left: 2px solid var(--color-text) !important;
-      background: var(--color-text) !important;
-      width: 2px !important;
-    }
-  }
-
-
   .cm-editor .cm-content {
     -webkit-user-modify: read-write-plaintext-only;
-  }
-
-  .cm-editor .cm-content:focus {
-    caret-color: transparent;
   }
 
   .cm-editor {

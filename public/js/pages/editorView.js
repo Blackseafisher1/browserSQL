@@ -51,7 +51,7 @@ function makeEditor(doc, parent) {
     extensions: [
       lineNumbers(), highlightActiveLineGutter(), highlightSpecialChars(),
       history(), foldGutter(),
-      drawSelection({ cursorBlinkRate: -1 }),
+      drawSelection(),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
