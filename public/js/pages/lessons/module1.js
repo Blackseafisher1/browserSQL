@@ -110,6 +110,15 @@ SQLite has 5 native storage classes, but accepts many SQL standard type names fo
 | \`BLOB\` | Binary data (bytes) | Images, files, encrypted data |
 | \`NULL\` | Missing value | Unknown / empty |
 
+**SQLite is weakly typed.** Unlike PostgreSQL, MySQL, or Oracle, SQLite does **not** enforce column types. You can insert an integer into a TEXT column, or text into an INTEGER column, and SQLite accepts it:
+
+\`\`\`sql
+CREATE TABLE t (a TEXT, b INTEGER);
+INSERT INTO t VALUES (42, 'hello');  -- works! integer in TEXT, text in INTEGER
+\`\`\`
+
+This is by design — SQLite uses **type affinity** (preference, not enforcement). The declared type is a hint, not a rule. Most other databases would reject this with a type mismatch error.
+
 **VARCHAR(n) and other fake types:**
 SQLite lets you write \`VARCHAR(255)\`, \`CHAR(20)\`, \`INT(10)\` — but **ignores the size limit**. They all map to the underlying storage class (\`TEXT\` for VARCHAR, \`INTEGER\` for INT). No truncation or padding occurs.
 
@@ -126,12 +135,26 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
 **Can you enforce length in SQLite?** Yes — use a \`CHECK\` constraint: \`name TEXT CHECK(length(name) <= 32)\`. This is covered in the Constraints lesson (Module 2).
 
 **Goal:** match SQLite types to their use cases.`,
-    question: {
-      prompt: 'What happens if you declare VARCHAR(10) and insert a 20-character string in SQLite?',
-      options: ['The string is truncated to 10', 'An error is thrown', 'The full 20 characters are stored', 'The column is rejected'],
-      answer: 2,
-      explanation: 'SQLite ignores VARCHAR size limits. The full string is stored as TEXT with no truncation.',
-    },
+    questions: [
+      {
+        prompt: 'What happens if you declare VARCHAR(10) and insert a 20-character string in SQLite?',
+        options: ['The string is truncated to 10', 'An error is thrown', 'The full 20 characters are stored', 'The column is rejected'],
+        answer: 2,
+        explanation: 'SQLite ignores VARCHAR size limits. The full string is stored as TEXT with no truncation.',
+      },
+      {
+        prompt: 'Can you insert an integer (42) into a TEXT column in SQLite?',
+        options: ['No, it will be rejected', 'Yes, SQLite is weakly typed', 'It depends on the column definition', 'Only if the column is NULL'],
+        answer: 1,
+        explanation: 'SQLite is weakly typed — it does not enforce column types. An integer can go into a TEXT column.',
+      },
+      {
+        prompt: 'Which type would you use for a column storing image data?',
+        options: ['TEXT', 'INTEGER', 'REAL', 'BLOB'],
+        answer: 3,
+        explanation: 'BLOB is for binary data like images, PDFs, or any file content.',
+      },
+    ],
     seed: SEED_USERS,
   },
   {
