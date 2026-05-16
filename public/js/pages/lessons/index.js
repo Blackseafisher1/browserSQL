@@ -22,15 +22,21 @@ export const MODULE_NAMES = {
   10: 'Advanced Topics',
 };
 
+function sortModule(mod) {
+  return mod
+    .map((l, i) => ({ ...l, _order: l.order ?? i }))
+    .sort((a, b) => a._order - b._order);
+}
+
 export const lessons = [
-  ...module1,
-  ...module2,
-  ...module3,
-  ...module4,
-  ...module5,
-  ...module6,
-  ...module7,
-  ...module8,
-  ...module9,
-  ...module10,
+  ...sortModule(module1),
+  ...sortModule(module2),
+  ...sortModule(module3),
+  ...sortModule(module4),
+  ...sortModule(module5),
+  ...sortModule(module6),
+  ...sortModule(module7),
+  ...sortModule(module8),
+  ...sortModule(module9),
+  ...sortModule(module10),
 ];

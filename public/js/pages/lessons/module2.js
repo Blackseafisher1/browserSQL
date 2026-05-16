@@ -25,6 +25,7 @@ CREATE TABLE tablename (
   },
   {
     id: '07-autoincrement',
+    order: 2,
     module: 2,
     title: 'AUTOINCREMENT',
     type: 'theory',
@@ -59,6 +60,7 @@ In SQLite, \`INTEGER PRIMARY KEY\` automatically gets a value using \`max(rowid)
   },
   {
     id: '08-foreign',
+    order: 3,
     module: 2,
     title: 'Foreign Keys',
     type: 'practice',
@@ -83,6 +85,7 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
   },
   {
     id: '08-constraints',
+    order: 1,
     module: 2,
     title: 'Constraints',
     type: 'practice',
