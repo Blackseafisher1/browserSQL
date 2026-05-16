@@ -62,6 +62,7 @@ export function csvFromLastResult() {
   const a = document.createElement('a');
   a.href = url; a.download = 'query_results.csv'; a.click();
   URL.revokeObjectURL(url);
+  navigator.clipboard?.writeText(csv).catch(() => {});
 }
 
 /**
