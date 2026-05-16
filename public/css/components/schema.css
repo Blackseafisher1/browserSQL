@@ -631,4 +631,9 @@
     background: var(--color-accent);
     color: var(--color-accent-text);
   }
+
+  .context-menu-item.danger:hover {
+    background: var(--color-error);
+    color: #fff;
+  }
 }

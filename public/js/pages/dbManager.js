@@ -427,7 +427,7 @@ async function refreshRecentDBsList() {
           const menu = document.getElementById('context-menu');
           menu.innerHTML = `
             <button class="context-menu-item" data-action="rename-db" data-db="${esc(item.dataset.name)}">Rename</button>
-            <button class="context-menu-item" data-action="delete-db" data-db="${esc(item.dataset.name)}">Delete</button>
+            <button class="context-menu-item danger" data-action="delete-db" data-db="${esc(item.dataset.name)}">Delete</button>
           `;
           menu.dataset.contextDb = item.dataset.name;
           const rect = menu.getBoundingClientRect();
