@@ -166,15 +166,18 @@ function ensureQuizPanel() {
 function renderQuiz(lesson) {
   const panel = ensureQuizPanel();
   if (!panel) return;
-  const question = lesson.question;
+  const questions = lesson.questions || (lesson.question ? [lesson.question] : []);
+  if (questions.length === 0) return;
+  const qi = state.tutorialQuizIndex || 0;
+  const q = questions[qi];
   const prompt = panel.querySelector('.tutorial-quiz-question');
   const options = panel.querySelector('.tutorial-quiz-options');
   const feedback = panel.querySelector('.tutorial-quiz-feedback');
   if (!prompt || !options || !feedback) return;
-  prompt.textContent = question.prompt;
+  prompt.textContent = `(${qi + 1}/${questions.length}) ${q.prompt}`;
   options.innerHTML = '';
   feedback.textContent = '';
-  question.options.forEach((opt, idx) => {
+  q.options.forEach((opt, idx) => {
     const btn = document.createElement('button');
     btn.className = 'tutorial-quiz-option notranslate';
     btn.type = 'button';
@@ -187,26 +190,36 @@ function renderQuiz(lesson) {
 function handleQuizAnswer(index, lesson, btn) {
   const panel = ensureQuizPanel();
   if (!panel) return;
+  const questions = lesson.questions || (lesson.question ? [lesson.question] : []);
+  const qi = state.tutorialQuizIndex || 0;
+  const q = questions[qi];
   const feedback = panel.querySelector('.tutorial-quiz-feedback');
-  const isCorrect = index === lesson.question.answer;
+  const isCorrect = index === q.answer;
   const options = panel.querySelectorAll('.tutorial-quiz-option');
   options.forEach((el, idx) => {
-    el.classList.toggle('is-correct', idx === lesson.question.answer);
+    el.classList.toggle('is-correct', idx === q.answer);
     if (idx === index && !isCorrect) el.classList.add('is-wrong');
   });
   if (feedback) {
-    feedback.textContent = isCorrect ? lesson.question.explanation : 'Try again.';
+    feedback.textContent = isCorrect ? q.explanation : 'Try again.';
   }
   if (isCorrect) {
-    markComplete(state.tutorialStep);
-    setStatus('Quiz passed. You can move to the next lesson.', 'success');
-    renderTutorialPanel();
+    if (qi + 1 < questions.length) {
+      state.tutorialQuizIndex = qi + 1;
+      setTimeout(() => renderQuiz(lesson), 600);
+    } else {
+      state.tutorialQuizIndex = 0;
+      markComplete(state.tutorialStep);
+      setStatus('Quiz passed. You can move to the next lesson.', 'success');
+      renderTutorialPanel();
+    }
   } else {
     setStatus('Incorrect answer. Pick another option.', 'error');
   }
 }
 
 function toggleEditorForLesson(lesson) {
+  state.tutorialQuizIndex = 0;
   const editor = state.editorView?.dom;
   const quiz = ensureQuizPanel();
   const executeBtn = document.getElementById('btn-execute');

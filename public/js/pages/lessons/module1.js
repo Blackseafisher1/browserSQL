@@ -123,6 +123,8 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
 
 **BLOB** is for binary data: images, PDFs, encrypted values, serialized objects. Not human-readable in queries, but can store anything.
 
+**Can you enforce length in SQLite?** Yes — use a \`CHECK\` constraint: \`name TEXT CHECK(length(name) <= 32)\`. This is covered in the Constraints lesson (Module 2).
+
 **Goal:** match SQLite types to their use cases.`,
     question: {
       prompt: 'What happens if you declare VARCHAR(10) and insert a 20-character string in SQLite?',
@@ -133,11 +135,35 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
     seed: SEED_USERS,
   },
   {
-    id: '06-calc',
+    id: '06-design-table',
+    module: 1,
+    title: 'Design a Table',
+    type: 'practice',
+    file: '06-design-table.sql',
+    seed: SEED_EMPTY,
+    markdown: `# Design a table
+
+Create a table called \`employees\` with these columns:
+
+| Column | Type | Why |
+|--------|------|-----|
+| \`id\` | \`INTEGER PRIMARY KEY\` | Unique ID for each employee |
+| \`name\` | \`TEXT NOT NULL\` | Name can be any length |
+| \`email\` | \`TEXT NOT NULL UNIQUE\` | Email, no fixed max |
+| \`salary\` | \`REAL NOT NULL\` | Decimal number (money) |
+| \`photo\` | \`BLOB\` | Binary image data, optional |
+| \`department\` | \`TEXT NOT NULL DEFAULT 'Engineering'\` | Free text, defaults to Engineering |
+
+**Goal:** Write the \`CREATE TABLE\` statement. All 6 columns must use the correct types.`,
+    check: { type: 'schema', table: 'employees', columns: ['id', 'name', 'email', 'salary', 'photo', 'department'] },
+    hint: 'CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, salary REAL NOT NULL, photo BLOB, department TEXT NOT NULL DEFAULT \'Engineering\');',
+  },
+  {
+    id: '07-calc',
     module: 1,
     title: 'Basic Calculations',
     type: 'practice',
-    file: '06-calc.sql',
+    file: '07-calc.sql',
     seed: SEED_EMPTY,
     markdown: `# Basic Calculations
 

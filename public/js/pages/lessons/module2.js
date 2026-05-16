@@ -118,6 +118,8 @@ CHECK (age >= 18)
 CHECK (status IN ('active', 'inactive'))
 CHECK (email LIKE '%@%')
 CHECK (price > 0)
+CHECK (length(name) <= 32)  -- enforce max TEXT length
+CHECK (salary >= 0)        -- enforce non-negative
 \`\`\`
 
 **Important:** \`PRIMARY KEY\` already implies \`NOT NULL\` + \`UNIQUE\` automatically — do NOT add them to the PK column. Put them on other columns instead.
