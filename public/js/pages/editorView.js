@@ -1,4 +1,6 @@
 import { EditorView, drawSelection, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view';
+
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { Compartment, EditorState } from '@codemirror/state';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
@@ -51,7 +53,7 @@ function makeEditor(doc, parent) {
     extensions: [
       lineNumbers(), highlightActiveLineGutter(), highlightSpecialChars(),
       history(), foldGutter(),
-      drawSelection(),
+      drawSelection(prefersReducedMotion ? { cursorBlinkRate: 0 } : undefined),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),

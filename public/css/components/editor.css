@@ -141,6 +141,14 @@
     -webkit-user-modify: read-write-plaintext-only;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .cm-editor .cm-cursor,
+    .cm-editor .cm-cursorLayer {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+  }
+
   .cm-editor {
     -webkit-overflow-scrolling: touch;
     position: relative;
