@@ -241,10 +241,10 @@ async function seedTutorialWorkspace(startFile, module) {
   module = module || currentModule;
   const files = buildTutorialFiles(module);
   const target = startFile && files[startFile] ? startFile : 'README.md';
-  replaceFiles(files, target);
-  renderTree();
-  openSingleFile(target);
-  saveCurrentFile();
+  await replaceFiles(files, target);
+  await renderTree();
+  await openSingleFile(target);
+  await saveCurrentFile();
 }
 
 function escId(name) {
@@ -257,31 +257,31 @@ function rowsEqual(actual, expected) {
   return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
-function runCheck(check, rows, changes) {
+async function runCheck(check, rows, changes) {
   switch (check.type) {
     case 'success':
       return true;
     case 'result': {
       const expectedRows = check.expectedSql
-        ? state.db.exec(check.expectedSql, { rowMode: 'object' })
+        ? await state.dbProxy.exec(check.expectedSql, { rowMode: 'object' })
         : check.expectedRows || [];
       return rowsEqual(rows, expectedRows);
     }
     case 'schema': {
-      const info = state.db.exec(`PRAGMA table_info(${escId(check.table)})`, { rowMode: 'object' });
+      const info = await state.dbProxy.exec(`PRAGMA table_info(${escId(check.table)})`, { rowMode: 'object' });
       const names = info.map(c => c.name);
       return rowsEqual(names, check.columns);
     }
     case 'pk': {
-      const info = state.db.exec(`PRAGMA table_info(${escId(check.table)})`, { rowMode: 'object' });
+      const info = await state.dbProxy.exec(`PRAGMA table_info(${escId(check.table)})`, { rowMode: 'object' });
       return info.some(c => c.name === check.column && (c.pk === 1 || c.pk === true));
     }
     case 'fk': {
-      const fks = state.db.exec(`PRAGMA foreign_key_list(${escId(check.table)})`, { rowMode: 'object' });
+      const fks = await state.dbProxy.exec(`PRAGMA foreign_key_list(${escId(check.table)})`, { rowMode: 'object' });
       return fks.some(fk => fk.from === check.column);
     }
     case 'constraints': {
-      const rows = state.db.exec(
+      const rows = await state.dbProxy.exec(
         `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
         { bind: [check.table], rowMode: 'object' }
       );
@@ -299,7 +299,7 @@ function runCheck(check, rows, changes) {
  * Evaluate a query against the active tutorial lesson check.
  * @param {{sql: string, rows: Array<Record<string, unknown>>, changes: number, error: Error | null}} result
  */
-export function evaluateTutorialQuery(result) {
+export async function evaluateTutorialQuery(result) {
   if (!state.tutorialActive) return;
   const lesson = lessons[state.tutorialStep];
   if (!lesson || lesson.type === 'theory') return;
@@ -308,7 +308,7 @@ export function evaluateTutorialQuery(result) {
     return;
   }
   const check = lesson.check || { type: 'success' };
-  const passed = runCheck(check, result.rows, result.changes);
+  const passed = await runCheck(check, result.rows, result.changes);
   if (passed) {
     markComplete(state.tutorialStep);
     setStatus('Nice. This step is complete.', 'success');
@@ -388,9 +388,9 @@ async function exitTutorialMode() {
   if (state.dbName === TUTORIAL_DB_NAME) {
     document.getElementById('btn-new-db')?.click();
   }
-  ensureDefaultFiles();
-  renderTree();
-  switchFile(getActiveFileName(), 0, true);
+  await ensureDefaultFiles();
+  await renderTree();
+  await switchFile(getActiveFileName(), 0, true);
   setStatus('Tutorial finished. You are back in the normal workspace.', 'success');
   renderTutorialPanel();
   const quiz = ensureQuizPanel();
@@ -401,7 +401,7 @@ async function exitTutorialMode() {
   if (confirm('Tutorial complete! Export your lesson files as ZIP?')) {
     const { getFiles } = await import('./filesView.js');
     const { downloadAsZip } = await import('./zip.js');
-    downloadAsZip(getFiles(), 'browsersql-tutorial-lessons');
+    downloadAsZip(await getFiles(), 'browsersql-tutorial-lessons');
   }
 }
 
@@ -411,7 +411,7 @@ async function exitTutorialMode() {
  * @returns {Promise<boolean>}
  */
 export async function startTutorialMode(resetProgress = true) {
-  if (!state.tutorialMode && state.db && state.dbName !== 'untitled') {
+  if (!state.tutorialMode && state.dbProxy && state.dbName !== 'untitled') {
     await saveCurrentToLocal().catch(() => {});
   }
   state.tutorialMode = true;
@@ -427,14 +427,14 @@ export async function startTutorialMode(resetProgress = true) {
     renderTutorialPanel();
     return false;
   }
-  const files = getFiles();
+  const files = await getFiles();
   const hasFiles = Object.keys(files).length > 0;
   if (resetProgress || !hasFiles) {
     resetCompletion();
     await seedTutorialWorkspace(lesson.file, currentModule);
   } else {
-    renderTree();
-    if (lesson.type === 'practice') openSingleFile(lesson.file);
+    await renderTree();
+    if (lesson.type === 'practice') await openSingleFile(lesson.file);
   }
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
@@ -459,7 +459,7 @@ async function goToLesson(step) {
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
   } else {
-    openSingleFile(lesson.file);
+    await openSingleFile(lesson.file);
     setStatus('Run the lesson query to complete this step.', '');
   }
   renderTutorialPanel();

@@ -31,7 +31,7 @@ function debounceUpdate(update) {
   if (update.docChanged) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      try { saveCurrentFile(); } catch (_) {}
+      saveCurrentFile().catch(() => {});
     }, 500);
   }
 }
@@ -91,7 +91,7 @@ export function initEditor() {
   view = editors[0];
   state.editorView = view;
   window.addEventListener('beforeunload', () => {
-    try { saveCurrentFile(); } catch (_) {}
+    saveCurrentFile().catch(() => {});
   });
   window.addEventListener('settings-changed', () => {
     if (view && view._langComp) {
@@ -286,7 +286,7 @@ export async function executeQuery() {
     document.getElementById('btn-preview')?.click();
     return;
   }
-  if (!state.db) {
+  if (!state.dbProxy) {
     showError('No database loaded.');
     return;
   }
@@ -335,9 +335,9 @@ export async function executeQuery() {
   // Execute query
   const startTime = performance.now();
   try {
-    const rows = state.db.exec(code, { rowMode: 'object' });
+    const rows = await state.dbProxy.exec(code, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer) || 0;
+    const changes = state.dbProxy.changes();
     
     if (rows.length > 0) {
       showResults(rows, elapsed);
@@ -350,29 +350,29 @@ export async function executeQuery() {
     
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
-    evaluateTutorialQuery({ sql: code, rows, changes, error: null });
+    await evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     showError(`${err.message || String(err)} (${elapsed}ms)`);
-    evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
+    await evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
   }
 }
 
 export async function executeAll() {
   if (!view) return;
-  if (!state.db) { showError('No database loaded.'); return; }
+  if (!state.dbProxy) { showError('No database loaded.'); return; }
   const code = view.state.doc.toString().trim();
   if (!code) return;
   const wrapped = 'BEGIN TRANSACTION;\n' + code + '\nCOMMIT;';
   const startTime = performance.now();
   try {
-    state.db.exec(wrapped, { rowMode: 'object' });
+    await state.dbProxy.exec(wrapped);
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     showNoResults(`All statements executed successfully | ${elapsed}ms`);
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
   } catch (err) {
-    try { state.db.exec('ROLLBACK;'); } catch (_) {}
+    try { await state.dbProxy.exec('ROLLBACK;'); } catch (_) {}
     showError(`Transaction rolled back: ${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
   }
 }

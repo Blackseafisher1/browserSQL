@@ -14,11 +14,11 @@ let currentTableName = null;
  * Opens the DDL modal for a table and renders a formatted CREATE TABLE statement.
  * @param {string} tableName Table to inspect.
  */
-export function showDDLModal(tableName) {
-  if (!state.db) return;
+export async function showDDLModal(tableName) {
+  if (!state.dbProxy) return;
   currentTableName = tableName;
   try {
-    const ddl = buildFormattedDDL(tableName);
+    const ddl = await buildFormattedDDL(tableName);
     title.textContent = `Table: ${tableName}`;
     content.textContent = ddl;
     overlay.classList.remove('hidden');
@@ -34,12 +34,12 @@ export function showDDLModal(tableName) {
  * @param {string} tableName Table name.
  * @returns {string}
  */
-function buildFormattedDDL(tableName) {
-  const db = state.db;
-  const cols = db.exec(`PRAGMA table_info(${escId(tableName)})`, { rowMode: 'object' });
+async function buildFormattedDDL(tableName) {
+  const db = state.dbProxy;
+  const cols = await db.exec(`PRAGMA table_info(${escId(tableName)})`, { rowMode: 'object' });
   if (cols.length === 0) return `-- Table "${tableName}" not found`;
 
-  const fks = db.exec(`PRAGMA foreign_key_list(${escId(tableName)})`, { rowMode: 'object' });
+  const fks = await db.exec(`PRAGMA foreign_key_list(${escId(tableName)})`, { rowMode: 'object' });
   const lines = [];
   const pkCols = cols.filter(c => c.pk).map(c => c.name);
 
@@ -52,7 +52,7 @@ function buildFormattedDDL(tableName) {
     }
     if (col.pk && pkCols.length === 1) {
       line += ' PRIMARY KEY';
-      const autoInc = checkAutoIncrement(tableName, col.name);
+      const autoInc = await checkAutoIncrement(tableName, col.name);
       if (autoInc) line += ' AUTOINCREMENT';
     }
     lines.push(line);
@@ -80,9 +80,9 @@ function buildFormattedDDL(tableName) {
  * @param {string} colName Column name.
  * @returns {boolean}
  */
-function checkAutoIncrement(tableName, colName) {
+async function checkAutoIncrement(tableName, colName) {
   try {
-    const rows = state.db.exec(
+    const rows = await state.dbProxy.exec(
       `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
       { bind: [tableName], rowMode: 'object' }
     );
@@ -104,12 +104,12 @@ export function hideDDLModal() {
 /**
  * Drops the table currently shown in the modal.
  */
-function dropCurrentTable() {
-  if (!currentTableName || !state.db) return;
+async function dropCurrentTable() {
+  if (!currentTableName || !state.dbProxy) return;
   const confirmed = confirm(`Drop table "${currentTableName}"? This cannot be undone.`);
   if (!confirmed) return;
   try {
-    state.db.exec(`DROP TABLE IF EXISTS ${escId(currentTableName)}`);
+    await state.dbProxy.exec(`DROP TABLE IF EXISTS ${escId(currentTableName)}`);
     hideDDLModal();
     if (state.renderSchema) state.renderSchema();
     saveCurrentToLocal();
@@ -131,7 +131,7 @@ function showReadyInResults() {
 }
 
 closeBtn.addEventListener('click', hideDDLModal);
-dropBtn.addEventListener('click', dropCurrentTable);
+dropBtn.addEventListener('click', () => { dropCurrentTable().catch(e => alert(e.message)); });
 document.getElementById('btn-copy-ddl')?.addEventListener('click', () => {
   const text = content.textContent;
   if (text) navigator.clipboard?.writeText(text).catch(() => {});

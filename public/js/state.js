@@ -21,6 +21,7 @@
 export const state = {
   db: null,
   sqlite3: null,
+  dbProxy: null,
   dbName: 'untitled',
   editorView: null,
   tables: [],

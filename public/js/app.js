@@ -50,7 +50,7 @@ async function main() {
   initSchemaView();
   initDBManager();
   initSettings();
-  initFilesView();
+  await initFilesView();
 
   state.refreshEditorSchema = updateEditorSchema;
 

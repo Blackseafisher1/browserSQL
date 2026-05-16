@@ -20,41 +20,41 @@ export function initSchemaView() {
  * Rebuilds the schema sidebar from the current database.
  */
 async function renderSchema() {
-  if (!state.db) {
+  if (!state.dbProxy) {
     tree.innerHTML = '<div class="schema-empty">No tables</div>';
     return;
   }
   try {
-    const tables = state.db.exec(
+    const tables = await state.dbProxy.exec(
       `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`,
       { rowMode: 'object' }
     );
     const tableList = [];
     for (const t of tables) {
-      const cols = state.db.exec(
+      const cols = await state.dbProxy.exec(
         `PRAGMA table_info(${escId(t.name)})`,
         { rowMode: 'object' }
       );
-      const fks = state.db.exec(
+      const fks = await state.dbProxy.exec(
         `PRAGMA foreign_key_list(${escId(t.name)})`,
         { rowMode: 'object' }
       );
       const fkCols = new Set(fks.map(f => f.from));
-      const idxs = state.db.exec(
+      const idxs = await state.dbProxy.exec(
         `PRAGMA index_list(${escId(t.name)})`,
         { rowMode: 'object' }
       );
       const uniqueCols = new Set();
       for (const idx of idxs) {
         if (idx.origin === 'u') {
-          const info = state.db.exec(
+          const info = await state.dbProxy.exec(
             `PRAGMA index_info(${escId(idx.name)})`,
             { rowMode: 'object' }
           );
           for (const i of info) uniqueCols.add(i.name);
         }
       }
-      const ddlRows = state.db.exec(
+      const ddlRows = await state.dbProxy.exec(
         `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
         { bind: [t.name], rowMode: 'object' }
       );
@@ -76,7 +76,7 @@ async function renderSchema() {
       tableList.push({ name: t.name, columns });
     }
     state.tables = tableList;
-    const views = state.db.exec(
+    const views = await state.dbProxy.exec(
       `SELECT name FROM sqlite_master WHERE type='view' ORDER BY name`,
       { rowMode: 'object' }
     );
@@ -151,13 +151,13 @@ function renderTree(tables, views) {
  * Handles single-click selection and schema actions.
  * @param {MouseEvent} e Click event.
  */
-function handleTreeClick(e) {
+async function handleTreeClick(e) {
   const viewEl = e.target.closest('[data-view-name]');
   if (viewEl) {
     const viewName = viewEl.dataset.viewName;
     try {
       const sql = `SELECT * FROM ${escId(viewName)} LIMIT 100`;
-      const rows = state.db.exec(sql, { rowMode: 'object' });
+      const rows = await state.dbProxy.exec(sql, { rowMode: 'object' });
       import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
     } catch (err) {
       import('./resultsView.js').then(r => r.showError(err.message));
@@ -166,14 +166,14 @@ function handleTreeClick(e) {
   }
   const ddlBtn = e.target.closest('[data-ddl]');
   if (ddlBtn) {
-    showDDLModal(ddlBtn.dataset.ddl);
+    await showDDLModal(ddlBtn.dataset.ddl);
     return;
   }
   const dropBtn = e.target.closest('[data-drop]');
   if (dropBtn) {
     const name = dropBtn.dataset.drop;
     if (confirm(`Drop table "${name}"? This cannot be undone.`)) {
-      state.db.exec(`DROP TABLE IF EXISTS ${escId(name)}`);
+      await state.dbProxy.exec(`DROP TABLE IF EXISTS ${escId(name)}`);
       if (state.renderSchema) state.renderSchema();
       import('./dbManager.js').then(m => m.saveCurrentToLocal());
     }
@@ -188,13 +188,12 @@ function handleTreeClick(e) {
     toggleExpand(tableName);
     return;
   }
-  // Single click on table name → execute SELECT * LIMIT 100
   state.activeTable = tableName;
   updateActiveState(tableName);
-  if (!state.db) return;
+  if (!state.dbProxy) return;
   try {
     const sql = `SELECT * FROM ${escId(tableName)} LIMIT 100`;
-    const rows = state.db.exec(sql, { rowMode: 'object' });
+    const rows = await state.dbProxy.exec(sql, { rowMode: 'object' });
     import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
   } catch (err) {
     import('./resultsView.js').then(r => r.showError(err.message));

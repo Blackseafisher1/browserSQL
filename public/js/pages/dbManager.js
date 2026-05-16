@@ -1,7 +1,10 @@
 import { $ } from '../utils.js';
 import { state, resetState } from '../state.js';
+import { createDB } from './dbWorkerProxy.js';
 
 const LAST_DB_KEY = 'browsersql-lastdb';
+const OPFS_DB_METADATA_KEY = 'browsersql-opfs-dbs';
+const OPFS_MIGRATED_KEY = 'browsersql-opfs-migrated';
 
 const fileInput = $('#file-input');
 const btnNew = $('#btn-new-db');
@@ -30,12 +33,48 @@ function openLocalDB() {
   });
 }
 
+function saveDbMetadata(name, savedAt) {
+  const dbs = JSON.parse(localStorage.getItem(OPFS_DB_METADATA_KEY) || '{}');
+  dbs[name] = savedAt;
+  localStorage.setItem(OPFS_DB_METADATA_KEY, JSON.stringify(dbs));
+}
+
+function removeDbMetadata(name) {
+  const dbs = JSON.parse(localStorage.getItem(OPFS_DB_METADATA_KEY) || '{}');
+  delete dbs[name];
+  localStorage.setItem(OPFS_DB_METADATA_KEY, JSON.stringify(dbs));
+}
+
 /**
- * Persists a database snapshot to local IndexedDB storage.
- * @param {string} name Database name.
- * @param {Uint8Array} data Serialized database bytes.
+ * One-time migration: copies existing IndexedDB snapshots to OPFS.
  */
+async function migrateFromIndexedDB() {
+  if (localStorage.getItem(OPFS_MIGRATED_KEY)) return;
+  if (!state.dbProxy?.isPersisted) return;
+  try {
+    const idb = await openLocalDB();
+    const tx = idb.transaction('dbs', 'readonly');
+    const all = await new Promise((resolve) => {
+      const req = tx.objectStore('dbs').getAll();
+      req.onsuccess = () => resolve(req.result);
+    });
+    idb.close();
+    for (const entry of all) {
+      try {
+        await state.dbProxy.importDb(entry.name, entry.data);
+        saveDbMetadata(entry.name, entry.savedAt);
+      } catch (err) {
+        console.warn(`Failed to migrate ${entry.name}:`, err);
+      }
+    }
+    localStorage.setItem(OPFS_MIGRATED_KEY, '1');
+  } catch (err) {
+    console.warn('Migration from IndexedDB failed:', err);
+  }
+}
+
 async function saveToLocal(name, data) {
+  if (state.dbProxy?.isPersisted) return;
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readwrite');
   tx.objectStore('dbs').put({ name, data, savedAt: Date.now() });
@@ -62,9 +101,15 @@ async function loadFromLocal(name) {
 
 /**
  * Lists all locally saved databases, newest first.
- * @returns {Promise<Array<{name: string, data: Uint8Array, savedAt: number}>>}
+ * @returns {Promise<Array<{name: string, savedAt: number}>>}
  */
 async function listLocalDBs() {
+  if (state.dbProxy?.isPersisted) {
+    const dbs = JSON.parse(localStorage.getItem(OPFS_DB_METADATA_KEY) || '{}');
+    return Object.entries(dbs)
+      .map(([name, savedAt]) => ({ name, savedAt }))
+      .sort((a, b) => b.savedAt - a.savedAt);
+  }
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readonly');
   const req = tx.objectStore('dbs').getAll();
@@ -116,10 +161,19 @@ export function initDBManager() {
       if (!newName || newName === dbName) return;
       (async () => {
         try {
-          const data = await loadFromLocal(dbName);
-          if (!data) { alert('Database not found.'); return; }
-          await saveToLocal(newName, data);
-          await deleteFromLocal(dbName);
+          if (state.dbProxy?.isPersisted) {
+            const bytes = await state.dbProxy.exportFile(dbName);
+            if (!bytes) { alert('Database not found.'); return; }
+            await state.dbProxy.importDb(newName, bytes);
+            await state.dbProxy.deleteFile(dbName);
+            removeDbMetadata(dbName);
+            saveDbMetadata(newName, Date.now());
+          } else {
+            const data = await loadFromLocal(dbName);
+            if (!data) { alert('Database not found.'); return; }
+            await saveToLocal(newName, data);
+            await deleteFromLocal(dbName);
+          }
           await refreshRecentDBsList();
           recentDropdown.classList.add('hidden');
         } catch (err) { alert('Rename failed: ' + (err.message || err)); }
@@ -129,7 +183,12 @@ export function initDBManager() {
       if (!confirm(`Delete "${dbName}" from local storage? This cannot be undone.`)) return;
       (async () => {
         try {
-          await deleteFromLocal(dbName);
+          if (state.dbProxy?.isPersisted) {
+            await state.dbProxy.deleteFile(dbName);
+            removeDbMetadata(dbName);
+          } else {
+            await deleteFromLocal(dbName);
+          }
           await refreshRecentDBsList();
           recentDropdown.classList.add('hidden');
         } catch (err) { alert('Delete failed: ' + (err.message || err)); }
@@ -142,14 +201,20 @@ export function initDBManager() {
 }
 
 /**
- * Initializes the SQLite WASM runtime and creates an empty database.
+ * Initializes the SQLite WASM runtime, OPFS pool, and creates an empty database.
  * @returns {Promise<boolean>}
  */
 export async function initDatabase() {
   try {
     const sqlite3 = await sqlite3Init();
     state.sqlite3 = sqlite3;
-    state.db = new sqlite3.oo1.DB();
+    state.dbProxy = await createDB(sqlite3);
+    if (state.dbProxy.isPersisted) {
+      await migrateFromIndexedDB();
+      state.db = null;
+    } else {
+      state.db = state.dbProxy.db;
+    }
     dbNameInput.value = state.dbName;
     return true;
   } catch (e) {
@@ -209,18 +274,22 @@ async function sqlite3Init() {
   const mod = await import(SQLITE_BASE + 'index.mjs');
   return mod.default({
     locateFile: (file) => SQLITE_BASE + file,
+    disableOpfs: true,
   });
 }
 
 /**
  * Creates a fresh empty database and resets app state.
  */
-function newDatabase() {
+async function newDatabase() {
   if (!state.sqlite3) return;
   const name = prompt('Database name:', 'untitled');
   if (!name) return;
-  try { state.db?.close(); } catch (_) {}
-  state.db = new state.sqlite3.oo1.DB();
+  try { await state.dbProxy?.close(); } catch (_) {}
+  await state.dbProxy.create(name.trim());
+  if (state.dbProxy?.isPersisted) {
+    saveDbMetadata(name.trim(), Date.now());
+  }
   resetState();
   updateDBName(name.trim());
   if (state.renderSchema) state.renderSchema();
@@ -269,24 +338,26 @@ function deserializeDB(bytes) {
  * Exports the current database using the available SQLite API.
  * @returns {Uint8Array}
  */
-function exportDB() {
-  if (typeof state.db.export === 'function') {
-    return state.db.export();
-  }
-  return state.sqlite3.capi.sqlite3_js_db_export(state.db.pointer);
+async function exportDB() {
+  if (state.dbProxy) return state.dbProxy.export();
+  if (typeof state.db?.export === 'function') return state.db.export();
+  if (state.sqlite3?.capi) return state.sqlite3.capi.sqlite3_js_db_export(state.db?.pointer);
+  throw new Error('Cannot export: no database');
 }
 
 /**
  * Loads serialized database bytes into the current session.
+ * Uses OPFS when available, otherwise deserializes in-memory.
  * @param {Uint8Array} bytes Serialized SQLite database.
  * @param {string} name Database name.
  */
 async function loadDBState(bytes, name) {
   if (!state.sqlite3) return;
-  try {
-    state.db?.close();
-  } catch (_) {}
-  state.db = deserializeDB(bytes);
+  await state.dbProxy?.close();
+  await state.dbProxy.importDb(name, bytes);
+  if (state.dbProxy?.isPersisted) {
+    saveDbMetadata(name, Date.now());
+  }
   updateDBName(name);
   resetState();
   state.dbName = name;
@@ -319,12 +390,12 @@ async function handleFileOpen(e) {
  * Downloads the current database as a SQLite file.
  */
 async function exportDatabase() {
-  if (!state.db || !state.sqlite3) {
+  if (!state.dbProxy) {
     showErrorInResults('No database to export.');
     return;
   }
   try {
-    const byteArray = exportDB();
+    const byteArray = await exportDB();
     const blob = new Blob([byteArray], { type: 'application/x-sqlite3' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -341,11 +412,19 @@ async function exportDatabase() {
 
 /**
  * Persists the current database snapshot to local storage.
+ * When OPFS is active, only updates metadata (DB auto-persists).
  */
 export async function saveCurrentToLocal() {
-  if (!state.db || !state.sqlite3) return;
+  if (!state.dbProxy) return;
+  if (state.dbProxy.isPersisted) {
+    const name = state.dbName || 'database';
+    if (name !== 'untitled' && name !== TUTORIAL_DB_NAME) {
+      saveDbMetadata(name, Date.now());
+    }
+    return;
+  }
   try {
-    const byteArray = exportDB();
+    const byteArray = await state.dbProxy.export();
     await saveToLocal(state.dbName || 'database', byteArray);
   } catch (_) {}
 }
@@ -356,20 +435,27 @@ export async function saveCurrentToLocal() {
 export async function loadTestSchema() {
   if (!state.sqlite3) return;
   try {
-    const existing = await loadFromLocal('test_data');
-    if (existing) {
-      if (!confirm('You already have a test_data database. Overwrite it?')) return;
+    if (state.dbProxy?.isPersisted) {
+      const meta = JSON.parse(localStorage.getItem(OPFS_DB_METADATA_KEY) || '{}');
+      if (meta['test_data'] && !confirm('You already have a test_data database. Overwrite it?')) return;
+    } else {
+      const existing = await loadFromLocal('test_data');
+      if (existing && !confirm('You already have a test_data database. Overwrite it?')) return;
     }
     const res = await fetch('test_schema.sql');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const sql = await res.text();
-    state.db?.close();
-    state.db = new state.sqlite3.oo1.DB();
+    await state.dbProxy?.close();
+    await state.dbProxy.create('test_data');
     resetState();
     state.dbName = 'test_data';
     dbNameInput.value = 'test_data';
-    state.db.exec(sql, { rowMode: 'object' });
-    await saveCurrentToLocal();
+    await state.dbProxy.exec(sql, { rowMode: 'object' });
+    if (state.dbProxy?.isPersisted) {
+      saveDbMetadata('test_data', Date.now());
+    } else {
+      await saveCurrentToLocal();
+    }
     localStorage.setItem(LAST_DB_KEY, 'test_data');
     if (state.renderSchema) state.renderSchema();
     showReadyInResults();
@@ -384,14 +470,12 @@ export async function loadTestSchema() {
  */
 export async function loadTutorialDatabase(seedSql = TUTORIAL_SCHEMA) {
   if (!state.sqlite3) return false;
+  await state.dbProxy?.close();
   try {
-    state.db?.close();
-  } catch (_) {}
-  try {
-    state.db = new state.sqlite3.oo1.DB();
+    await state.dbProxy.create(TUTORIAL_DB_NAME);
     resetState();
     if (seedSql && seedSql.trim()) {
-      state.db.exec(seedSql, { rowMode: 'object' });
+      await state.dbProxy.exec(seedSql, { rowMode: 'object' });
     }
     state.dbName = TUTORIAL_DB_NAME;
     dbNameInput.value = TUTORIAL_DB_NAME;
@@ -456,14 +540,25 @@ async function handleRecentClick(e) {
   const name = item.dataset.name;
   recentDropdown.classList.add('hidden');
   try {
-    const data = await loadFromLocal(name);
-    if (!data) {
-      showErrorInResults(`Database "${name}" not found in local storage.`);
-      await deleteFromLocal(name);
-      refreshRecentDBsList();
-      return;
+    if (state.dbProxy?.isPersisted) {
+      await state.dbProxy.open(name);
+      updateDBName(name);
+      resetState();
+      state.dbName = name;
+      if (state.renderSchema) state.renderSchema();
+      showReadyInResults();
+      localStorage.setItem(LAST_DB_KEY, name);
+      saveDbMetadata(name, Date.now());
+    } else {
+      const data = await loadFromLocal(name);
+      if (!data) {
+        showErrorInResults(`Database "${name}" not found in local storage.`);
+        await deleteFromLocal(name);
+        refreshRecentDBsList();
+        return;
+      }
+      await loadDBState(data, name);
     }
-    await loadDBState(data, name);
   } catch (err) {
     showErrorInResults(`Failed to open from local: ${err.message || String(err)}`);
   }
@@ -481,7 +576,13 @@ async function deleteCurrentFromLocal() {
   const confirmed = confirm(`Delete "${name}" from local storage? This cannot be undone.`);
   if (!confirmed) return;
   try {
-    await deleteFromLocal(name);
+    if (state.dbProxy?.isPersisted) {
+      await state.dbProxy.close();
+      await state.dbProxy.deleteFile(name);
+      removeDbMetadata(name);
+    } else {
+      await deleteFromLocal(name);
+    }
     newDatabase();
     refreshRecentDBsList();
     showReadyInResults();
@@ -541,7 +642,17 @@ export async function openLastDB() {
   const name = localStorage.getItem(LAST_DB_KEY);
   if (!name) return;
   try {
-    const data = await loadFromLocal(name);
-    if (data) await loadDBState(data, name);
+    if (state.dbProxy?.isPersisted) {
+      await state.dbProxy.open(name);
+      updateDBName(name);
+      resetState();
+      state.dbName = name;
+      if (state.renderSchema) state.renderSchema();
+      showReadyInResults();
+      localStorage.setItem(LAST_DB_KEY, name);
+    } else {
+      const data = await loadFromLocal(name);
+      if (data) await loadDBState(data, name);
+    }
   } catch (_) {}
 }
