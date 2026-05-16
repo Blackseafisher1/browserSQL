@@ -141,8 +141,6 @@ function renderProgressBar() {
   if (!bar) return;
   const fill = bar.querySelector('.tutorial-progress-fill');
   if (fill) fill.style.width = pct + '%';
-  const label = bar.querySelector('.tutorial-progress-label');
-  if (label) label.textContent = `${done}/${total}`;
 }
 
 function ensureQuizPanel() {

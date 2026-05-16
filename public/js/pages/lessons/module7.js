@@ -14,8 +14,8 @@ Normalization reduces data redundancy and prevents anomalies (update, insert, de
 **Goal:** know the main benefit of normalization.`,
     question: {
       prompt: 'What is the main benefit of normalization?',
-      options: ['Faster queries', 'Less data redundancy', 'More storage used', 'More columns'],
-      answer: 1,
+      options: [ 'Less data redundancy', 'More storage used', 'More columns', 'Faster queries'],
+      answer: 0,
       explanation: 'Normalization eliminates redundant data, preventing inconsistencies.',
     },
     seed: SEED_NORMALIZE,
@@ -99,8 +99,8 @@ Denormalization intentionally adds redundancy for read performance. Used in repo
 **Goal:** know when to denormalize.`,
     question: {
       prompt: 'When is denormalization useful?',
-      options: ['Always', 'When read performance matters more than write efficiency', 'When data must be unique', 'Never'],
-      answer: 1,
+      options: ['Always',  'When data must be unique', 'Never', 'When read performance matters more than write efficiency'],
+      answer: 3,
       explanation: 'Denormalization speeds up reads by reducing joins, at the cost of redundant data.',
     },
     seed: SEED_NORMALIZE,
