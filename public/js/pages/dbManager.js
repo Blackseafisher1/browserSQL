@@ -402,7 +402,8 @@ async function refreshRecentDBsList() {
               if (!data) { alert('Database not found.'); return; }
               await saveToLocal(newName, data);
               await deleteFromLocal(oldName);
-              refreshRecentDBsList();
+              await refreshRecentDBsList();
+              recentDropdown.classList.add('hidden');
             } catch (err) { alert('Rename failed: ' + (err.message || err)); }
           })();
         });
