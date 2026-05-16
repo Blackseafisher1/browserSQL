@@ -258,8 +258,8 @@ Always include WHERE unless you truly want to delete everything.
 **Goal:** know what happens without WHERE.`,
     question: {
       prompt: 'What happens if you run DELETE FROM users without WHERE?',
-      options: ['Only the first row is deleted', 'All rows are deleted', 'Nothing happens', 'It deletes the table'],
-      answer: 1,
+      options: ['Only the first row is deleted', 'Nothing happens', 'All rows are deleted', 'It deletes the table'],
+      answer: 2,
       explanation: 'Without WHERE, every row is removed.',
     },
     seed: SEED_USERS,
