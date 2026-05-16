@@ -24,7 +24,41 @@ CREATE TABLE tablename (
     check: { type: 'pk', table: 'projects', column: 'id' },
   },
   {
-    id: '07-foreign',
+    id: '07-autoincrement',
+    module: 2,
+    title: 'AUTOINCREMENT',
+    type: 'theory',
+    file: '07-autoincrement.md',
+    markdown: `# AUTOINCREMENT
+
+In SQLite, \`INTEGER PRIMARY KEY\` automatically gets a value using \`max(rowid) + 1\` when you insert without specifying the PK.
+
+**Without AUTOINCREMENT** (\`INTEGER PRIMARY KEY\`):
+- IDs start at 1 and increment
+- **But:** if you delete the last row and insert again, SQLite may **reuse** the old ID (\`max(rowid) + 1\`)
+- Example: insert 1,2,3 → delete 3 → insert → new row gets ID 3 (reused!)
+
+**With AUTOINCREMENT** (\`INTEGER PRIMARY KEY AUTOINCREMENT\`):
+- IDs are guaranteed to never be reused
+- SQLite tracks the highest ever assigned ID separately
+- Insert 1,2,3 → delete 3 → insert → new row gets ID 4 (not reused)
+
+**⚠️ SQLite is unusual here.** In most other databases (MySQL, MariaDB, PostgreSQL):
+- A plain \`INTEGER PRIMARY KEY\` does NOT auto-increment
+- You must explicitly use \`AUTO_INCREMENT\` (MySQL) or \`SERIAL\`/identity columns (PostgreSQL)
+- SQLite's auto-behavior is the exception, not the rule
+
+**Goal:** know when AUTOINCREMENT matters.`,
+    question: {
+      prompt: 'Without AUTOINCREMENT, what ID does a new row get after deleting the last row (ID 5)?',
+      options: ['6', '5', '1', 'Random'],
+      answer: 1,
+      explanation: 'Without AUTOINCREMENT, SQLite reuses the highest row ID (max(rowid)+1 = 5). With AUTOINCREMENT, it would be 6.',
+    },
+    seed: SEED_EMPTY,
+  },
+  {
+    id: '08-foreign',
     module: 2,
     title: 'Foreign Keys',
     type: 'practice',
