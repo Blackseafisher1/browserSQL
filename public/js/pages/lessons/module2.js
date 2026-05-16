@@ -66,7 +66,7 @@ In SQLite, \`INTEGER PRIMARY KEY\` automatically gets a value using \`max(rowid)
     sql: 'PRAGMA foreign_keys = ON;\nCREATE TABLE authors (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\nCREATE TABLE books (\n  id INTEGER PRIMARY KEY,\n  title TEXT NOT NULL,\n  author_id INTEGER NOT NULL,\n  FOREIGN KEY (author_id) REFERENCES authors(id)\n);\n',
     markdown: `# Foreign keys
 
-A \`FOREIGN KEY\` links rows across tables. It references a \`PRIMARY KEY\` in another table.
+A \`FOREIGN KEY\` links rows across tables. It references a column in another table — that column must be a \`PRIMARY KEY\` or have a \`UNIQUE\` constraint. This means any \`UNIQUE\` column can be a FK target, not just PKs.
 
 First enable foreign keys with \`PRAGMA foreign_keys = ON;\`
 
@@ -79,6 +79,7 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
 **Goal:** Create an \`authors\` table (id, name) and a \`books\` table (id, title, author_id) where \`author_id\` references \`authors(id)\`.`,
     seed: SEED_EMPTY_FK,
     check: { type: 'fk', table: 'books', column: 'author_id' },
+    hint: 'PRAGMA foreign_keys = ON; CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
   },
   {
     id: '08-constraints',
