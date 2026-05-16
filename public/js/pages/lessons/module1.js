@@ -111,9 +111,15 @@ SQLite has 5 native storage classes, but accepts many SQL standard type names fo
 | \`NULL\` | Missing value | Unknown / empty |
 
 **VARCHAR(n) and other fake types:**
-SQLite lets you write \`VARCHAR(255)\`, \`CHAR(20)\`, \`NVARCHAR(100)\`, even \`INT(10)\` — but **ignores the size limit**. They all map to the underlying storage class (\`TEXT\` for VARCHAR, \`INTEGER\` for INT). No truncation or padding occurs.
+SQLite lets you write \`VARCHAR(255)\`, \`CHAR(20)\`, \`INT(10)\` — but **ignores the size limit**. They all map to the underlying storage class (\`TEXT\` for VARCHAR, \`INTEGER\` for INT). No truncation or padding occurs.
 
-Why use \`VARCHAR(255)\` then? Portability. If your SQL needs to work on both SQLite and PostgreSQL/MySQL, writing \`VARCHAR(255)\` keeps the schema compatible — other DBs enforce the limit.
+This is because SQLite uses **manifest typing** — values carry their own type, not the column. The declared type is just a hint (affinity), not a rule.
+
+On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the limit:
+- Inserting "hello world" (11 chars) works fine
+- Inserting a 40-character string is **rejected** or truncated
+- Indexes on \`VARCHAR(32)\` are faster and smaller than on unbounded \`TEXT\` because the DB knows the max width
+- Useful for: usernames, emails, phone numbers, ZIP codes — anything with a known max length
 
 **BLOB** is for binary data: images, PDFs, encrypted values, serialized objects. Not human-readable in queries, but can store anything.
 
