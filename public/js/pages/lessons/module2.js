@@ -84,12 +84,68 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     hint: 'PRAGMA foreign_keys = ON; CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
   },
   {
-    id: '08-constraints',
+    id: '09-cascade',
+    order: 4,
+    module: 2,
+    title: 'ON DELETE CASCADE',
+    type: 'theory',
+    file: '09-cascade.md',
+    markdown: `# ON DELETE CASCADE
+
+When a parent row is deleted, child rows referencing it become orphaned. \`ON DELETE CASCADE\` automatically deletes those children:
+
+\`\`\`sql
+CREATE TABLE books (
+  id INTEGER PRIMARY KEY,
+  author_id INTEGER,
+  FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE
+);
+\`\`\`
+
+Now deleting an author also deletes all their books. Other options:
+
+| Action | What happens on parent DELETE |
+|--------|------------------------------|
+| \`ON DELETE CASCADE\` | Child rows are deleted automatically |
+| \`ON DELETE SET NULL\` | Child FK is set to NULL |
+| \`ON DELETE RESTRICT\` | Deletion is blocked if children exist |
+| \`ON DELETE NO ACTION\` | No action (SQLite default) |
+
+**When to use CASCADE:**
+- Dependent data that has no meaning without the parent (order → order_items, invoice → invoice_lines)
+- Cleanup scenarios
+
+**When NOT to use CASCADE:**
+- Business-critical data (you rarely want to silently delete all customer orders when removing a test customer)
+- Audit/history data that should persist even if the parent is deleted
+- When accidental deletion would cause massive data loss
+
+\`ON UPDATE CASCADE\` works the same way but when the referenced value changes.
+
+**Goal:** know when CASCADE is appropriate.`,
+    questions: [
+      {
+        prompt: 'ON DELETE CASCADE deletes child rows when?',
+        options: ['When the child row is updated', 'When the parent row is deleted', 'When a new parent is inserted', 'When the foreign key is created'],
+        answer: 1,
+        explanation: 'CASCADE automatically deletes child rows when the parent they reference is deleted.',
+      },
+      {
+        prompt: 'Which scenario is a BAD use of ON DELETE CASCADE?',
+        options: ['Deleting order_items when an order is deleted', 'Deleting invoices when a customer is deleted', 'Deleting blog comments when a post is deleted', 'Deleting book records when an author is deleted'],
+        answer: 1,
+        explanation: 'Deleting invoices when a customer is removed is dangerous — invoices are business records that should be kept for accounting even if the customer is deleted.',
+      },
+    ],
+    seed: SEED_EMPTY_FK,
+  },
+  {
+    id: '10-constraints',
     order: 1,
     module: 2,
     title: 'Constraints',
     type: 'practice',
-    file: '08-constraints.sql',
+    file: '10-constraints.sql',
     sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
     markdown: `# Constraints
 
