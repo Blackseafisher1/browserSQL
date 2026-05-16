@@ -100,14 +100,29 @@ CREATE TABLE tablename (
     file: '05-types.md',
     markdown: `# Data types
 
-SQLite uses types like INTEGER, TEXT, REAL, and BLOB.
+SQLite has 5 native storage classes, but accepts many SQL standard type names for compatibility:
 
-**Goal:** know which type stores integers.`,
+| Type | Stores | Use for |
+|------|--------|---------|
+| \`INTEGER\` | Whole numbers (-2⁶³ to 2⁶³-1) | IDs, counts, ages |
+| \`REAL\` | Floating-point decimals | Prices, measurements, averages |
+| \`TEXT\` | Strings (any length) | Names, descriptions, emails |
+| \`BLOB\` | Binary data (bytes) | Images, files, encrypted data |
+| \`NULL\` | Missing value | Unknown / empty |
+
+**VARCHAR(n) and other fake types:**
+SQLite lets you write \`VARCHAR(255)\`, \`CHAR(20)\`, \`NVARCHAR(100)\`, even \`INT(10)\` — but **ignores the size limit**. They all map to the underlying storage class (\`TEXT\` for VARCHAR, \`INTEGER\` for INT). No truncation or padding occurs.
+
+Why use \`VARCHAR(255)\` then? Portability. If your SQL needs to work on both SQLite and PostgreSQL/MySQL, writing \`VARCHAR(255)\` keeps the schema compatible — other DBs enforce the limit.
+
+**BLOB** is for binary data: images, PDFs, encrypted values, serialized objects. Not human-readable in queries, but can store anything.
+
+**Goal:** match SQLite types to their use cases.`,
     question: {
-      prompt: 'Which SQLite type stores whole numbers?',
-      options: ['TEXT', 'INTEGER', 'REAL', 'BLOB'],
-      answer: 1,
-      explanation: 'INTEGER is used for whole numbers.',
+      prompt: 'What happens if you declare VARCHAR(10) and insert a 20-character string in SQLite?',
+      options: ['The string is truncated to 10', 'An error is thrown', 'The full 20 characters are stored', 'The column is rejected'],
+      answer: 2,
+      explanation: 'SQLite ignores VARCHAR size limits. The full string is stored as TEXT with no truncation.',
     },
     seed: SEED_USERS,
   },
