@@ -145,16 +145,16 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
 
 Create a table called \`employees\` with these columns:
 
-| Column | Type | Why |
-|--------|------|-----|
-| \`id\` | \`INTEGER PRIMARY KEY\` | Unique ID for each employee |
-| \`name\` | \`TEXT NOT NULL\` | Name can be any length |
-| \`email\` | \`TEXT NOT NULL UNIQUE\` | Email, no fixed max |
-| \`salary\` | \`REAL NOT NULL\` | Decimal number (money) |
-| \`photo\` | \`BLOB\` | Binary image data, optional |
-| \`department\` | \`TEXT NOT NULL DEFAULT 'Engineering'\` | Free text, defaults to Engineering |
+- \`id\` — a unique number for each employee
+- \`name\` — employee name (can be any length)
+- \`email\` — email address (should be unique)
+- \`salary\` — salary with decimals
+- \`photo\` — optional profile picture file
+- \`department\` — text, defaults to 'Engineering'
 
-**Goal:** Write the \`CREATE TABLE\` statement. All 6 columns must use the correct types.`,
+Choose the right SQLite type for each column. Decide which columns should be \`NOT NULL\`, \`UNIQUE\`, or have a \`DEFAULT\`.
+
+**Goal:** Write the \`CREATE TABLE employees\` statement with all 6 columns using correct types and constraints.`,
     check: { type: 'schema', table: 'employees', columns: ['id', 'name', 'email', 'salary', 'photo', 'department'] },
     hint: 'CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, salary REAL NOT NULL, photo BLOB, department TEXT NOT NULL DEFAULT \'Engineering\');',
   },

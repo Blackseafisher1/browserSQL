@@ -93,7 +93,15 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
     markdown: `# Constraints
 
-Constraints enforce rules on your data:
+Constraints enforce rules on your data. You have already used several:
+
+\`\`\`sql
+id INTEGER PRIMARY KEY  -- PRIMARY KEY is a constraint (unique + not null)
+name TEXT NOT NULL       -- NOT NULL is a constraint
+email TEXT UNIQUE        -- UNIQUE is a constraint
+\`\`\`
+
+Additional constraint types:
 
 \`\`\`sql
 CREATE TABLE table (
@@ -102,10 +110,9 @@ CREATE TABLE table (
 );
 \`\`\`
 
-Constraint types:
-
 | Constraint | What it does | Example |
 |---|---|---|
+| \`PRIMARY KEY\` | unique identifier, implies NOT NULL | \`id INTEGER PRIMARY KEY\` |
 | \`NOT NULL\` | column must have a value | \`name TEXT NOT NULL\` |
 | \`UNIQUE\` | all values must be different | \`email TEXT UNIQUE\` |
 | \`DEFAULT\` | fallback value if omitted | \`status TEXT DEFAULT 'active'\` |
