@@ -105,6 +105,37 @@ export function initDBManager() {
     }
   });
   recentDropdown.addEventListener('click', handleRecentClick);
+  document.getElementById('context-menu')?.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-action]');
+    if (!item) return;
+    const dbName = item.dataset.db || document.getElementById('context-menu')?.dataset.contextDb;
+    if (!dbName) return;
+    document.getElementById('context-menu')?.classList.add('hidden');
+    if (item.dataset.action === 'rename-db') {
+      const newName = prompt('Rename database:', dbName);
+      if (!newName || newName === dbName) return;
+      (async () => {
+        try {
+          const data = await loadFromLocal(dbName);
+          if (!data) { alert('Database not found.'); return; }
+          await saveToLocal(newName, data);
+          await deleteFromLocal(dbName);
+          await refreshRecentDBsList();
+          recentDropdown.classList.add('hidden');
+        } catch (err) { alert('Rename failed: ' + (err.message || err)); }
+      })();
+    }
+    if (item.dataset.action === 'delete-db') {
+      if (!confirm(`Delete "${dbName}" from local storage? This cannot be undone.`)) return;
+      (async () => {
+        try {
+          await deleteFromLocal(dbName);
+          await refreshRecentDBsList();
+          recentDropdown.classList.add('hidden');
+        } catch (err) { alert('Delete failed: ' + (err.message || err)); }
+      })();
+    }
+  });
   dbNameInput.addEventListener('change', () => {
     state.dbName = dbNameInput.value || 'untitled';
   });
@@ -393,19 +424,18 @@ async function refreshRecentDBsList() {
         item.addEventListener('contextmenu', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const oldName = item.dataset.name;
-          const newName = prompt('Rename database:', oldName);
-          if (!newName || newName === oldName) return;
-          (async () => {
-            try {
-              const data = await loadFromLocal(oldName);
-              if (!data) { alert('Database not found.'); return; }
-              await saveToLocal(newName, data);
-              await deleteFromLocal(oldName);
-              await refreshRecentDBsList();
-              recentDropdown.classList.add('hidden');
-            } catch (err) { alert('Rename failed: ' + (err.message || err)); }
-          })();
+          const menu = document.getElementById('context-menu');
+          menu.innerHTML = `
+            <button class="context-menu-item" data-action="rename-db" data-db="${esc(item.dataset.name)}">Rename</button>
+            <button class="context-menu-item" data-action="delete-db" data-db="${esc(item.dataset.name)}">Delete</button>
+          `;
+          menu.dataset.contextDb = item.dataset.name;
+          const rect = menu.getBoundingClientRect();
+          const maxX = window.innerWidth - rect.width;
+          const maxY = window.innerHeight - rect.height;
+          menu.style.left = Math.min(e.clientX, maxX) + 'px';
+          menu.style.top = Math.min(e.clientY, maxY) + 'px';
+          menu.classList.remove('hidden');
         });
         recentDropdown.appendChild(item);
       }
