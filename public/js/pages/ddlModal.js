@@ -133,7 +133,7 @@ function showReadyInResults() {
 closeBtn.addEventListener('click', hideDDLModal);
 dropBtn.addEventListener('click', dropCurrentTable);
 overlay.addEventListener('click', (e) => {
-  if (e.target === overlay) hideDDLModal();
+  if (e.target === overlay && !window.getSelection()?.toString()) hideDDLModal();
 });
 
 document.addEventListener('keydown', (e) => {
