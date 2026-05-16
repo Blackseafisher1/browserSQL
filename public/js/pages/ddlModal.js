@@ -132,6 +132,10 @@ function showReadyInResults() {
 
 closeBtn.addEventListener('click', hideDDLModal);
 dropBtn.addEventListener('click', dropCurrentTable);
+document.getElementById('btn-copy-ddl')?.addEventListener('click', () => {
+  const text = content.textContent;
+  if (text) navigator.clipboard?.writeText(text).catch(() => {});
+});
 overlay.addEventListener('click', (e) => {
   if (e.target === overlay && !window.getSelection()?.toString()) hideDDLModal();
 });
