@@ -145,17 +145,18 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
 
 Create a table called \`employees\` with these columns:
 
-- \`id\` — a unique number for each employee
-- \`name\` — employee name (can be any length)
-- \`email\` — email address (should be unique)
+- \`id\` — a unique number for each employee (PRIMARY KEY)
+- \`name\` — employee name
+- \`email\` — email address
 - \`salary\` — salary with decimals
 - \`photo\` — optional profile picture file
-- \`department\` — text, defaults to 'Engineering'
+- \`department\` — text
 
-Choose the right SQLite type for each column. Decide which columns should be \`NOT NULL\`, \`UNIQUE\`, or have a \`DEFAULT\`.
+Choose the right SQLite type for each column. Only \`PRIMARY KEY\` is required as a constraint.
 
-**Goal:** Write the \`CREATE TABLE employees\` statement with all 6 columns using correct types and constraints.`,
+**Goal:** Write the \`CREATE TABLE employees\` statement with all 6 columns using correct types.`,
     check: { type: 'schema', table: 'employees', columns: ['id', 'name', 'email', 'salary', 'photo', 'department'] },
+    hint: 'CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT, email TEXT, salary REAL, photo BLOB, department TEXT);',
     hint: 'CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, salary REAL NOT NULL, photo BLOB, department TEXT NOT NULL DEFAULT \'Engineering\');',
   },
   {
