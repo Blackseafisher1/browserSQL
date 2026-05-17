@@ -26,6 +26,10 @@ button.danger{background:#ef4444}
 .loading{color:#888}
 .hidden{display:none}
 .success{color:#22c55e;margin-top:.5rem;font-size:.9rem}
+.storage-bar{height:4px;background:#333;border-radius:2px;margin-top:4px;max-width:200px;display:inline-block;vertical-align:middle}
+.storage-fill{height:100%;background:#3b82f6;border-radius:2px;transition:width .3s}
+.storage-fill.warning{background:#f59e0b}
+.storage-fill.danger{background:#ef4444}
 </style>
 </head>
 <body>
@@ -42,6 +46,7 @@ button.danger{background:#ef4444}
 const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? 'http://localhost:8081'
   : 'https://ideaboard.site';
+const STORAGE_LIMIT = 100 * 1024 * 1024;
 
 async function api(path, opts) {
   const headers = { 'Content-Type': 'application/json' };
@@ -50,6 +55,21 @@ async function api(path, opts) {
   const r = await fetch(API_BASE + path, { ...opts, headers: { ...headers, ...opts?.headers } });
   if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'HTTP ' + r.status); }
   return r.json();
+}
+
+function fmtBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(1) + ' MB';
+}
+
+function storagePct(n) { return Math.min(100, (n / STORAGE_LIMIT) * 100); }
+
+function storageClass(n) {
+  const pct = storagePct(n);
+  if (pct > 90) return 'danger';
+  if (pct > 70) return 'warning';
+  return '';
 }
 
 async function login() {
@@ -72,11 +92,14 @@ async function loadUsers() {
     if (users.length === 0) { el.innerHTML = '<div style="color:#666">No users found</div>'; return; }
     let html = '';
     for (const u of users) {
+      const pct = storagePct(u.storage);
+      const cls = storageClass(u.storage);
       html += '<div class="user">';
       html += '<div class="user-header" onclick="toggleUser(this)">';
-      html += '<h2>' + u.name + ' <span style="font-weight:400;color:#888;font-size:.85rem">(' + u.files + ' files)</span></h2>';
+      html += '<h2>' + u.name + ' <span style="font-weight:400;color:#888;font-size:.85rem">' + u.files + ' files &middot; ' + fmtBytes(u.storage) + ' / 100 MB</span></h2>';
       html += '<span class="arrow">▸</span>';
       html += '</div>';
+      html += '<div style="padding:0 1rem .3rem"><div class="storage-bar"><div class="storage-fill ' + cls + '" style="width:' + pct + '%"></div></div></div>';
       html += '<div class="user-body collapsed" id="body-' + u.name.replace(/[^a-zA-Z0-9]/g,'') + '">';
       html += '<div class="loading" id="load-' + u.name.replace(/[^a-zA-Z0-9]/g,'') + '">Loading files...</div>';
       html += '</div></div>';
@@ -107,7 +130,7 @@ async function loadUserFiles(username) {
 }
 
 function toggleUser(header) {
-  const body = header.nextElementSibling;
+  const body = header.nextElementSibling.nextElementSibling;
   const arrow = header.querySelector('.arrow');
   body.classList.toggle('collapsed');
   arrow.classList.toggle('open');

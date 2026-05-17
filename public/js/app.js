@@ -41,27 +41,20 @@ async function main() {
   document.addEventListener('touchstart', () => {}, { passive: true });
   initTheme();
 
-  const dbOk = await initDatabase();
-  if (!dbOk) {
-    document.body.innerHTML = '<div style="padding:2rem;color:var(--color-error)">Failed to initialize SQLite WASM. Check console for details.</div>';
-    return;
+  const loadingBar = document.getElementById('sqlite-loading-bar');
+  const loadingEl = document.getElementById('sqlite-loading');
+  let loadPct = 0;
+  function advanceLoad() {
+    loadPct = Math.min(loadPct + 12, 90);
+    if (loadingBar) loadingBar.style.width = loadPct + '%';
   }
 
-  initEditor();
-  initSchemaView();
-  initDBManager();
+  // Init UI that doesn't need SQLite
   initSettings();
   await initFilesView();
   initCloudSync();
 
-  state.refreshEditorSchema = updateEditorSchema;
-
-  document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
-  document.getElementById('btn-test-schema').addEventListener('click', loadTestSchema);
-  document.querySelector('.app-logo')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
-  document.getElementById('ops-about-trigger')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
-  document.getElementById('about-modal-close')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.add('hidden'));
-  document.getElementById('about-overlay')?.addEventListener('click', (e) => { if (e.target === document.getElementById('about-overlay')) document.getElementById('about-overlay').classList.add('hidden'); });
+  advanceLoad();
 
   wireSchemaToolbar();
   initSidebarResize();
@@ -73,14 +66,45 @@ async function main() {
   initResultsZoom();
   initShortcutsHelp();
 
+  advanceLoad();
+
+  document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('btn-test-schema').addEventListener('click', () => {
+    if (!state.sqlite3) return;
+    loadTestSchema();
+  });
+  document.querySelector('.app-logo')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
+  document.getElementById('ops-about-trigger')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
+  document.getElementById('about-modal-close')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.add('hidden'));
+  document.getElementById('about-overlay')?.addEventListener('click', (e) => { if (e.target === document.getElementById('about-overlay')) document.getElementById('about-overlay').classList.add('hidden'); });
+
+  // Init SQLite in background — UI stays responsive
+  const dbOk = await initDatabase();
+  advanceLoad();
+
+  if (!dbOk) {
+    if (loadingBar) loadingBar.style.background = 'var(--color-error, #ef4444)';
+    setTimeout(() => { if (loadingEl) loadingEl.style.opacity = '0'; }, 2000);
+    document.getElementById('btn-new-db')?.addEventListener('click', () => alert('SQLite failed to initialize. Check console.'));
+    return;
+  }
+
+  initEditor();
+  advanceLoad();
+  initSchemaView();
+  initDBManager();
+  advanceLoad();
+  state.refreshEditorSchema = updateEditorSchema;
+
   const tutorialStarted = await initTutorialMode();
   if (!tutorialStarted) {
     showReady();
-    if (state.renderSchema) {
-      state.renderSchema();
-    }
+    if (state.renderSchema) state.renderSchema();
     openLastDB();
   }
+
+  if (loadingBar) loadingBar.style.width = '100%';
+  setTimeout(() => { if (loadingEl) loadingEl.style.opacity = '0'; }, 600);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 

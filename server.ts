@@ -4,6 +4,7 @@ import { Database } from 'bun:sqlite';
 
 const db = new Database('users.db');
 const FILES_DIR = './data/files';
+const STORAGE_LIMIT = 100 * 1024 * 1024; // 100 MB per user
 
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
@@ -79,9 +80,15 @@ const app = new Elysia()
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const dir = `${FILES_DIR}/${user}`;
     await Bun.$`mkdir -p ${dir}`.quiet();
+    const newBytes = new TextEncoder().encode(body.content).length;
+    const used = await getUserStorage(user);
+    if (used + newBytes > STORAGE_LIMIT) {
+      const mb = (n) => (n / 1024 / 1024).toFixed(1);
+      log('POST', path, user, `STORAGE LIMIT: ${mb(used)}MB + ${mb(newBytes)}MB > ${mb(STORAGE_LIMIT)}MB`);
+      return { error: `Storage limit reached (${mb(used)}MB / ${mb(STORAGE_LIMIT)}MB). Delete cloud files first.` };
+    }
     await Bun.write(`${dir}/${params.name}`, body.content);
-    const bytes = new TextEncoder().encode(body.content).length;
-    log('POST', path, user, `saved ${params.name} (${bytes} bytes)`);
+    log('POST', path, user, `saved ${params.name} (${newBytes} bytes)`);
     return { success: true };
   }, {
     body: t.Object({ content: t.String() })
@@ -124,10 +131,11 @@ const app = new Elysia()
     for (const r of rows) {
       const dir = `${FILES_DIR}/${r.username}`;
       let fileCount = 0;
-      if (await Bun.file(dir).exists()) {
+      try {
         for await (const _ of new Bun.Glob('*').scan(dir)) fileCount++;
-      }
-      users.push({ name: r.username, files: fileCount });
+      } catch (_) { /* dir doesn't exist yet */ }
+      const storage = await getUserStorage(r.username);
+      users.push({ name: r.username, files: fileCount, storage });
     }
     log('GET', path, admin, `returning ${users.length} users`);
     return users;
@@ -136,11 +144,12 @@ const app = new Elysia()
     const admin = await getAdmin(headers);
     if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const dir = `${FILES_DIR}/${params.user}`;
-    if (!await Bun.file(dir).exists()) return { files: [] };
     const files = [];
-    for await (const name of new Bun.Glob('*').scan(dir)) {
-      files.push({ name });
-    }
+    try {
+      for await (const name of new Bun.Glob('*').scan(dir)) {
+        files.push({ name });
+      }
+    } catch (_) {}
     return { files };
   })
   .delete('/api/admin/files/:user/:name', async ({ headers, params, path }) => {
@@ -153,6 +162,18 @@ const app = new Elysia()
   .listen(8081);
 
 console.log('API server running on http://localhost:8081');
+
+async function getUserStorage(user) {
+  const dir = `${FILES_DIR}/${user}`;
+  let total = 0;
+  try {
+    for await (const name of new Bun.Glob('*').scan(dir)) {
+      const stat = await Bun.file(`${dir}/${name}`).stat();
+      total += stat.size;
+    }
+  } catch (_) {}
+  return total;
+}
 
 async function getAdmin(headers) {
   const auth = headers['authorization'];

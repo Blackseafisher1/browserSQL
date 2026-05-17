@@ -53,6 +53,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
 </head>
 <body>
+  <div id="sqlite-loading" style="position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:var(--color-bg-surface, #1a1a2e);transition:opacity .3s">
+    <div id="sqlite-loading-bar" style="height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#8b5cf6);transition:width .3s"></div>
+  </div>
   <div id="app" class="app-layout">
     <header id="header" class="app-header">
       <div class="header-left">
