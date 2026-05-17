@@ -6,8 +6,6 @@ const promptInput = $('#ai-prompt-input');
 const generateBtn = $('#btn-ai-generate');
 const status = $('#ai-status');
 
-let savedCursor = null;
-
 function buildSchemaString() {
   if (!state.tables || state.tables.length === 0) return '';
   return state.tables.map(t => {
@@ -16,21 +14,18 @@ function buildSchemaString() {
   }).join('\n');
 }
 
-function insertAtCursor(text) {
+function insertAtEnd(text) {
   const ed = state.editorView;
   if (!ed) return;
-  const pos = savedCursor !== null ? savedCursor : ed.state.selection.main.head;
-  savedCursor = null;
+  const docLen = ed.state.doc.length;
   ed.dispatch({
-    changes: { from: pos, to: pos, insert: text },
-    selection: { anchor: pos + text.length },
+    changes: { from: docLen, to: docLen, insert: (docLen > 0 ? '\n' : '') + text },
+    selection: { anchor: docLen + (docLen > 0 ? 1 : 0) + text.length },
   });
   ed.focus();
 }
 
 export async function showAIGenerateModal() {
-  const ed = state.editorView;
-  savedCursor = ed ? ed.state.selection.main.head : null;
   overlay.classList.remove('hidden');
   promptInput.value = '';
   status.textContent = '';
@@ -40,7 +35,6 @@ export async function showAIGenerateModal() {
 
 function hideModal() {
   overlay.classList.add('hidden');
-  savedCursor = null;
 }
 
 async function handleGenerate() {
@@ -61,7 +55,7 @@ async function handleGenerate() {
     const data = await res.json();
     const sql = data.sql || data;
     if (typeof sql !== 'string' || !sql.trim()) throw new Error('No SQL returned');
-    insertAtCursor(sql);
+    insertAtEnd(sql);
     hideModal();
   } catch (err) {
     status.textContent = `Error: ${err.message || String(err)}`;
