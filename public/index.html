@@ -96,6 +96,7 @@
           <div id="ops-cloud" class="ops-bar" style="display:none;border-top:1px solid var(--color-border-light);padding-top:var(--space-1);margin-top:var(--space-1);flex-wrap:wrap">
             <button type="button" class="btn btn-sm" id="btn-cloud-sync">☁ Save</button>
             <button type="button" class="btn btn-sm" id="btn-cloud-load">☁ Load</button>
+            <button type="button" class="btn btn-sm" id="btn-cloud-manage" style="font-size:10px">Manage</button>
             <span id="cloud-status" style="font-size:10px;color:var(--color-text-muted);width:100%;text-align:center"></span>
           </div>
           <div class="ops-footer">
@@ -268,6 +269,23 @@
           <button id="btn-cloud-import-go" class="btn btn-primary" style="flex:1">Import</button>
           <button id="btn-cloud-import-cancel" class="btn" style="flex:1">Cancel</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cloud-manage-modal" class="modal-overlay hidden">
+    <div class="modal" style="min-width:340px;max-width:440px">
+      <div class="modal-header">
+        <span class="modal-title">Cloud Management</span>
+        <button id="cloud-manage-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height:55vh;overflow-y:auto">
+        <p style="margin:0 0 var(--space-2);font-size:var(--size-fluid-1);color:var(--color-text-muted)">Your cloud files:</p>
+        <div id="cloud-manage-list"></div>
+        <hr style="border:none;border-top:1px solid var(--color-border-light);margin:var(--space-2) 0">
+        <p style="margin:0 0 var(--space-1);font-size:var(--size-fluid-1);color:var(--color-text-muted)">Blocklist (DBs NOT to sync):</p>
+        <input id="cloud-blocklist" class="ai-prompt-input" type="text" placeholder="db1, db2, ..." style="margin-bottom:var(--space-2)">
+        <button id="btn-cloud-save-blocklist" class="btn btn-sm" style="width:100%">Save Blocklist</button>
       </div>
     </div>
   </div>

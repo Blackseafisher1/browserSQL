@@ -123,10 +123,16 @@ function initAuthModal() {
   });
 }
 
+function getBlocklist() {
+  try { return JSON.parse(localStorage.getItem('browsersql-cloud-blocklist') || '[]'); } catch { return []; }
+}
+
 export async function syncToCloud() {
   console.log('[cloud] syncToCloud (DBs only)');
   const user = parseUserFromToken();
   if (!user) throw new Error('Not logged in');
+  const blocklist = getBlocklist();
+  console.log('[cloud] blocklist:', blocklist);
 
   setStatus('Uploading DBs...');
   try {
@@ -144,9 +150,10 @@ export async function syncToCloud() {
     });
     idb.close();
 
-    let ok = 0, fail = 0;
+    let ok = 0, fail = 0, skipped = 0;
     for (const row of (allRows || [])) {
       if (!row || !row.data) { fail++; continue; }
+      if (blocklist.includes(row.name)) { skipped++; continue; }
       try {
         const hex = arrayToHex(row.data);
         await api('/api/files/' + encodeURIComponent(row.name + '.db.json'), {
@@ -155,7 +162,7 @@ export async function syncToCloud() {
         ok++;
       } catch (e) { console.error('[cloud] DB upload FAILED:', row.name, e); fail++; }
     }
-    setStatus(`Uploaded ${ok} DBs${fail ? ` (${fail} failed)` : ''}`);
+    setStatus(`Uploaded ${ok} DBs${skipped ? ` (${skipped} blocked)` : ''}${fail ? ` (${fail} failed)` : ''}`);
   } catch (e) { console.error('[cloud] DB section failed:', e); setStatus('DB upload error: ' + e.message); }
 }
 
@@ -298,6 +305,58 @@ async function doImport() {
   setStatus(`Imported: ${parts.join(', ')}`);
 }
 
+async function deleteCloudFile(name) {
+  if (!confirm(`Delete "${name}" from cloud?`)) return;
+  try {
+    await api('/api/files/' + encodeURIComponent(name), { method: 'DELETE' });
+    setStatus(`Deleted ${name}`);
+    showManageModal();
+  } catch (e) { setStatus('Delete failed: ' + e.message); }
+}
+
+async function showManageModal() {
+  const user = parseUserFromToken();
+  if (!user) return;
+
+  const list = document.getElementById('cloud-manage-list');
+  const blocklist = getBlocklist();
+  list.innerHTML = '<span style="color:var(--color-text-muted)">Loading...</span>';
+
+  const modal = document.getElementById('cloud-manage-modal');
+  modal.classList.remove('hidden');
+
+  try {
+    const fileList = await api('/api/files');
+    list.innerHTML = '';
+    if (fileList.length === 0) {
+      list.innerHTML = '<span style="color:var(--color-text-muted)">No files in cloud</span>';
+    } else {
+      for (const f of fileList) {
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:var(--space-1) 0';
+        item.innerHTML = `<span style="font-size:var(--size-fluid-1)">${f.name}</span>
+          <button class="btn btn-sm btn-danger" style="font-size:10px;padding:2px 6px">✕</button>`;
+        item.querySelector('button').addEventListener('click', () => deleteCloudFile(f.name));
+        list.appendChild(item);
+      }
+    }
+  } catch (e) { list.innerHTML = '<span style="color:var(--color-error)">Error loading files</span>'; }
+
+  document.getElementById('cloud-blocklist').value = blocklist.join(', ');
+}
+
+function hideManageModal() {
+  document.getElementById('cloud-manage-modal').classList.add('hidden');
+}
+
+function saveBlocklist() {
+  const raw = document.getElementById('cloud-blocklist').value;
+  const list = raw.split(',').map(s => s.trim()).filter(Boolean);
+  localStorage.setItem('browsersql-cloud-blocklist', JSON.stringify(list));
+  setStatus(`Blocklist saved (${list.length} DBs blocked)`);
+  hideManageModal();
+}
+
 export function initCloudSync() {
   initAuthModal();
   updateUI();
@@ -338,4 +397,11 @@ export function initCloudSync() {
     try { await syncFilesToCloud(); } catch (e) { setStatus('Error: ' + e.message); }
     btn.disabled = false;
   });
+
+  document.getElementById('btn-cloud-manage')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showManageModal();
+  });
+  document.getElementById('cloud-manage-close')?.addEventListener('click', hideManageModal);
+  document.getElementById('btn-cloud-save-blocklist')?.addEventListener('click', saveBlocklist);
 }
