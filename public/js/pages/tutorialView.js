@@ -241,10 +241,10 @@ async function seedTutorialWorkspace(startFile, module) {
   module = module || currentModule;
   const files = buildTutorialFiles(module);
   const target = startFile && files[startFile] ? startFile : 'README.md';
-  replaceFiles(files, target);
-  renderTree();
-  openSingleFile(target);
-  saveCurrentFile();
+  await replaceFiles(files, target);
+  await renderTree();
+  await openSingleFile(target);
+  await saveCurrentFile();
 }
 
 function escId(name) {
@@ -388,9 +388,9 @@ async function exitTutorialMode() {
   if (state.dbName === TUTORIAL_DB_NAME) {
     document.getElementById('btn-new-db')?.click();
   }
-  ensureDefaultFiles();
-  renderTree();
-  switchFile(getActiveFileName(), 0, true);
+  await ensureDefaultFiles();
+  await renderTree();
+  await switchFile(getActiveFileName(), 0, true);
   setStatus('Tutorial finished. You are back in the normal workspace.', 'success');
   renderTutorialPanel();
   const quiz = ensureQuizPanel();
@@ -401,7 +401,7 @@ async function exitTutorialMode() {
   if (confirm('Tutorial complete! Export your lesson files as ZIP?')) {
     const { getFiles } = await import('./filesView.js');
     const { downloadAsZip } = await import('./zip.js');
-    downloadAsZip(getFiles(), 'browsersql-tutorial-lessons');
+    downloadAsZip(await getFiles(), 'browsersql-tutorial-lessons');
   }
 }
 
@@ -427,14 +427,14 @@ export async function startTutorialMode(resetProgress = true) {
     renderTutorialPanel();
     return false;
   }
-  const files = getFiles();
+  const files = await getFiles();
   const hasFiles = Object.keys(files).length > 0;
   if (resetProgress || !hasFiles) {
     resetCompletion();
     await seedTutorialWorkspace(lesson.file, currentModule);
   } else {
-    renderTree();
-    if (lesson.type === 'practice') openSingleFile(lesson.file);
+    await renderTree();
+    if (lesson.type === 'practice') await openSingleFile(lesson.file);
   }
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
@@ -459,7 +459,7 @@ async function goToLesson(step) {
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
   } else {
-    openSingleFile(lesson.file);
+    await openSingleFile(lesson.file);
     setStatus('Run the lesson query to complete this step.', '');
   }
   renderTutorialPanel();

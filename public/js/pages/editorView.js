@@ -31,7 +31,7 @@ function debounceUpdate(update) {
   if (update.docChanged) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      try { saveCurrentFile(); } catch (_) {}
+      saveCurrentFile().catch(() => {});
     }, 500);
   }
 }
@@ -91,7 +91,7 @@ export function initEditor() {
   view = editors[0];
   state.editorView = view;
   window.addEventListener('beforeunload', () => {
-    try { saveCurrentFile(); } catch (_) {}
+    saveCurrentFile().catch(() => {});
   });
   window.addEventListener('settings-changed', () => {
     if (view && view._langComp) {
@@ -308,18 +308,28 @@ export async function executeQuery() {
       cursor--;
     }
 
-    // Find start of statement (last ; before cursor)
+    // Find start of statement (last ; before cursor, skipping ; in -- comments)
     let start = 0;
     for (let i = cursor - 1; i >= 0; i--) {
       if (fullText[i] === ';') {
-        start = i + 1;
-        break;
+        // Check if this ; is inside a -- comment
+        const lineStart = fullText.lastIndexOf('\n', i - 1);
+        const lineBefore = fullText.substring(lineStart + 1, i);
+        if (!lineBefore.includes('--')) {
+          start = i + 1;
+          break;
+        }
       }
     }
 
-    // Find end of statement (next ; from cursor onward)
+    // Find end of statement (next ; from cursor onward, skipping -- comment lines)
     let end = fullText.length;
     for (let i = cursor; i < fullText.length; i++) {
+      // Skip -- comment lines entirely
+      if (fullText[i] === '-' && fullText[i + 1] === '-') {
+        while (i < fullText.length && fullText[i] !== '\n') i++;
+        continue;
+      }
       if (fullText[i] === ';') {
         end = i;
         break;
