@@ -288,7 +288,8 @@
       display: none;
     }
 
-    .header-right .recent-wrap {
+    .header-right .recent-wrap,
+    #btn-gensql {
       display: inline-flex;
     }
 
