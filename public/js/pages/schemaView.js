@@ -114,6 +114,19 @@ async function showERD() {
     window.mermaid.initialize({ theme: 'dark', themeVariables: { background: 'transparent' } });
     await window.mermaid.run({ nodes: [mermaidEl] });
 
+    // Legend
+    const legend = document.createElement('div');
+    legend.innerHTML = `
+      <div style="font-size:10px;font-weight:600;margin-bottom:4px">Relationships</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 6px;font-size:9px;align-items:center">
+        <span style="font-family:monospace;white-space:nowrap">||--o{</span><span>one to zero or many</span>
+        <span style="font-family:monospace;white-space:nowrap">||--|{</span><span>one to one or many</span>
+        <span style="font-family:monospace;white-space:nowrap">}o--o{</span><span>zero or many to zero or many</span>
+        <span style="font-family:monospace;white-space:nowrap">||--||</span><span>one to one</span>
+      </div>`;
+    legend.style.cssText = 'position:absolute;top:8px;left:8px;z-index:10;background:var(--color-bg-surface);border:1px solid var(--color-border);border-radius:6px;padding:6px 10px;opacity:0.85;pointer-events:none';
+    body.appendChild(legend);
+
     // Pan/zoom after render
     const svg = body.querySelector('svg');
     if (svg) {
