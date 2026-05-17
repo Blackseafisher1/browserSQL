@@ -18,14 +18,14 @@ function buildERD() {
   for (const t of tables) {
     lines.push(`    ${t.name} {`);
     for (const c of t.columns) {
-      const type = (c.type || 'text').toLowerCase();
+      let type = (c.type || 'text').toLowerCase().split('(')[0].trim();
       lines.push(`        ${type} ${c.name}${c.pk ? ' PK' : ''}`);
     }
     lines.push(`    }`);
   }
   for (const fk of fks) {
     const label = `${fk.from} → ${fk.refTable}.${fk.refCol}`;
-    lines.push(`    ${fk.table} ||--o{ ${fk.refTable} : "${label}"`);
+    lines.push(`    ${fk.refTable} ||--o{ ${fk.table} : "${label}"`);
   }
   return lines.join('\n');
 }
