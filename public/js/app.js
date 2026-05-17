@@ -5,6 +5,7 @@ import { initSettings } from './pages/settings.js';
 import { initFilesView } from './pages/filesView.js';
 import { showReady } from './pages/resultsView.js';
 import { initTutorialMode } from './pages/tutorialView.js';
+import { initCloudSync } from './pages/cloudSync.js';
 import { state } from './state.js';
 
 const STORAGE_KEY = 'browsersql-theme';
@@ -51,6 +52,7 @@ async function main() {
   initDBManager();
   initSettings();
   await initFilesView();
+  initCloudSync();
 
   state.refreshEditorSchema = updateEditorSchema;
 

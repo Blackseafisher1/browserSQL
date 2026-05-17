@@ -1,4 +1,4 @@
-export function downloadAsZip(files, archiveName) {
+function buildZipParts(files) {
   const encoder = new TextEncoder();
   const localBlocks = [];
   const centralBlocks = [];
@@ -65,13 +65,62 @@ export function downloadAsZip(files, archiveName) {
   edv.setUint32(16, offset, true);
   edv.setUint16(20, 0, true);
 
-  const blob = new Blob([...localBlocks, ...centralBlocks, eocd], { type: 'application/zip' });
+  return { parts: [...localBlocks, ...centralBlocks, eocd], centralBlocks };
+}
+
+export function createZipBytes(files) {
+  const { parts } = buildZipParts(files);
+  const total = parts.reduce((s, b) => s + b.length, 0);
+  const buf = new Uint8Array(total);
+  let pos = 0;
+  for (const p of parts) { buf.set(p, pos); pos += p.length; }
+  return buf;
+}
+
+export function downloadAsZip(files, archiveName) {
+  const zipData = createZipBytes(files);
+  const blob = new Blob([zipData], { type: 'application/zip' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = archiveName.replace(/\.zip$/, '') + '.zip';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function readZipFromBytes(buf) {
+  const ab = buf instanceof ArrayBuffer ? buf : buf.buffer;
+  const byteOff = buf instanceof ArrayBuffer ? 0 : buf.byteOffset;
+  const dv = new DataView(ab);
+  const len = buf.byteLength || buf.length;
+  let eocdPos = -1;
+  for (let i = len - 22; i >= 0; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocdPos = i; break; }
+  }
+  if (eocdPos < 0) throw new Error('Not a valid ZIP');
+
+  const cdOffset = dv.getUint32(eocdPos + 16, true);
+  const cdCount = dv.getUint16(eocdPos + 8, true);
+  const files = {};
+  let cdPos = cdOffset;
+  for (let i = 0; i < cdCount; i++) {
+    if (dv.getUint32(cdPos, true) !== 0x02014b50) break;
+    const nameLen = dv.getUint16(cdPos + 28, true);
+    const extraLen = dv.getUint16(cdPos + 30, true);
+    const commentLen = dv.getUint16(cdPos + 32, true);
+    const localOffset = dv.getUint32(cdPos + 42, true);
+    const compSize = dv.getUint32(cdPos + 20, true);
+    const method = dv.getUint16(cdPos + 10, true);
+    const nameBytes = new Uint8Array(ab, byteOff + cdPos + 46, nameLen);
+    const name = new TextDecoder().decode(nameBytes);
+    if (name.endsWith('/')) { cdPos += 46 + nameLen + extraLen + commentLen; continue; }
+    const localExtraLen = dv.getUint16(localOffset + 28, true);
+    const localHdr = localOffset + 30 + nameLen + localExtraLen;
+    const raw = new Uint8Array(ab, byteOff + localHdr, compSize);
+    if (method === 0) files[name] = new TextDecoder().decode(raw);
+    cdPos += 46 + nameLen + extraLen + commentLen;
+  }
+  return files;
 }
 
 export function readZip(file) {

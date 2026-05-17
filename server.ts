@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { cors } from '@elysiajs/cors';
 import { Database } from 'bun:sqlite';
 
 const db = new Database('users.db');
@@ -13,6 +14,10 @@ db.run(`
 `);
 
 await Bun.$`mkdir -p ${FILES_DIR}`;
+
+function log(method, path, user, msg) {
+  console.log(`[${new Date().toISOString()}] ${method} ${path} user=${user || 'none'} ${msg}`);
+}
 
 async function hashPassword(password) {
   return await Bun.password.hash(password);
@@ -29,7 +34,9 @@ async function getUser(headers) {
 }
 
 const app = new Elysia()
-  .post('/api/register', async ({ body }) => {
+  .use(cors())
+  .post('/api/register', async ({ body, path, request }) => {
+    log('POST', path, null, `register ${body.username}`);
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(body.username);
     if (exists) return { error: 'User exists' };
     const hash = await hashPassword(body.password);
@@ -38,59 +45,67 @@ const app = new Elysia()
   }, {
     body: t.Object({ username: t.String(), password: t.String() })
   })
-  .post('/api/login', async ({ body }) => {
+  .post('/api/login', async ({ body, path }) => {
+    log('POST', path, null, `login ${body.username}`);
     const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(body.username);
     if (!row) return { error: 'Invalid credentials' };
     const valid = await Bun.password.verify(body.password, row.password_hash);
     if (!valid) return { error: 'Invalid credentials' };
     return { token: btoa(`${body.username}:${body.password}`) };
   })
-  .get('/api/files', async ({ headers }) => {
+  .get('/api/files', async ({ headers, path }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
+    if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const dir = `${FILES_DIR}/${user}`;
     await Bun.$`mkdir -p ${dir}`.quiet();
     const files = [];
     for await (const name of new Bun.Glob('*').scan(dir)) {
       files.push({ name });
     }
+    log('GET', path, user, `returning ${files.length} files: ${files.map(f => f.name).join(', ')}`);
     return files;
   })
-  .get('/api/files/:name', async ({ headers, params }) => {
+  .get('/api/files/:name', async ({ headers, params, path }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
-    const path = `${FILES_DIR}/${user}/${params.name}`;
-    if (!await Bun.file(path).exists()) return { error: 'Not found' };
-    return { content: await Bun.file(path).text() };
+    if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const filePath = `${FILES_DIR}/${user}/${params.name}`;
+    if (!await Bun.file(filePath).exists()) { log('GET', path, user, `NOT FOUND ${params.name}`); return { error: 'Not found' }; }
+    const content = await Bun.file(filePath).text();
+    log('GET', path, user, `returning ${params.name} (${content.length} chars)`);
+    return { content };
   })
-  .post('/api/files/:name', async ({ headers, params, body }) => {
+  .post('/api/files/:name', async ({ headers, params, path, body }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
+    if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const dir = `${FILES_DIR}/${user}`;
     await Bun.$`mkdir -p ${dir}`.quiet();
     await Bun.write(`${dir}/${params.name}`, body.content);
+    const bytes = new TextEncoder().encode(body.content).length;
+    log('POST', path, user, `saved ${params.name} (${bytes} bytes)`);
     return { success: true };
   }, {
     body: t.Object({ content: t.String() })
   })
-  .delete('/api/files/:name', async ({ headers, params }) => {
+  .delete('/api/files/:name', async ({ headers, params, path }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
+    if (!user) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     await Bun.$`rm -f ${FILES_DIR}/${user}/${params.name}`.quiet();
+    log('DELETE', path, user, `deleted ${params.name}`);
     return { success: true };
   })
-  .get('/api/progress', async ({ headers }) => {
+  .get('/api/progress', async ({ headers, path }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
-    const path = `${FILES_DIR}/${user}/.progress`;
-    if (!await Bun.file(path).exists()) return { completed: [] };
-    return JSON.parse(await Bun.file(path).text());
+    if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const filePath = `${FILES_DIR}/${user}/.progress`;
+    if (!await Bun.file(filePath).exists()) return { completed: [] };
+    return JSON.parse(await Bun.file(filePath).text());
   })
-  .post('/api/progress', async ({ headers, body }) => {
+  .post('/api/progress', async ({ headers, body, path }) => {
     const user = await getUser(headers);
-    if (!user) return { error: 'Unauthorized' };
-    const path = `${FILES_DIR}/${user}/.progress`;
-    await Bun.write(path, JSON.stringify(body));
+    if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const filePath = `${FILES_DIR}/${user}/.progress`;
+    await Bun.write(filePath, JSON.stringify(body));
+    log('POST', path, user, 'saved progress');
     return { success: true };
   })
   .listen(8081);

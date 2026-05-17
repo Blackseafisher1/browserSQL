@@ -18,7 +18,7 @@ const LOCAL_DB_NAME = 'browsersql-dbs';
  * Opens the IndexedDB database used to store local database snapshots.
  * @returns {Promise<IDBDatabase>}
  */
-function openLocalDB() {
+export function openLocalDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(LOCAL_DB_NAME, 1);
     req.onupgradeneeded = () => {
@@ -64,7 +64,7 @@ async function loadFromLocal(name) {
  * Lists all locally saved databases, newest first.
  * @returns {Promise<Array<{name: string, data: Uint8Array, savedAt: number}>>}
  */
-async function listLocalDBs() {
+export async function listLocalDBs() {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readonly');
   const req = tx.objectStore('dbs').getAll();
@@ -215,7 +215,7 @@ async function sqlite3Init() {
 /**
  * Creates a fresh empty database and resets app state.
  */
-function newDatabase() {
+async function newDatabase() {
   if (!state.sqlite3) return;
   const name = prompt('Database name:', 'untitled');
   if (!name) return;
@@ -226,6 +226,8 @@ function newDatabase() {
   if (state.renderSchema) state.renderSchema();
   showReadyInResults();
   localStorage.removeItem(LAST_DB_KEY);
+  await saveCurrentToLocal();
+  await refreshRecentDBsList();
 }
 
 /**
@@ -407,7 +409,7 @@ export async function loadTutorialDatabase(seedSql = TUTORIAL_SCHEMA) {
 /**
  * Refreshes the recent database dropdown contents.
  */
-async function refreshRecentDBsList() {
+export async function refreshRecentDBsList() {
   try {
     const dbs = await listLocalDBs();
     recentDropdown.innerHTML = '';
