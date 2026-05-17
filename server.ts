@@ -110,4 +110,4 @@ const app = new Elysia()
   })
   .listen(8081);
 
-console.log('API server running on http://localhost:8081');
+console.log('API server running on http://localhost:8081 (Caddy handles HTTPS)');

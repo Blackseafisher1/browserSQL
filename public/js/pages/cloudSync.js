@@ -2,7 +2,7 @@ import { $ } from '../utils.js';
 
 const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? 'http://localhost:8081'
-  : 'http://46.101.216.188:8081';
+  : 'https://ideaboard.site';
 const TOKEN_KEY = 'browsersql-cloud-token';
 
 function getToken() { return localStorage.getItem(TOKEN_KEY); }

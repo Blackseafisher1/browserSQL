@@ -46,7 +46,7 @@ async function handleGenerate() {
 
   try {
     const schema = buildSchemaString();
-    const res = await fetch('http://46.101.216.188:8080', {
+    const res = await fetch('https://ideaboard.site', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ description, schema }),
