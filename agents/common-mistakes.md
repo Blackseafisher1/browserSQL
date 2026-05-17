@@ -53,6 +53,14 @@
 - **Fix**: allocate via `sqlite3_malloc` + write bytes via `heap8().set()`, then pass pointer
 - Flag `0x0003` = `SQLITE_DESERIALIZE_FREEONCLOSE | SQLITE_DESERIALIZE_RESIZEABLE`
 
+## Editor Init Order
+
+### `initEditor()` After `initFilesView()` → Ghost Editor
+- `initFilesView()` calls `showEditors(1)` → `ensureEditor(0)` → creates `editors[0]` with content
+- `initEditor()` then runs and **overwrites** `editors[0]` with new empty editor
+- First editor orphaned but still in DOM → phantom lines visible behind active editor
+- **Fix**: call `initEditor()` BEFORE `initFilesView()` in `app.js`
+
 ## CodeMirror 6
 
 ### `lineWrapping` Not Exported

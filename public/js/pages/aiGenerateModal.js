@@ -1,5 +1,6 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
+import { insertAtCursor } from './editorView.js';
 
 const overlay = $('#ai-modal-overlay');
 const promptInput = $('#ai-prompt-input');
@@ -12,17 +13,6 @@ function buildSchemaString() {
     const cols = t.columns.map(c => `${c.name} ${c.type || 'TEXT'}`).join(', ');
     return `${t.name}(${cols})`;
   }).join('\n');
-}
-
-function insertAtCursor(text) {
-  const ed = state.editorView;
-  if (!ed) return;
-  ed.focus();
-  const sel = ed.state.selection.main;
-  ed.dispatch({
-    changes: { from: sel.from, to: sel.to, insert: text },
-    selection: { anchor: sel.from + text.length },
-  });
 }
 
 export async function showAIGenerateModal() {

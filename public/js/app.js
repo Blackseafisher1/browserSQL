@@ -51,6 +51,7 @@ async function main() {
 
   // Init UI that doesn't need SQLite
   initSettings();
+  initEditor();
   await initFilesView();
   initCloudSync();
 
@@ -92,7 +93,6 @@ async function main() {
     return;
   }
 
-  initEditor();
   advanceLoad();
   initSchemaView();
   initDBManager();

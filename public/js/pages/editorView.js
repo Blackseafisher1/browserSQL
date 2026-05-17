@@ -209,12 +209,11 @@ export function setLanguage(lang) {
  * Inserts text at the current cursor position in the active editor.
  * @param {string} text Text to insert.
  */
-function insertAtCursor(text) {
+export function insertAtCursor(text) {
   if (!view) return;
   const sel = view.state.selection.main;
   view.dispatch({
     changes: { from: sel.from, to: sel.to, insert: text },
-    selection: { anchor: sel.from + text.length },
     userEvent: 'input.type',
   });
   view.focus();

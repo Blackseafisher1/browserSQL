@@ -305,7 +305,6 @@ function handleContextMenuClick(e) {
     const sel = state.editorView.state.selection.main;
     state.editorView.dispatch({
       changes: { from: sel.from, to: sel.to, insert: sql },
-      selection: { anchor: sel.from + sql.length },
     });
     state.editorView.focus();
   }
