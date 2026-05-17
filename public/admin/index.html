@@ -12,15 +12,20 @@ h1{font-size:1.5rem;margin-bottom:1rem}
 input{padding:.5rem;background:#222;border:1px solid #444;color:#eee;border-radius:4px;flex:1}
 button{padding:.5rem 1rem;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer}
 button.danger{background:#ef4444}
-.user{margin-bottom:1rem;border:1px solid #333;border-radius:6px;padding:1rem}
-.user h2{font-size:1.1rem;margin-bottom:.5rem}
-.user h2 span{font-weight:400;color:#888;font-size:.9rem}
+.user{border:1px solid #333;border-radius:6px;margin-bottom:.5rem;overflow:hidden}
+.user-header{display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;cursor:pointer;background:#1a1a1a}
+.user-header:hover{background:#222}
+.user-header h2{font-size:1rem;margin:0}
+.user-header .arrow{color:#666;transition:transform .15s}
+.user-header .arrow.open{transform:rotate(90deg)}
+.user-body{padding:.5rem 1rem 1rem}
+.user-body.collapsed{display:none}
 .file{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.9rem;border-bottom:1px solid #222}
 .file:last-child{border:0}
 .error{color:#ef4444}
 .loading{color:#888}
 .hidden{display:none}
-.success{color:#22c55e;margin-top:.5rem}
+.success{color:#22c55e;margin-top:.5rem;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -64,25 +69,55 @@ async function loadUsers() {
   el.innerHTML = '<div class="loading">Loading...</div>';
   try {
     const users = await api('/api/admin/users');
+    if (users.length === 0) { el.innerHTML = '<div style="color:#666">No users found</div>'; return; }
     let html = '';
     for (const u of users) {
-      try {
-        const { files } = await api('/api/admin/files/' + u.name);
-        html += '<div class="user"><h2>' + u.name + ' <span>(' + files.length + ' files)</span></h2>';
-        if (files.length === 0) html += '<div style="color:#666;font-size:.9rem">No files</div>';
-        else html += files.map(f => '<div class="file"><span>' + f.name + '</span><button class="danger" onclick="del(\'' + u.name + '\',\'' + f.name.replace(/'/g, "\\'") + '\')">Delete</button></div>').join('');
-        html += '</div>';
-      } catch (e) { html += '<div class="user"><h2>' + u.name + '</h2><div class="error">Error loading files</div></div>'; }
+      html += '<div class="user">';
+      html += '<div class="user-header" onclick="toggleUser(this)">';
+      html += '<h2>' + u.name + ' <span style="font-weight:400;color:#888;font-size:.85rem">(' + u.files + ' files)</span></h2>';
+      html += '<span class="arrow">▸</span>';
+      html += '</div>';
+      html += '<div class="user-body collapsed" id="body-' + u.name.replace(/[^a-zA-Z0-9]/g,'') + '">';
+      html += '<div class="loading" id="load-' + u.name.replace(/[^a-zA-Z0-9]/g,'') + '">Loading files...</div>';
+      html += '</div></div>';
     }
-    el.innerHTML = html || '<div style="color:#666">No users found</div>';
+    el.innerHTML = html;
+    for (const u of users) loadUserFiles(u.name);
   } catch (e) { el.innerHTML = '<div class="error">' + e.message + '</div>'; }
+}
+
+async function loadUserFiles(username) {
+  const safeId = username.replace(/[^a-zA-Z0-9]/g, '');
+  const body = document.getElementById('body-' + safeId);
+  const loadEl = document.getElementById('load-' + safeId);
+  try {
+    const { files } = await api('/api/admin/files/' + encodeURIComponent(username));
+    loadEl.remove();
+    if (!files || files.length === 0) {
+      body.innerHTML = '<div style="color:#666;font-size:.9rem">No files</div>';
+      return;
+    }
+    body.innerHTML = files.map(f =>
+      '<div class="file"><span>' + f.name + '</span><button class="danger" onclick="del(\'' + username + '\',\'' + f.name.replace(/'/g, "\\'") + '\')">Delete</button></div>'
+    ).join('');
+  } catch (e) {
+    loadEl.remove();
+    body.innerHTML = '<div class="error">Error loading files</div>';
+  }
+}
+
+function toggleUser(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.arrow');
+  body.classList.toggle('collapsed');
+  arrow.classList.toggle('open');
 }
 
 async function del(user, name) {
   if (!confirm('Delete "' + name + '" from user "' + user + '"?')) return;
   document.getElementById('success').textContent = '';
   try {
-    await api('/api/admin/files/' + user + '/' + encodeURIComponent(name), { method: 'DELETE' });
+    await api('/api/admin/files/' + encodeURIComponent(user) + '/' + encodeURIComponent(name), { method: 'DELETE' });
     document.getElementById('success').textContent = 'Deleted ' + name;
     setTimeout(() => document.getElementById('success').textContent = '', 3000);
     loadUsers();

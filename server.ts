@@ -117,13 +117,19 @@ const app = new Elysia()
     body: t.Object({ password: t.String() })
   })
   .get('/api/admin/users', async ({ headers, path }) => {
-    const user = await getAdmin(headers);
-    if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const admin = await getAdmin(headers);
+    if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const rows = db.query('SELECT username FROM users ORDER BY username').all();
     const users = [];
-    for await (const name of new Bun.Glob('*').scan(FILES_DIR)) {
-      users.push({ name });
+    for (const r of rows) {
+      const dir = `${FILES_DIR}/${r.username}`;
+      let fileCount = 0;
+      if (await Bun.file(dir).exists()) {
+        for await (const _ of new Bun.Glob('*').scan(dir)) fileCount++;
+      }
+      users.push({ name: r.username, files: fileCount });
     }
-    log('GET', path, user, `returning ${users.length} users`);
+    log('GET', path, admin, `returning ${users.length} users`);
     return users;
   })
   .get('/api/admin/files/:user', async ({ headers, params, path }) => {
