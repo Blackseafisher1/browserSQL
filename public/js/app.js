@@ -69,6 +69,9 @@ async function main() {
   advanceLoad();
 
   document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('btn-gensql')?.addEventListener('click', () => {
+    import('./pages/aiGenerateModal.js').then(m => m.showAIGenerateModal()).catch(() => {});
+  });
   document.getElementById('btn-test-schema').addEventListener('click', () => {
     if (!state.sqlite3) return;
     loadTestSchema();
@@ -416,7 +419,8 @@ function wireSchemaToolbar() {
     'btn-schema-new': 'btn-new-db',
     'btn-schema-open': 'btn-open-db',
     'btn-schema-export': 'btn-export-db',
-    'btn-schema-test': 'btn-test-schema',
+      'btn-schema-test': 'btn-test-schema',
+      'btn-schema-gensql': 'btn-gensql',
      'btn-schema-theme': 'btn-theme-toggle',
      'btn-schema-settings': 'btn-settings',
       'btn-schema-recent': 'btn-recent-dbs',
