@@ -334,7 +334,8 @@ async function showManageModal() {
       for (const f of fileList) {
         const item = document.createElement('div');
         item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:var(--space-1) 0';
-        item.innerHTML = `<span style="font-size:var(--size-fluid-1)">${f.name}</span>
+        const sizeStr = f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : f.size > 1024 ? (f.size / 1024).toFixed(1) + ' KB' : f.size + ' B';
+        item.innerHTML = `<span style="font-size:var(--size-fluid-1)">${f.name} <span style="color:var(--color-text-muted);font-size:10px">${sizeStr}</span></span>
           <button class="btn btn-sm btn-danger" style="font-size:10px;padding:2px 6px">✕</button>`;
         item.querySelector('button').addEventListener('click', () => deleteCloudFile(f.name));
         list.appendChild(item);

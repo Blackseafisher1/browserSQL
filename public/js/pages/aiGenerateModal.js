@@ -7,8 +7,35 @@ const generateBtn = $('#btn-ai-generate');
 const status = $('#ai-status');
 const selectedInfo = $('#ai-selected-info');
 const schemaCb = $('#ai-include-schema');
+const rateInfo = $('#ai-rate-info');
+
+const RATE_KEY = 'browsersql-ai-requests';
+const RATE_WINDOW = 60 * 1000;
+const RATE_LIMIT = 20;
 
 let selRange = null;
+
+function getLocalRequests() {
+  try {
+    const raw = localStorage.getItem(RATE_KEY);
+    if (!raw) return [];
+    const now = Date.now();
+    return JSON.parse(raw).filter(t => now - t < RATE_WINDOW);
+  } catch { return []; }
+}
+
+function trackLocalRequest() {
+  const list = getLocalRequests();
+  list.push(Date.now());
+  localStorage.setItem(RATE_KEY, JSON.stringify(list));
+}
+
+function updateRateDisplay() {
+  const list = getLocalRequests();
+  const remaining = Math.max(0, RATE_LIMIT - list.length);
+  rateInfo.textContent = `⚡ ${remaining}/${RATE_LIMIT} requests available (resets in 60s)`;
+  rateInfo.style.color = remaining < 5 ? 'var(--color-error)' : remaining < 10 ? 'var(--color-accent)' : 'var(--color-text-muted)';
+}
 
 function buildSchemaString() {
   if (!state.tables || state.tables.length === 0) return '';
@@ -59,6 +86,7 @@ export async function showAIGenerateModal() {
     selectedInfo.style.display = 'none';
   }
 
+  updateRateDisplay();
   overlay.classList.remove('hidden');
   promptInput.value = '';
   status.textContent = '';
@@ -100,6 +128,7 @@ async function handleGenerate() {
     const data = await res.json();
     const sql = data.sql || data;
     if (typeof sql !== 'string' || !sql.trim()) throw new Error('No SQL returned');
+    trackLocalRequest();
     insertSQL(sql);
     hideModal();
   } catch (err) {
