@@ -5,9 +5,101 @@ import { showDDLModal } from './ddlModal.js';
 const tree = $('#schema-tree');
 const contextMenu = $('#context-menu');
 
-/**
- * Wires schema tree rendering, selection, and context menu interactions.
- */
+function escId(name) {
+  return `"${name.replace(/"/g, '""')}"`;
+}
+
+function buildERD() {
+  const tables = state.tables;
+  const fks = state.foreignKeys || [];
+  if (!tables || tables.length === 0) return '';
+
+  let lines = ['erDiagram'];
+  for (const t of tables) {
+    lines.push(`    ${t.name} {`);
+    for (const c of t.columns) {
+      const type = (c.type || 'text').toLowerCase();
+      lines.push(`        ${type} ${c.name}${c.pk ? ' PK' : ''}`);
+    }
+    lines.push(`    }`);
+  }
+  for (const fk of fks) {
+    const label = `${fk.from} → ${fk.refTable}.${fk.refCol}`;
+    lines.push(`    ${fk.table} ||--o{ ${fk.refTable} : "${label}"`);
+  }
+  return lines.join('\n');
+}
+
+async function showERD() {
+  const erdCode = buildERD();
+  console.log('[erd] code:', erdCode);
+  if (!erdCode) return;
+
+  const container = document.getElementById('erd-container');
+  if (container) container.remove();
+
+  const wrap = document.createElement('div');
+  wrap.id = 'erd-container';
+  wrap.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:100;background:var(--color-bg);display:flex;flex-direction:column;overflow:hidden';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-border);flex-shrink:0';
+  header.innerHTML = '<span style="font-weight:600">Entity Relationship Diagram</span><div style="display:flex;gap:var(--space-2)">';
+
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'btn btn-sm';
+  copyBtn.textContent = '📋 Copy';
+  copyBtn.title = 'Copy Mermaid ERD code';
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(erdCode);
+    copyBtn.textContent = '✓ Copied';
+    setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn btn-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.title = 'Close ERD';
+  closeBtn.addEventListener('click', () => wrap.remove());
+
+  header.querySelector('div').appendChild(copyBtn);
+  header.querySelector('div').appendChild(closeBtn);
+  wrap.appendChild(header);
+
+  const body = document.createElement('div');
+  body.id = 'erd-body';
+  body.style.cssText = 'flex:1;overflow:auto;padding:var(--space-3)';
+  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--color-text-muted)">Loading diagram...</div>';
+  wrap.appendChild(body);
+
+  const editorSplit = document.querySelector('.editor-split');
+  if (editorSplit) {
+    editorSplit.style.position = 'relative';
+    editorSplit.appendChild(wrap);
+  }
+
+  // Load mermaid via script tag and render
+  if (!document.querySelector('#mermaid-script')) {
+    const s = document.createElement('script');
+    s.id = 'mermaid-script';
+    s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js';
+    document.head.appendChild(s);
+    await new Promise(r => { s.onload = r; s.onerror = r; });
+  }
+  try {
+    const mermaidEl = document.createElement('div');
+    mermaidEl.className = 'mermaid';
+    mermaidEl.textContent = erdCode;
+    body.innerHTML = '';
+    body.appendChild(mermaidEl);
+    window.mermaid.initialize({ theme: 'dark', themeVariables: { background: 'transparent' } });
+    await window.mermaid.run({ nodes: [mermaidEl] });
+  } catch (e) {
+    body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">Diagram render failed. Copy the code and paste at <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
+      <pre style="background:var(--color-bg-surface);padding:1rem;border-radius:6px;overflow:auto;font-size:12px;margin:0">${esc(erdCode)}</pre>`;
+  }
+}
+
 export function initSchemaView() {
   state.renderSchema = renderSchema;
   tree.addEventListener('click', handleTreeClick);
@@ -30,6 +122,8 @@ export function initSchemaView() {
       setTimeout(() => btn.textContent = orig, 1500);
     } catch (_) {}
   });
+
+  document.getElementById('btn-erd')?.addEventListener('click', showERD);
 }
 
 /**
@@ -45,17 +139,25 @@ async function renderSchema() {
       `SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`,
       { rowMode: 'object' }
     );
+    // Collect FK relationships
+    const allFks = [];
+    for (const t of tables) {
+      const fks = state.db.exec(`PRAGMA foreign_key_list(${escId(t.name)})`, { rowMode: 'object' });
+      for (const fk of fks) allFks.push({ table: t.name, from: fk.from, refTable: fk.table, refCol: fk.to });
+    }
+    state.foreignKeys = allFks;
+    const fkCols = new Map();
+    for (const fk of allFks) {
+      if (!fkCols.has(fk.table)) fkCols.set(fk.table, new Set());
+      fkCols.get(fk.table).add(fk.from);
+    }
+
     const tableList = [];
     for (const t of tables) {
       const cols = state.db.exec(
         `PRAGMA table_info(${escId(t.name)})`,
         { rowMode: 'object' }
       );
-      const fks = state.db.exec(
-        `PRAGMA foreign_key_list(${escId(t.name)})`,
-        { rowMode: 'object' }
-      );
-      const fkCols = new Set(fks.map(f => f.from));
       const idxs = state.db.exec(
         `PRAGMA index_list(${escId(t.name)})`,
         { rowMode: 'object' }
@@ -81,11 +183,12 @@ async function renderSchema() {
         const pkCols = cols.filter(c => c.pk);
         for (const c of pkCols) autoIncCols.add(c.name);
       }
+      const tableFkSet = fkCols.get(t.name) || new Set();
       const columns = cols.map(c => ({
         name: c.name,
         type: c.type || 'TEXT',
         pk: c.pk === 1 || c.pk === true,
-        fk: fkCols.has(c.name),
+        fk: tableFkSet.has(c.name),
         nn: c.notnull === 1,
         uq: uniqueCols.has(c.name),
         ai: autoIncCols.has(c.name),
@@ -106,19 +209,6 @@ async function renderSchema() {
   }
 }
 
-/**
- * Escapes an SQLite identifier.
- * @param {string} name Identifier name.
- * @returns {string}
- */
-function escId(name) {
-  return `"${name.replace(/"/g, '""')}"`;
-}
-
-/**
- * Renders the schema tree HTML from the discovered tables.
- * @param {Array<{name: string, columns: Array<{name: string, type: string, pk: boolean, fk: boolean, nn: boolean, uq: boolean, ai: boolean}>}>} tables Table metadata.
- */
 function renderTree(tables, views) {
   if (tables.length === 0 && (!views || views.length === 0)) {
     tree.innerHTML = '<div class="schema-empty">No tables or views</div>';
@@ -151,17 +241,17 @@ function renderTree(tables, views) {
         if (c.nn) html += '<span class="col-badge col-nn">NN</span>';
         html += `</div>`;
       }
-        // Indexes under columns
-        if (t.indexes && t.indexes.length > 0) {
-          html += `<div class="schema-indexes">`;
-          for (const idx of t.indexes) {
-            const label = (idx.unique ? 'UNIQUE ' : '') + 'INDEX';
-            html += `<div class="schema-index"><span class="col-badge col-idx">${esc(label)}</span><span>${esc(idx.name)}</span><span class="col-type">${esc(idx.columns.join(', '))}</span></div>`;
-          }
-          html += `</div>`;
+      // Indexes under columns
+      if (t.indexes && t.indexes.length > 0) {
+        html += `<div class="schema-indexes">`;
+        for (const idx of t.indexes) {
+          const label = (idx.unique ? 'UNIQUE ' : '') + 'INDEX';
+          html += `<div class="schema-index"><span class="col-badge col-idx">${esc(label)}</span><span>${esc(idx.name)}</span><span class="col-type">${esc(idx.columns.join(', '))}</span></div>`;
         }
         html += `</div>`;
       }
+      html += `</div>`;
+    }
     html += `</div>`;
   }
   if (views && views.length > 0) {
@@ -173,10 +263,6 @@ function renderTree(tables, views) {
   tree.innerHTML = html;
 }
 
-/**
- * Handles single-click selection and schema actions.
- * @param {MouseEvent} e Click event.
- */
 function handleTreeClick(e) {
   const viewEl = e.target.closest('[data-view-name]');
   if (viewEl) {
@@ -214,7 +300,6 @@ function handleTreeClick(e) {
     toggleExpand(tableName);
     return;
   }
-  // Single click on table name → execute SELECT * LIMIT 100
   state.activeTable = tableName;
   updateActiveState(tableName);
   if (!state.db) return;
@@ -227,33 +312,18 @@ function handleTreeClick(e) {
   }
 }
 
-/**
- * Toggles whether a schema table is expanded.
- * @param {string} name Table name.
- */
 function toggleExpand(name) {
-  if (state.tableExpanded.has(name)) {
-    state.tableExpanded.delete(name);
-  } else {
-    state.tableExpanded.add(name);
-  }
+  if (state.tableExpanded.has(name)) state.tableExpanded.delete(name);
+  else state.tableExpanded.add(name);
   renderSchema();
 }
 
-/**
- * Updates the active-table highlight state.
- * @param {string} name Table name.
- */
 function updateActiveState(name) {
   $$('.schema-table-name').forEach(el => {
     el.classList.toggle('active', el.dataset.tableName === name);
   });
 }
 
-/**
- * Opens the floating schema context menu for a table.
- * @param {MouseEvent} e Context-menu event.
- */
 function handleContextMenu(e) {
   const tableEl = e.target.closest('[data-table-name]');
   if (!tableEl) return;
@@ -262,12 +332,6 @@ function handleContextMenu(e) {
   showContextMenu(e.clientX, e.clientY, tableName);
 }
 
-/**
- * Populates and positions the schema context menu.
- * @param {number} x Client X coordinate.
- * @param {number} y Client Y coordinate.
- * @param {string} tableName Table name.
- */
 function showContextMenu(x, y, tableName) {
   const safe = esc(tableName);
   contextMenu.innerHTML = `
@@ -285,26 +349,14 @@ function showContextMenu(x, y, tableName) {
   contextMenu.dataset.contextTable = tableName;
 }
 
-/**
- * Hides the schema context menu.
- */
 function hideContextMenu() {
   contextMenu.classList.add('hidden');
 }
 
-/**
- * Escapes an identifier for SQL templates.
- * @param {string} name Table name.
- * @returns {string}
- */
 function sqlesc(name) {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
-/**
- * Handles clicks inside the schema context menu.
- * @param {MouseEvent} e Click event.
- */
 function handleContextMenuClick(e) {
   const item = e.target.closest('[data-action]');
   if (!item) return;
@@ -314,23 +366,16 @@ function handleContextMenuClick(e) {
   const safe = sqlesc(tableName);
   let sql = '';
   switch (action) {
-    case 'select':
-      sql = `SELECT * FROM ${safe} WHERE `;
-      break;
-    case 'insert':
-      sql = `INSERT INTO ${safe} (col1, col2) VALUES (val1, val2);`;
-      break;
-    case 'update':
-      sql = `UPDATE ${safe} SET col1 = val1 WHERE `;
-      break;
-    case 'delete':
-      sql = `DELETE FROM ${safe} WHERE `;
-      break;
+    case 'select': sql = `SELECT * FROM ${safe} WHERE `; break;
+    case 'insert': sql = `INSERT INTO ${safe} (col1, col2) VALUES (val1, val2);`; break;
+    case 'update': sql = `UPDATE ${safe} SET col1 = val1 WHERE `; break;
+    case 'delete': sql = `DELETE FROM ${safe} WHERE `; break;
   }
   if (state.editorView) {
     const sel = state.editorView.state.selection.main;
     state.editorView.dispatch({
       changes: { from: sel.from, to: sel.to, insert: sql },
+      selection: { anchor: sel.from + sql.length },
     });
     state.editorView.focus();
   }
