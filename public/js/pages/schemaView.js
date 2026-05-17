@@ -19,7 +19,8 @@ function buildERD() {
     lines.push(`    ${t.name} {`);
     for (const c of t.columns) {
       let type = (c.type || 'text').toLowerCase().split('(')[0].trim();
-      lines.push(`        ${type} ${c.name}${c.pk ? ' PK' : ''}`);
+      const ann = c.pk ? ' PK' : c.fk ? ' FK' : '';
+      lines.push(`        ${type} ${c.name}${ann}`);
     }
     lines.push(`    }`);
   }
