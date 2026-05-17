@@ -77,6 +77,27 @@
   }
 }
 
+  .ai-prompt-input {
+    width: 100%;
+    padding: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    color: var(--color-text);
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .ai-prompt-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+  .ai-status {
+    font-size: var(--size-fluid-1);
+    color: var(--color-text-muted);
+  }
+
   .settings-body {
     display: flex;
     flex-direction: column;

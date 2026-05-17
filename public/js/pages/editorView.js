@@ -103,6 +103,7 @@ export function initEditor() {
   setupPreviewButton();
   setupTemplateButtons();
   setupKeyboardButtons();
+  setupEditorContextMenu();
 }
 
 /**
@@ -266,6 +267,31 @@ function setupKeyboardButtons() {
     const btn = e.target.closest('[data-char]');
     if (!btn) return;
     insertAtCursor(btn.dataset.char);
+  });
+}
+
+function setupEditorContextMenu() {
+  document.addEventListener('contextmenu', (e) => {
+    const cm = e.target.closest('.cm-editor');
+    if (!cm) return;
+    if (state.activeFileIsJS || state.activeFileIsMD) return;
+    if (state.tutorialActive && state.tutorialLessonType === 'theory') return;
+    e.preventDefault();
+    const menu = document.getElementById('context-menu');
+    menu.innerHTML = `<button class="context-menu-item" data-action="generate-sql">Generate SQL</button>`;
+    const rect = menu.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+    menu.style.left = Math.min(e.clientX, maxX) + 'px';
+    menu.style.top = Math.min(e.clientY, maxY) + 'px';
+    menu.classList.remove('hidden');
+    menu.dataset.contextEditor = '1';
+  });
+  document.getElementById('context-menu')?.addEventListener('click', (e) => {
+    const item = e.target.closest('[data-action="generate-sql"]');
+    if (!item) return;
+    document.getElementById('context-menu')?.classList.add('hidden');
+    import('./aiGenerateModal.js').then(m => m.showAIGenerateModal());
   });
 }
 
