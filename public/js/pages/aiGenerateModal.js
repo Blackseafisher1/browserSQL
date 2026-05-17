@@ -6,8 +6,6 @@ const promptInput = $('#ai-prompt-input');
 const generateBtn = $('#btn-ai-generate');
 const status = $('#ai-status');
 
-let savedCursor = null;
-
 function buildSchemaString() {
   if (!state.tables || state.tables.length === 0) return '';
   return state.tables.map(t => {
@@ -19,18 +17,15 @@ function buildSchemaString() {
 function insertAtCursor(text) {
   const ed = state.editorView;
   if (!ed) return;
-  const pos = savedCursor !== null ? savedCursor : ed.state.selection.main.head;
-  savedCursor = null;
-  ed.dispatch({
-    changes: { from: pos, to: pos, insert: text },
-    selection: { anchor: pos + text.length },
-  });
   ed.focus();
+  const sel = ed.state.selection.main;
+  ed.dispatch({
+    changes: { from: sel.from, to: sel.to, insert: text },
+    selection: { anchor: sel.from + text.length },
+  });
 }
 
 export async function showAIGenerateModal() {
-  const ed = state.editorView;
-  savedCursor = ed ? ed.state.selection.main.head : null;
   overlay.classList.remove('hidden');
   promptInput.value = '';
   status.textContent = '';
@@ -40,7 +35,6 @@ export async function showAIGenerateModal() {
 
 function hideModal() {
   overlay.classList.add('hidden');
-  savedCursor = null;
 }
 
 async function handleGenerate() {
