@@ -603,6 +603,25 @@
   .col-uq { color: #22c55e; }
   .col-ai { color: #f97316; }
   .col-nn { color: #ef4444; }
+  .col-idx { color: #06b6d4; }
+
+  .schema-indexes {
+    padding: var(--space-1) var(--space-4) var(--space-1);
+    border-top: 1px solid var(--color-border-light);
+    margin-top: var(--space-1);
+  }
+  .schema-index {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 2px 0;
+    font-size: var(--size-fluid-1);
+  }
+  .schema-index .col-type {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--size-fluid-1);
+  }
 
   .context-menu {
     position: fixed;

@@ -14,6 +14,22 @@ export function initSchemaView() {
   document.addEventListener('click', hideContextMenu);
   document.addEventListener('contextmenu', handleContextMenu);
   contextMenu.addEventListener('click', handleContextMenuClick);
+
+  document.getElementById('btn-copy-ddl-all')?.addEventListener('click', async () => {
+    if (!state.db) return;
+    try {
+      const rows = state.db.exec(
+        `SELECT sql FROM sqlite_master WHERE sql IS NOT NULL AND type IN ('table','view') ORDER BY type DESC, name`,
+        { rowMode: 'object' }
+      );
+      const ddl = rows.map(r => r.sql).join(';\n\n') + ';';
+      await navigator.clipboard.writeText(ddl);
+      const btn = document.getElementById('btn-copy-ddl-all');
+      const orig = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => btn.textContent = orig, 1500);
+    } catch (_) {}
+  });
 }
 
 /**
@@ -45,14 +61,15 @@ async function renderSchema() {
         { rowMode: 'object' }
       );
       const uniqueCols = new Set();
+      const indexes = [];
       for (const idx of idxs) {
-        if (idx.origin === 'u') {
-          const info = state.db.exec(
-            `PRAGMA index_info(${escId(idx.name)})`,
-            { rowMode: 'object' }
-          );
-          for (const i of info) uniqueCols.add(i.name);
-        }
+        const info = state.db.exec(
+          `PRAGMA index_info(${escId(idx.name)})`,
+          { rowMode: 'object' }
+        );
+        const cols = info.map(i => i.name);
+        if (idx.origin === 'u') cols.forEach(c => uniqueCols.add(c));
+        if (idx.origin !== 'pk') indexes.push({ name: idx.name, columns: cols, unique: idx.unique === 1 || idx.origin === 'u' });
       }
       const ddlRows = state.db.exec(
         `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
@@ -73,7 +90,7 @@ async function renderSchema() {
         uq: uniqueCols.has(c.name),
         ai: autoIncCols.has(c.name),
       }));
-      tableList.push({ name: t.name, columns });
+      tableList.push({ name: t.name, columns, indexes });
     }
     state.tables = tableList;
     const views = state.db.exec(
@@ -134,8 +151,17 @@ function renderTree(tables, views) {
         if (c.nn) html += '<span class="col-badge col-nn">NN</span>';
         html += `</div>`;
       }
-      html += `</div>`;
-    }
+        // Indexes under columns
+        if (t.indexes && t.indexes.length > 0) {
+          html += `<div class="schema-indexes">`;
+          for (const idx of t.indexes) {
+            const label = (idx.unique ? 'UNIQUE ' : '') + 'INDEX';
+            html += `<div class="schema-index"><span class="col-badge col-idx">${esc(label)}</span><span>${esc(idx.name)}</span><span class="col-type">${esc(idx.columns.join(', '))}</span></div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
     html += `</div>`;
   }
   if (views && views.length > 0) {

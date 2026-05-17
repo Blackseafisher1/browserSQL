@@ -1,11 +1,14 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
-import { insertAtCursor } from './editorView.js';
 
 const overlay = $('#ai-modal-overlay');
 const promptInput = $('#ai-prompt-input');
 const generateBtn = $('#btn-ai-generate');
 const status = $('#ai-status');
+const selectedInfo = $('#ai-selected-info');
+const schemaCb = $('#ai-include-schema');
+
+let selRange = null;
 
 function buildSchemaString() {
   if (!state.tables || state.tables.length === 0) return '';
@@ -15,7 +18,47 @@ function buildSchemaString() {
   }).join('\n');
 }
 
+function insertSQL(sql) {
+  const ed = state.editorView;
+  if (!ed) return;
+  if (selRange) {
+    ed.dispatch({
+      changes: { from: selRange.from, to: selRange.to, insert: sql },
+      selection: { anchor: selRange.from + sql.length },
+      scrollIntoView: true,
+    });
+    selRange = null;
+  } else {
+    const pos = ed.state.selection.main.head;
+    ed.dispatch({
+      changes: { from: pos, insert: sql },
+      selection: { anchor: pos + sql.length },
+      scrollIntoView: true,
+    });
+  }
+  ed.focus();
+}
+
 export async function showAIGenerateModal() {
+  const ed = state.editorView;
+  if (ed) {
+    const sel = ed.state.selection.main;
+    if (!sel.empty) {
+      selRange = { from: sel.from, to: sel.to };
+      const text = ed.state.sliceDoc(sel.from, sel.to - sel.from);
+      selectedInfo.textContent = `📝 Selected: ${text.substring(0, 60)}${text.length > 60 ? '...' : ''}`;
+      selectedInfo.style.display = '';
+      promptInput.placeholder = 'Extra instructions (leave empty to fix/optimize)';
+    } else {
+      selRange = null;
+      selectedInfo.style.display = 'none';
+      promptInput.placeholder = 'e.g. show employee name and years with company';
+    }
+  } else {
+    selRange = null;
+    selectedInfo.style.display = 'none';
+  }
+
   overlay.classList.remove('hidden');
   promptInput.value = '';
   status.textContent = '';
@@ -25,27 +68,39 @@ export async function showAIGenerateModal() {
 
 function hideModal() {
   overlay.classList.add('hidden');
+  selRange = null;
 }
 
 async function handleGenerate() {
-  const description = promptInput.value.trim();
-  if (!description) return;
+  let description = promptInput.value.trim();
+  if (!description && !selRange) return;
+
+  const mode = selRange ? 'fix' : 'generate';
+
+  if (selRange) {
+    const ed = state.editorView;
+    const selected = ed ? ed.state.sliceDoc(selRange.from, selRange.to - selRange.from) : '';
+    const extra = description ? `\nAdditional: ${description}` : '';
+    description = `${selected}${extra}`;
+  }
 
   generateBtn.disabled = true;
   status.textContent = 'Generating...';
 
   try {
-    const schema = buildSchemaString();
+    const schema = schemaCb.checked ? buildSchemaString() : '';
+    const body = { mode, description };
+    if (schema) body.schema = schema;
     const res = await fetch('https://ideaboard.site', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description, schema }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
     const sql = data.sql || data;
     if (typeof sql !== 'string' || !sql.trim()) throw new Error('No SQL returned');
-    insertAtCursor(sql);
+    insertSQL(sql);
     hideModal();
   } catch (err) {
     status.textContent = `Error: ${err.message || String(err)}`;

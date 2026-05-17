@@ -153,6 +153,7 @@
       <div class="section-node">
         <div class="section-header" data-section="schema">
           <span class="section-arrow">▾</span><span class="section-label">Schema</span>
+          <button id="btn-copy-ddl-all" class="btn btn-sm section-add-btn" title="Copy all DDL to clipboard" style="font-size:10px">📋</button>
         </div>
         <div class="section-body" id="section-schema">
           <div id="schema-tree" class="schema-tree">
@@ -235,7 +236,7 @@
   </div>
 
   <div id="auth-modal-overlay" class="modal-overlay hidden">
-    <div id="auth-modal" class="modal" style="min-width:320px;max-width:380px">
+    <div id="auth-modal" class="modal" style="min-width:360px;max-width:420px">
       <div class="modal-header">
         <span id="auth-title" class="modal-title">Login</span>
         <button id="auth-modal-close" class="btn btn-close">&times;</button>
@@ -296,16 +297,20 @@
   </div>
 
   <div id="ai-modal-overlay" class="modal-overlay hidden">
-    <div id="ai-modal" class="modal">
+    <div id="ai-modal" class="modal" style="min-width:480px;max-width:700px;max-height:80vh">
       <div class="modal-header">
         <span class="modal-title">Generate SQL</span>
         <button id="ai-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="margin:0 0 var(--space-2)">Describe what you want in natural language:</p>
+        <div id="ai-selected-info" style="font-size:11px;color:var(--color-accent);margin-bottom:var(--space-2);padding:var(--space-1);background:var(--color-bg);border-radius:4px;display:none"></div>
         <textarea id="ai-prompt-input" class="ai-prompt-input" rows="4" placeholder="e.g. show employee name and years with company"></textarea>
-        <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)">
-          <button id="btn-ai-generate" class="btn btn-primary">Generate</button>
+        <label style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);font-size:var(--size-fluid-1);cursor:pointer">
+          <input type="checkbox" id="ai-include-schema" checked>
+          <span>Include schema</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">
+          <button id="btn-ai-generate" class="btn btn-primary" style="flex:1">Generate</button>
           <span id="ai-status" class="ai-status"></span>
         </div>
       </div>
