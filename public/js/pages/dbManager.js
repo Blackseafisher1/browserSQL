@@ -95,7 +95,6 @@ export function initDBManager() {
   btnNew.addEventListener('click', newDatabase);
   btnOpen.addEventListener('click', () => fileInput.click());
   btnExport.addEventListener('click', exportDatabase);
-  btnDelete.addEventListener('click', deleteCurrentFromLocal);
   btnRecent.addEventListener('click', refreshRecentDBsList);
   fileInput.addEventListener('change', handleFileOpen);
   document.addEventListener('keydown', handleShortcuts);
