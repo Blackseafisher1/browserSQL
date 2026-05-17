@@ -46,6 +46,21 @@ async function showERD() {
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-border);flex-shrink:0';
   header.innerHTML = '<span style="font-weight:600">Entity Relationship Diagram</span><div style="display:flex;gap:var(--space-2)">';
 
+  const zoomOutBtn = document.createElement('button');
+  zoomOutBtn.className = 'btn btn-sm';
+  zoomOutBtn.textContent = '−';
+  zoomOutBtn.title = 'Zoom out';
+
+  const zoomInBtn = document.createElement('button');
+  zoomInBtn.className = 'btn btn-sm';
+  zoomInBtn.textContent = '+';
+  zoomInBtn.title = 'Zoom in';
+
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'btn btn-sm';
+  resetBtn.textContent = '↺';
+  resetBtn.title = 'Reset zoom';
+
   const copyBtn = document.createElement('button');
   copyBtn.className = 'btn btn-sm';
   copyBtn.textContent = '📋 Copy';
@@ -62,13 +77,17 @@ async function showERD() {
   closeBtn.title = 'Close ERD';
   closeBtn.addEventListener('click', () => wrap.remove());
 
-  header.querySelector('div').appendChild(copyBtn);
-  header.querySelector('div').appendChild(closeBtn);
+  const hdrActions = header.querySelector('div');
+  hdrActions.appendChild(zoomOutBtn);
+  hdrActions.appendChild(resetBtn);
+  hdrActions.appendChild(zoomInBtn);
+  hdrActions.appendChild(copyBtn);
+  hdrActions.appendChild(closeBtn);
   wrap.appendChild(header);
 
   const body = document.createElement('div');
   body.id = 'erd-body';
-  body.style.cssText = 'flex:1;overflow:auto;padding:var(--space-3)';
+  body.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:grab';
   body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--color-text-muted)">Loading diagram...</div>';
   wrap.appendChild(body);
 
@@ -94,6 +113,34 @@ async function showERD() {
     body.appendChild(mermaidEl);
     window.mermaid.initialize({ theme: 'dark', themeVariables: { background: 'transparent' } });
     await window.mermaid.run({ nodes: [mermaidEl] });
+
+    // Pan/zoom after render
+    const svg = body.querySelector('svg');
+    if (svg) {
+      let scale = 1;
+      let panX = 0, panY = 0;
+      let dragging = false, startX, startY;
+
+      function applyTransform() {
+        svg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        svg.style.transformOrigin = '0 0';
+      }
+
+      body.addEventListener('mousedown', (e) => { dragging = true; startX = e.clientX - panX; startY = e.clientY - panY; body.style.cursor = 'grabbing'; });
+      window.addEventListener('mousemove', (e) => { if (!dragging) return; panX = e.clientX - startX; panY = e.clientY - startY; applyTransform(); });
+      window.addEventListener('mouseup', () => { dragging = false; body.style.cursor = 'grab'; });
+
+      body.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        scale = Math.max(0.2, Math.min(5, scale * delta));
+        applyTransform();
+      }, { passive: false });
+
+      zoomInBtn.addEventListener('click', () => { scale = Math.min(5, scale * 1.3); applyTransform(); });
+      zoomOutBtn.addEventListener('click', () => { scale = Math.max(0.2, scale / 1.3); applyTransform(); });
+      resetBtn.addEventListener('click', () => { scale = 1; panX = 0; panY = 0; applyTransform(); });
+    }
   } catch (e) {
     body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">Diagram render failed. Copy the code and paste at <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
       <pre style="background:var(--color-bg-surface);padding:1rem;border-radius:6px;overflow:auto;font-size:12px;margin:0">${esc(erdCode)}</pre>`;
