@@ -93,6 +93,43 @@ const app = new Elysia()
   }, {
     body: t.Object({ content: t.String() })
   })
+  .post('/api/change-password', async ({ headers, body, path }) => {
+    const user = await getUser(headers);
+    if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user);
+    if (!row) return { error: 'User not found' };
+    const valid = await Bun.password.verify(body.oldPassword, row.password_hash);
+    if (!valid) return { error: 'Invalid password' };
+    const hash = await hashPassword(body.newPassword);
+    db.run('UPDATE users SET password_hash = ? WHERE username = ?', [hash, user]);
+    log('POST', path, user, 'password changed');
+    return { success: true, token: btoa(`${user}:${body.newPassword}`) };
+  }, {
+    body: t.Object({ oldPassword: t.String(), newPassword: t.String() })
+  })
+  .post('/api/rename-user', async ({ headers, body, path }) => {
+    const user = await getUser(headers);
+    if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const newName = body.newUsername.trim();
+    if (!newName) return { error: 'Invalid username' };
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user);
+    if (!row) return { error: 'User not found' };
+    const valid = await Bun.password.verify(body.oldPassword, row.password_hash);
+    if (!valid) return { error: 'Invalid password' };
+    const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(newName);
+    if (exists) return { error: 'Username taken' };
+    db.run('UPDATE users SET username = ? WHERE username = ?', [newName, user]);
+    // Rename user's file directory
+    const oldDir = `${FILES_DIR}/${user}`;
+    const newDir = `${FILES_DIR}/${newName}`;
+    if (await Bun.file(oldDir).exists()) {
+      await Bun.$`mv ${oldDir} ${newDir}`.quiet();
+    }
+    log('POST', path, user, `renamed to ${newName}`);
+    return { success: true, token: btoa(`${newName}:${body.oldPassword}`) };
+  }, {
+    body: t.Object({ oldPassword: t.String(), newUsername: t.String() })
+  })
   .delete('/api/files/:name', async ({ headers, params, path }) => {
     const user = await getUser(headers);
     if (!user) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }

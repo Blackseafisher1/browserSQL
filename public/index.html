@@ -296,6 +296,26 @@
     </div>
   </div>
 
+  <div id="account-modal-overlay" class="modal-overlay hidden">
+    <div class="modal" style="width:95vw;max-width:380px">
+      <div class="modal-header">
+        <span id="account-modal-title" class="modal-title">👤 Account</span>
+        <button id="account-modal-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <input id="account-rename-input" class="ai-prompt-input" type="text" placeholder="New username">
+        <input id="account-old-pw" class="ai-prompt-input" type="password" placeholder="Current password">
+        <button id="btn-account-rename" class="btn btn-sm btn-primary" style="width:100%">Rename</button>
+        <hr style="border:none;border-top:1px solid var(--color-border-light)">
+        <input id="account-new-pw" class="ai-prompt-input" type="password" placeholder="New password">
+        <button id="btn-account-change-pw" class="btn btn-sm" style="width:100%">Change Password</button>
+        <div id="account-msg" style="font-size:var(--size-fluid-1);color:var(--color-error);min-height:1.2em"></div>
+        <hr style="border:none;border-top:1px solid var(--color-border-light)">
+        <button id="btn-account-logout" class="btn btn-sm btn-danger" style="width:100%">Log out</button>
+      </div>
+    </div>
+  </div>
+
   <div id="ai-modal-overlay" class="modal-overlay hidden">
     <div id="ai-modal" class="modal" style="width:95vw;max-width:700px;max-height:80vh">
       <div class="modal-header">

@@ -52,9 +52,9 @@ function updateUI() {
 
   if (user) {
     hLogin.style.display = 'none';
-    hUser.style.display = ''; hUser.textContent = user;
+    hUser.style.display = ''; hUser.textContent = '👤 ' + user;
     if (sLogin) sLogin.style.display = 'none';
-    if (sUser) { sUser.style.display = ''; sUser.textContent = user; }
+    if (sUser) { sUser.style.display = ''; sUser.textContent = '👤 ' + user; }
   } else {
     hLogin.style.display = '';
     hUser.style.display = 'none';
@@ -362,12 +362,50 @@ export function initCloudSync() {
   updateUI();
 
   const loginHandler = showAuthModal;
-  const logoutHandler = () => { if (confirm('Log out?')) { clearToken(); updateUI(); } };
+  const showAccount = () => {
+    document.getElementById('account-modal-overlay').classList.remove('hidden');
+    document.getElementById('account-rename-input').value = '';
+    document.getElementById('account-old-pw').value = '';
+    document.getElementById('account-new-pw').value = '';
+    document.getElementById('account-msg').textContent = '';
+    document.getElementById('account-modal-title').textContent = '👤 ' + (parseUserFromToken() || 'Account');
+  };
+  function hideAccountModal() { document.getElementById('account-modal-overlay').classList.add('hidden'); }
 
   document.getElementById('btn-cloud-login').addEventListener('click', loginHandler);
-  document.getElementById('btn-cloud-user').addEventListener('click', logoutHandler);
+  document.getElementById('btn-cloud-user').addEventListener('click', showAccount);
   document.getElementById('btn-schema-login')?.addEventListener('click', loginHandler);
-  document.getElementById('btn-schema-cloud-user')?.addEventListener('click', logoutHandler);
+  document.getElementById('btn-schema-cloud-user')?.addEventListener('click', showAccount);
+  document.getElementById('account-modal-close')?.addEventListener('click', hideAccountModal);
+  document.getElementById('btn-account-logout')?.addEventListener('click', () => { hideAccountModal(); clearToken(); updateUI(); });
+
+  document.getElementById('btn-account-rename')?.addEventListener('click', async () => {
+    const newUsername = document.getElementById('account-rename-input').value.trim();
+    const oldPassword = document.getElementById('account-old-pw').value;
+    if (!newUsername || !oldPassword) { document.getElementById('account-msg').textContent = 'Fill in both fields.'; return; }
+    try {
+      const r = await api('/api/rename-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword, newUsername }) });
+      if (r.error) throw new Error(r.error);
+      if (r.token) setToken(r.token);
+      document.getElementById('account-msg').textContent = '';
+      hideAccountModal();
+      updateUI();
+    } catch (e) { document.getElementById('account-msg').textContent = e.message; }
+  });
+
+  document.getElementById('btn-account-change-pw')?.addEventListener('click', async () => {
+    const oldPassword = document.getElementById('account-old-pw').value;
+    const newPassword = document.getElementById('account-new-pw').value;
+    if (!oldPassword || !newPassword) { document.getElementById('account-msg').textContent = 'Fill in both fields.'; return; }
+    try {
+      const r = await api('/api/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword, newPassword }) });
+      if (r.error) throw new Error(r.error);
+      if (r.token) setToken(r.token);
+      document.getElementById('account-msg').textContent = 'Password changed';
+      document.getElementById('account-old-pw').value = '';
+      document.getElementById('account-new-pw').value = '';
+    } catch (e) { document.getElementById('account-msg').textContent = e.message; }
+  });
   document.getElementById('btn-cloud-sync').addEventListener('click', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-cloud-sync');
