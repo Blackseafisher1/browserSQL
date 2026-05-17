@@ -1,6 +1,8 @@
 import { $ } from '../utils.js';
 
-const API_BASE = 'http://localhost:8081';
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  ? 'http://localhost:8081'
+  : 'http://46.101.216.188:8081';
 const TOKEN_KEY = 'browsersql-cloud-token';
 
 function getToken() { return localStorage.getItem(TOKEN_KEY); }
@@ -42,10 +44,24 @@ function hexToArray(hex) {
 
 function updateUI() {
   const user = parseUserFromToken();
-  document.getElementById('btn-cloud-login').style.display = user ? 'none' : '';
-  const label = document.getElementById('btn-cloud-user');
-  if (user) { label.style.display = ''; label.textContent = user; }
-  else label.style.display = 'none';
+
+  const hLogin = document.getElementById('btn-cloud-login');
+  const hUser = document.getElementById('btn-cloud-user');
+  const sLogin = document.getElementById('btn-schema-login');
+  const sUser = document.getElementById('btn-schema-cloud-user');
+
+  if (user) {
+    hLogin.style.display = 'none';
+    hUser.style.display = ''; hUser.textContent = user;
+    if (sLogin) sLogin.style.display = 'none';
+    if (sUser) { sUser.style.display = ''; sUser.textContent = user; }
+  } else {
+    hLogin.style.display = '';
+    hUser.style.display = 'none';
+    if (sLogin) sLogin.style.display = '';
+    if (sUser) sUser.style.display = 'none';
+  }
+
   document.getElementById('ops-cloud').style.display = user ? '' : 'none';
   setStatus('');
 }
@@ -286,10 +302,13 @@ export function initCloudSync() {
   initAuthModal();
   updateUI();
 
-  document.getElementById('btn-cloud-login').addEventListener('click', showAuthModal);
-  document.getElementById('btn-cloud-user').addEventListener('click', () => {
-    if (confirm('Log out?')) { clearToken(); updateUI(); }
-  });
+  const loginHandler = showAuthModal;
+  const logoutHandler = () => { if (confirm('Log out?')) { clearToken(); updateUI(); } };
+
+  document.getElementById('btn-cloud-login').addEventListener('click', loginHandler);
+  document.getElementById('btn-cloud-user').addEventListener('click', logoutHandler);
+  document.getElementById('btn-schema-login')?.addEventListener('click', loginHandler);
+  document.getElementById('btn-schema-cloud-user')?.addEventListener('click', logoutHandler);
   document.getElementById('btn-cloud-sync').addEventListener('click', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-cloud-sync');

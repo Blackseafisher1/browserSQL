@@ -392,7 +392,6 @@ function wireSchemaToolbar() {
     'btn-schema-new': 'btn-new-db',
     'btn-schema-open': 'btn-open-db',
     'btn-schema-export': 'btn-export-db',
-    'btn-schema-delete': 'btn-delete-db',
     'btn-schema-test': 'btn-test-schema',
      'btn-schema-theme': 'btn-theme-toggle',
      'btn-schema-settings': 'btn-settings',
