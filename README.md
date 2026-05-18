@@ -2,7 +2,7 @@
 
 In-browser SQLite editor with persistent cloud sync, AI SQL generation, schema visualization, and **no server required** for core functionality.
 
-**browsersql.vercel.app**
+**https://browsersql.vercel.app**
 
 **https://blackseafisher1.github.io/browserSQL/public**
 
