@@ -2,6 +2,35 @@ import { Elysia, t } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { Database } from 'bun:sqlite';
 
+// ── Decrypt .env.enc at startup ───────────────────────────────
+if (Bun.file('.env.enc').size > 0) {
+  process.stdout.write('Enter decryption password: ');
+  const stdin = process.stdin;
+  const isTTY = stdin.isTTY;
+  if (isTTY) (stdin as any).setRawMode?.(true);
+  const password = await new Promise<string>((resolve) => {
+    let buf = '';
+    const handler = (chunk: Buffer) => {
+      for (const c of chunk.toString()) {
+        if (c === '\r' || c === '\n') { stdin.off('data', handler); if (isTTY) (stdin as any).setRawMode?.(false); process.stdout.write('\n'); resolve(buf); return; }
+        if (c === '\x7f' || c === '\b') { buf = buf.slice(0, -1); continue; }
+        buf += c;
+      }
+    };
+    stdin.on('data', handler);
+  });
+  if (!password) { console.error('Password required'); process.exit(1); }
+  const proc = Bun.spawnSync(['openssl', 'enc', '-d', '-aes-256-cbc', '-salt', '-pbkdf2', '-in', '.env.enc', '-pass', `pass:${password}`]);
+  if (proc.exitCode !== 0) { console.error('Wrong password or corrupted .env.enc'); process.exit(1); }
+  for (const line of proc.stdout.toString().split('\n')) {
+    const t = line.trim();
+    if (!t || t.startsWith('#')) continue;
+    const i = t.indexOf('=');
+    if (i > 0) process.env[t.substring(0, i).trim()] = t.substring(i + 1).trim();
+  }
+  console.log('Environment decrypted from .env.enc');
+}
+
 const db = new Database('users.db');
 const FILES_DIR = './data/files';
 const STORAGE_LIMIT = 100 * 1024 * 1024;
@@ -74,10 +103,18 @@ async function getAdmin(headers) {
   return pass === adminPass ? 'admin' : null;
 }
 
-const app = new Elysia()
+const app = new Elysia({ maxBodySize: 1024 * 1024 })
   .use(cors())
-  .post('/api/register', async ({ body, path }) => {
+  .post('/api/register', async ({ body, path, request }) => {
     log('POST', path, null, `register ${body.username}`);
+    const regIP = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const regLog = globalThis.__regLog || (globalThis.__regLog = new Map());
+    const regNow = Date.now();
+    if (!regLog.has(regIP)) regLog.set(regIP, []);
+    const regHits = regLog.get(regIP).filter(t => regNow - t < 3600000);
+    if (regHits.length >= 3) return { error: 'Too many registrations from this IP. Try later.' };
+    regHits.push(regNow);
+    regLog.set(regIP, regHits);
     if (!isValidUsername(body.username)) return { error: 'Username must be 3-32 chars, alphanumeric, underscore, or hyphen' };
     if (!isValidPassword(body.password)) return { error: 'Password must be at least 6 characters' };
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(body.username);
@@ -307,9 +344,12 @@ const app = new Elysia()
     hits.push(now);
     aiLog.set(rlKey, hits);
 
-    const { mode, description, schema } = body;
+    let { mode, description, schema } = body;
     if (!description) return { error: 'Please provide a description' };
     if (description.length > 2000) return { error: 'Description too long (max 2000 chars)' };
+    if (/^[\d\s+\-*/()]+$/.test(description.trim()) && mode !== 'fix') {
+      return { sql: 'SELECT ' + description.trim() + ';' };
+    }
 
     const GENERATE_PROMPT = `SQLite. Output ONLY SQL. No markdown/backticks/explanations.\n\n- Compute metrics with aggregates, never alias a schema column to match a description term\n- Pre-compute all transformed values in CTEs. Never put functions in JOIN conditions\n- Pipeline: filter → aggregate → rank → join\n- ROW_NUMBER() with tiebreaker for highest/lowest, HAVING COUNT(*) >= N for "at least N"\n- INNER JOIN between CTEs, EXISTS for cross-table, window functions over self-joins\n- Qualify columns, COUNT(*) over COUNT(column), SELECT * only when asked\n- Percentages: (value * 100.0 / total) ROUND to 2 decimals. ORDER BY always includes tiebreaker (col, name or id)\n- When comparing across time periods, pre-compute next/prev period columns in the base CTE, then JOIN on those columns directly\n- Use CROSS JOIN for single-row bounds CTEs, never SELECT subqueries in WHERE\n- If date math is needed, do it once in a CTE and reference the result column\n- When ranking best/worst from time series, source from the base monthly CTE (not the growth CTE) since first period has no delta but is still eligible\n\nExample 1: "total salary budget" → SUM(salary), not a budget column\nExample 2: "customers in both this month and next" → add next_month = date(month||'-01','+1 month') in the CTE, then JOIN ON m2.month = m1.next_month\nExample 3: "month-over-month growth" → in monthly CTE add prev_month = strftime('%Y-%m', date(month||'-01','-1 month')), then self-join ON m1.prev_month = m2.month`;
 
