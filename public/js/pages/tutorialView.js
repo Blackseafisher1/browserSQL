@@ -331,7 +331,8 @@ export async function initTutorialMode() {
   const panel = getPanel();
   panel.start?.addEventListener('click', (e) => {
     e.stopPropagation();
-    startTutorialMode(true);
+    const hasProgress = Object.keys(loadCompletion()).length > 0;
+    startTutorialMode(!hasProgress);
   });
   panel.end?.addEventListener('click', (e) => {
     e.stopPropagation();
