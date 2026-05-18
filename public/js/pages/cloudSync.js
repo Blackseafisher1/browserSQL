@@ -313,6 +313,12 @@ async function doImport() {
     const prog = await api('/api/progress');
     const data = prog.completed || prog;
     localStorage.setItem('browsersql-tutorial-complete', JSON.stringify(data));
+    const { refreshCompletion } = await import('./tutorialView.js');
+    if (refreshCompletion) refreshCompletion();
+    // Advance step to first incomplete lesson
+    const { lessons } = await import('./lessons/index.js');
+    const firstIncomplete = lessons.findIndex((l, i) => !data[i]);
+    if (firstIncomplete >= 0) localStorage.setItem('browsersql-tutorial-step', String(firstIncomplete));
     parts.push('progress');
   } catch (_) {}
 

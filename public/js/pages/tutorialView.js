@@ -32,6 +32,10 @@ function loadCompletion() {
   try { return JSON.parse(localStorage.getItem(COMPLETE_KEY)) || {}; } catch { return {}; }
 }
 
+export function refreshCompletion() {
+  completion = loadCompletion();
+}
+
 function saveCompletion() {
   localStorage.setItem(COMPLETE_KEY, JSON.stringify(completion));
 }
