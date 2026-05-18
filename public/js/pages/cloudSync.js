@@ -198,9 +198,10 @@ export async function loadFromCloud() {
   if (!user) throw new Error('Not logged in');
 
   setStatus('Fetching cloud data...');
-  const fileList = await api('/api/files');
+  let fileList = await api('/api/files');
+  if (!Array.isArray(fileList)) fileList = [];
   console.log('[cloud] server files:', fileList.map(f => f.name));
-
+ 
   const dbFiles = fileList.filter(f => f.name.endsWith('.db.json'));
   const hasFiles = fileList.some(f => f.name === 'files.zip');
 
@@ -339,7 +340,8 @@ async function showManageModal() {
   modal.classList.remove('hidden');
 
   try {
-    const fileList = await api('/api/files');
+    let fileList = await api('/api/files');
+    if (!Array.isArray(fileList)) fileList = [];
     list.innerHTML = '';
     if (fileList.length === 0) {
       list.innerHTML = '<span style="color:var(--color-text-muted)">No files in cloud</span>';
