@@ -70,7 +70,7 @@ Most online SQL editors are ephemeral — close the tab, lose your work. browser
 
 ### Admin Panel
 - Separate page at `/admin` (or `public/admin/` on GitHub Pages)
-- Password gate (`55494612!enes`)
+- Password gate 
 - List all users, expand to see their files with sizes
 - Delete individual files, delete entire users, **reset everything** (wipes all users + files)
 
