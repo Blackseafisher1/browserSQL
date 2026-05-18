@@ -163,6 +163,11 @@ export async function syncToCloud() {
       } catch (e) { console.error('[cloud] DB upload FAILED:', row.name, e); fail++; }
     }
     setStatus(`Uploaded ${ok} DBs${skipped ? ` (${skipped} blocked)` : ''}${fail ? ` (${fail} failed)` : ''}`);
+    // Sync tutorial progress
+    const prog = localStorage.getItem('browsersql-tutorial-complete');
+    if (prog) {
+      try { await api('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: prog }); } catch (_) {}
+    }
   } catch (e) { console.error('[cloud] DB section failed:', e); setStatus('DB upload error: ' + e.message); }
 }
 
@@ -301,6 +306,14 @@ async function doImport() {
       parts.push(`${Object.keys(cloudFiles).length} files`);
     } catch (e) { console.error('[cloud] files import FAILED:', e); parts.push('files failed'); }
   }
+
+  // Sync tutorial progress
+  try {
+    const prog = await api('/api/progress');
+    const data = prog.completed || prog;
+    localStorage.setItem('browsersql-tutorial-complete', JSON.stringify(data));
+    parts.push('progress');
+  } catch (_) {}
 
   setStatus(`Imported: ${parts.join(', ')}`);
 }
