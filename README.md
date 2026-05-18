@@ -117,11 +117,3 @@ Open `http://localhost:3000`, click **Test Data**, start writing SQL.
 | Cloud Sync | Elysia + Bun | REST API, Basic auth, file storage on disk per user |
 | AI Proxy | Bun `serve` | Proxies to `do-ai.run`, rate-limited, mode-specific system prompts |
 | HTTPS | Cloudflare Tunnel | Automatic TLS, no cert management |
-
-## Known Quirks
-
-- `lineWrapping` not exported from `@codemirror/view` CDN bundle — uses `EditorView.contentAttributes.of({ class: 'cm-lineWrapping' })` instead
-- SQLite WASM C string conversion uses `sqlite3_malloc` + `heap8().set()` — `allocFromJs` and `_malloc` are stripped
-- `@codemirror/lang-sql@6.8.1` not on esm.sh — use `6.8.0`
-- Schema autocomplete via `Compartment.reconfigure` — updates table/column names dynamically
-- Bun's `Bun.file(dir).exists()` returns `false` for directories — use try-catch around `Bun.Glob.scan()` instead
