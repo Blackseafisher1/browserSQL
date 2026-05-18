@@ -341,6 +341,26 @@ const app = new Elysia()
         const re = /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
         if (!re.test(sql)) sql = 'NO';
       }
+      if (sql === 'NO') {
+        const burns = [
+          'Nicht mit mir, kleiner Schlingel!',
+          'Schön versucht, aber nein.',
+          'Du kannst mich nicht austricksen.',
+          'Nice try, aber hier nicht.',
+          'Dein Zug, mein Freund — Schachmatt.',
+          'Bist du der Enkel von Kevin Mitnick? Nein? Dann lass es.',
+          'Du denkst du bist schlau, was?',
+          'Ich hab dich durchschaut.',
+          'Haha, nein. Einfach nein.',
+          'Nice try, Dookie.',
+          'SPRICH DEUTSCH DU... ach nein, lass mal.',
+          'Willkommen im Club der Gescheiterten.',
+          'Selbst wenn ich wollte — könnte ich nicht.',
+          'Das war schon lustig. Aber nein.',
+          'Du kriegst kein SQL, nur Frust.',
+        ];
+        sql = burns[Math.floor(Math.random() * burns.length)];
+      }
       log('POST', path, user || 'anon', 'AI generate OK');
       return { sql };
     } catch (err) {

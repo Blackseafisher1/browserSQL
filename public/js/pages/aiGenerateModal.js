@@ -31,10 +31,11 @@ function trackLocalRequest() {
 }
 
 function updateRateDisplay() {
-  const list = getLocalRequests();
-  const remaining = Math.max(0, RATE_LIMIT - list.length);
-  rateInfo.textContent = `⚡ ${remaining}/${RATE_LIMIT} requests available (resets in 60s)`;
-  rateInfo.style.color = remaining < 5 ? 'var(--color-error)' : remaining < 10 ? 'var(--color-accent)' : 'var(--color-text-muted)';
+  const token = localStorage.getItem('browsersql-cloud-token');
+  const isAuthed = !!token;
+  const limit = isAuthed ? 35 : 15;
+  rateInfo.textContent = `⚡ ${limit}/h limit (${isAuthed ? 'logged in' : 'not logged in'})`;
+  rateInfo.style.color = 'var(--color-text-muted)';
 }
 
 function buildSchemaString() {
