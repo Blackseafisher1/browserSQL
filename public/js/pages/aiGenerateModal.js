@@ -119,7 +119,7 @@ async function handleGenerate() {
     const schema = schemaCb.checked ? buildSchemaString() : '';
     const body = { mode, description };
     if (schema) body.schema = schema;
-    const res = await fetch('https://ideaboard.site', {
+    const res = await fetch('https://ideaboard.site/api/ai/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
