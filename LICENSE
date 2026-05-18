@@ -1,62 +1,108 @@
-Copyright (c) [2026] [EGE KARADENIZ]
+**Copyright (c) 2026 EGE KARADENIZ**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, **subject to the following conditions**:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, **subject to the following conditions**:
 
-1. **No Commercial Use.**  
-   You may not use, copy, modify, or distribute the Software, or any derivative
-   work thereof, **for any commercial purpose**.  
-   A "commercial purpose" means any use that is primarily intended for or
-   directed toward commercial advantage or monetary compensation, including
-   but not limited to:
-   - Selling, licensing, or renting the Software or a derivative work
-   - Using the Software as part of a paid service or product
-   - Using the Software within a business to generate revenue
-   - Incorporating the Software into any software that is sold or used
-     for a fee
 
-   **Private, non‑commercial, and academic use** (without any monetary
-   compensation) is permitted.
 
-2. **Copyleft (Same License).**  
-   Any derivative work of this Software must be distributed under **exactly
-   the same license terms** as this Software. You may not add or remove any
-   restrictions from this license when distributing modified versions.
+### 1. No Commercial Use
 
-3. **Disclose Source.**  
-   If you distribute the Software or any derivative work (in source or
-   executable form), you must make the complete corresponding source code
-   available to the recipient under the same license terms.
+You may not use, copy, modify, merge, publish, distribute, sublicense, or sell the Software or any derivative work thereof **for any commercial purpose**.
 
-4. **State Changes.**  
-   You must clearly mark any modified files, and include a summary of the
-   changes made.
+A “commercial purpose” means any use that is primarily intended for or directed toward commercial advantage or monetary compensation, including but not limited to:
 
-5. **License and Copyright Notice.**  
-   You must retain all copyright notices and a copy of this license in all
-   copies or substantial portions of the Software.
+- Selling, licensing, or renting the Software or a derivative work
+- Using the Software as part of a paid service, subscription, or product
+- Using the Software within any for‑profit organization to generate revenue
+- Incorporating the Software into any software that is sold, licensed, or used for a fee
+- Using the Software to provide or support any service for which a fee is charged, whether directly or indirectly
 
-6. **No Patent Grant.**  
-   This license does not grant you any patent rights, nor any implied license
-   to use any patented technology.
+**Private, non‑commercial, academic, and charitable use** (without any monetary compensation, whether direct or indirect) is expressly permitted.
 
-7. **No Warranty & Limitation of Liability.**  
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-   SOFTWARE.
+*Any use that falls outside this grant is strictly prohibited and constitutes copyright infringement under applicable law.*
 
-8. **Attribution / Credit to Creator.**  
-   Any public use, distribution, or derivative work must include a visible
-   credit to the original author(s) in the following form:  
-   "This software uses code originally written by [NAME/YEAR]."
+---
 
-9. **Governing Law.**  
-   This license shall be governed by the laws of Germany, excluding its
-   conflict‑of‑law provisions.
+### 2. Copyleft – Same License
+
+Any derivative work of the Software must be distributed under **exactly the same license terms** as this Software.
+
+You may not add, remove, or alter any restrictions when distributing the Software or any modified version. You may not re‑license the Software or any derivative work under any other license.
+
+This obligation applies to both source and executable forms.
+
+---
+
+### 3. Disclose Source
+
+If you distribute the Software or any derivative work (in source or executable form), you must make the complete corresponding source code available to the recipient under the same license terms.
+
+The source code must be provided in a commonly used, machine‑readable format, and at no additional charge beyond the reasonable cost of physical transfer.
+
+This obligation applies to all modified versions, including partial copies, regardless of how they are packaged or combined with other code.
+
+---
+
+### 4. State Changes
+
+You must clearly mark any modified files and include a prominent summary of the changes made, including the date of modification and the nature of the changes.
+
+This notice must be included in the modified source code and in any accompanying documentation.
+
+---
+
+### 5. License and Copyright Notice
+
+You must retain all copyright notices, this license, and the attribution required by Section 8 in all copies or substantial portions of the Software.
+
+You must ensure that any recipient of the Software is made aware of these license terms and their obligations.
+
+---
+
+### 6. No Patent Grant
+
+This license does not grant you any patent rights, nor any implied license to use any patented technology that may be embodied in the Software.
+
+You are solely responsible for obtaining any necessary patent licenses.
+
+---
+
+### 7. No Warranty & Limitation of Liability
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON‑INFRINGEMENT.
+
+TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+**Nothing in this Section 7 shall exclude or limit liability for:**
+
+- **(a)** damages arising from injury to life, body, or health
+- **(b)** intent (*Vorsatz*) or gross negligence (*grobe Fahrlässigkeit*)
+- **(c)** any liability that cannot be excluded or limited by mandatory applicable law, including liability under the German Product Liability Act (*Produkthaftungsgesetz*).
+
+---
+
+### 8. Attribution / Credit to Creator
+
+Any public use, distribution, or derivative work must include a visible and permanent credit to the original author(s), in the following form:
+
+> “This software uses code originally written by EGE KARADENIZ (2026).”
+
+This attribution must appear in the user interface (e.g., in an “About” dialog, settings page, or splash screen) and in the documentation.
+
+For embedded or server‑side use where no user interface is displayed, the attribution must be included in the source code header and in any publicly accessible repository or documentation.
+
+Failure to provide proper attribution revokes all rights granted by this license.
+
+---
+
+### 9. Severability
+
+If any provision of this license is held to be unenforceable or invalid by a court of competent jurisdiction, that provision shall be modified to the minimum extent necessary to make it enforceable. If modification is not possible, the provision shall be severed, and the remaining provisions shall remain in full force and effect.
+
+---
+
+### 10. Governing Law
+
+This license shall be governed by and construed in accordance with the laws of the Federal Republic of Germany, excluding its conflict‑of‑law provisions and the United Nations Convention on Contracts for the International Sale of Goods (CISG).
+
+The courts of Germany shall have exclusive jurisdiction over any disputes arising from or in connection with this license.
+
