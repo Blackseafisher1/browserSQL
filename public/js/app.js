@@ -34,6 +34,8 @@ function toggleTheme() {
   localStorage.setItem(STORAGE_KEY, next);
 }
 
+window.toggleTheme = toggleTheme;
+
 /**
  * Bootstraps the full browserSQL application.
  */
