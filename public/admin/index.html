@@ -12,6 +12,7 @@ h1{font-size:1.5rem;margin-bottom:1rem}
 input{padding:.5rem;background:#222;border:1px solid #444;color:#eee;border-radius:4px;flex:1}
 button{padding:.5rem 1rem;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer}
 button.danger{background:#ef4444}
+button.warning{background:#f59e0b;color:#000}
 .user{border:1px solid #333;border-radius:6px;margin-bottom:.5rem;overflow:hidden}
 .user-header{display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;cursor:pointer;background:#1a1a1a}
 .user-header:hover{background:#222}
@@ -30,6 +31,7 @@ button.danger{background:#ef4444}
 .storage-fill{height:100%;background:#3b82f6;border-radius:2px;transition:width .3s}
 .storage-fill.warning{background:#f59e0b}
 .storage-fill.danger{background:#ef4444}
+.toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -40,6 +42,9 @@ button.danger{background:#ef4444}
 </div>
 <div id="error" class="error"></div>
 <div id="success" class="success"></div>
+<div id="toolbar" class="toolbar hidden">
+  <button class="danger" onclick="resetAll()">🗑 Reset Everything</button>
+</div>
 <div id="content"></div>
 
 <script>
@@ -64,7 +69,6 @@ function fmtBytes(n) {
 }
 
 function storagePct(n) { return Math.min(100, (n / STORAGE_LIMIT) * 100); }
-
 function storageClass(n) {
   const pct = storagePct(n);
   if (pct > 90) return 'danger';
@@ -80,6 +84,7 @@ async function login() {
     const r = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: pw }) });
     sessionStorage.setItem('admin_token', r.token);
     document.getElementById('login').classList.add('hidden');
+    document.getElementById('toolbar').classList.remove('hidden');
     loadUsers();
   } catch (e) { document.getElementById('error').textContent = e.message; }
 }
@@ -97,7 +102,7 @@ async function loadUsers() {
       html += '<div class="user">';
       html += '<div class="user-header" onclick="toggleUser(this)">';
       html += '<h2>' + u.name + ' <span style="font-weight:400;color:#888;font-size:.85rem">' + u.files + ' files &middot; ' + fmtBytes(u.storage) + ' / 100 MB</span></h2>';
-      html += '<span class="arrow">▸</span>';
+      html += '<div style="display:flex;align-items:center;gap:4px"><button class="danger" style="font-size:10px;padding:2px 6px" onclick="event.stopPropagation();delUser(\'' + u.name + '\')">Delete User</button><span class="arrow">▸</span></div>';
       html += '</div>';
       html += '<div style="padding:0 1rem .3rem"><div class="storage-bar"><div class="storage-fill ' + cls + '" style="width:' + pct + '%"></div></div></div>';
       html += '<div class="user-body collapsed" id="body-' + u.name.replace(/[^a-zA-Z0-9]/g,'') + '">';
@@ -121,7 +126,7 @@ async function loadUserFiles(username) {
       return;
     }
     body.innerHTML = files.map(f =>
-      '<div class="file"><span>' + f.name + '</span><button class="danger" onclick="del(\'' + username + '\',\'' + f.name.replace(/'/g, "\\'") + '\')">Delete</button></div>'
+      '<div class="file"><span>' + f.name + ' <span style="color:#666;font-size:.8rem">' + fmtBytes(f.size) + '</span></span><button class="danger" onclick="del(\'' + username + '\',\'' + f.name.replace(/'/g, "\\'") + '\')">Delete</button></div>'
     ).join('');
   } catch (e) {
     loadEl.remove();
@@ -147,8 +152,32 @@ async function del(user, name) {
   } catch (e) { document.getElementById('error').textContent = e.message; }
 }
 
+async function delUser(username) {
+  if (!confirm('Delete user "' + username + '" and ALL their files? This cannot be undone.')) return;
+  document.getElementById('success').textContent = '';
+  try {
+    await api('/api/admin/user/' + encodeURIComponent(username), { method: 'DELETE' });
+    document.getElementById('success').textContent = 'Deleted user ' + username;
+    setTimeout(() => document.getElementById('success').textContent = '', 3000);
+    loadUsers();
+  } catch (e) { document.getElementById('error').textContent = e.message; }
+}
+
+async function resetAll() {
+  if (!confirm('DELETE ALL USERS AND FILES? This cannot be undone!')) return;
+  if (!confirm('Are you REALLY sure? Every user, every file will be gone.')) return;
+  document.getElementById('success').textContent = '';
+  try {
+    const r = await api('/api/admin/reset', { method: 'POST' });
+    document.getElementById('success').textContent = r.message || 'Reset complete';
+    setTimeout(() => document.getElementById('success').textContent = '', 3000);
+    loadUsers();
+  } catch (e) { document.getElementById('error').textContent = e.message; }
+}
+
 if (sessionStorage.getItem('admin_token')) {
   document.getElementById('login').classList.add('hidden');
+  document.getElementById('toolbar').classList.remove('hidden');
   loadUsers();
 }
 </script>

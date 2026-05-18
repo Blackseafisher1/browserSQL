@@ -66,7 +66,7 @@ async function getAdmin(headers) {
   if (!auth?.startsWith('Basic ')) return null;
   const [user, pass] = atob(auth.replace('Basic ', '')).split(':');
   if (user !== 'admin') return null;
-  const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminPass = process.env.ADMIN_PASSWORD || '55494612!enes';
   return pass === adminPass ? 'admin' : null;
 }
 
@@ -214,7 +214,7 @@ const app = new Elysia()
     return { success: true };
   })
   .post('/api/admin/login', async ({ body, path }) => {
-    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPass = process.env.ADMIN_PASSWORD || '55494612!enes';
     if (body.password !== adminPass) return { error: 'Invalid admin password' };
     log('POST', path, null, 'admin login');
     return { success: true, token: btoa('admin:' + adminPass) };
@@ -255,6 +255,24 @@ const app = new Elysia()
     await Bun.$`rm -f ${FILES_DIR}/${params.user}/${params.name}`.quiet();
     log('DELETE', path, admin, `deleted ${params.name} for user ${params.user}`);
     return { success: true };
+  })
+  .delete('/api/admin/user/:username', async ({ headers, params, path }) => {
+    const admin = await getAdmin(headers);
+    if (!admin) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const dir = `${FILES_DIR}/${params.username}`;
+    if (await Bun.file(dir).exists()) await Bun.$`rm -rf ${dir}`.quiet();
+    db.run('DELETE FROM users WHERE username = ?', [params.username]);
+    log('DELETE', path, admin, `deleted user ${params.username}`);
+    return { success: true };
+  })
+  .post('/api/admin/reset', async ({ headers, path }) => {
+    const admin = await getAdmin(headers);
+    if (!admin) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    await Bun.$`rm -rf ${FILES_DIR}`.quiet();
+    await Bun.$`mkdir -p ${FILES_DIR}`.quiet();
+    db.run('DELETE FROM users');
+    log('POST', path, admin, 'COMPLETE RESET');
+    return { success: true, message: 'All users and files deleted' };
   })
   .listen(8081);
 
