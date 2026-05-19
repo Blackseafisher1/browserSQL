@@ -36,12 +36,12 @@ const FILES_DIR = './data/files';
 const STORAGE_LIMIT = 100 * 1024 * 1024;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = ['.sql', '.js', '.md', '.json', '.txt', '.csv', '.zip', '.progress'];
+const SESSION_DAYS = 30;
 
 // ── Database schema & migration ───────────────────────────────
 db.run('PRAGMA journal_mode=WAL');
 db.run('PRAGMA foreign_keys=ON');
 
-// Create sessions table first (referenced later)
 db.run(`CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   username TEXT NOT NULL,
@@ -49,7 +49,6 @@ db.run(`CREATE TABLE IF NOT EXISTS sessions (
   expires_at INTEGER
 )`);
 
-// Create file_metadata table
 db.run(`CREATE TABLE IF NOT EXISTS file_metadata (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL,
@@ -60,14 +59,12 @@ db.run(`CREATE TABLE IF NOT EXISTS file_metadata (
 )`);
 db.run(`CREATE INDEX IF NOT EXISTS idx_file_meta_user ON file_metadata(username)`);
 
-// Migrate old users table (TEXT PK) → new with INTEGER PK, then drop old
 db.run(`CREATE TABLE IF NOT EXISTS users_v2 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now'))
 )`);
-// Check if old users table exists and migrate data
 const hasOldUsers = db.query(`SELECT name FROM sqlite_master WHERE type='table' AND name='users'`).get();
 if (hasOldUsers) {
   db.run(`INSERT OR IGNORE INTO users_v2 (username, password_hash, created_at) SELECT username, password_hash, created_at FROM users`);
@@ -108,62 +105,65 @@ async function hashPassword(password: string) {
 }
 
 function generateToken(): string {
-  const buf = new Uint8Array(32);
-  crypto.getRandomValues(buf);
-  return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const buf = new Uint8Array(32);
+    crypto.getRandomValues(buf);
+    const token = Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (!db.query('SELECT 1 FROM sessions WHERE token = ?').get(token)) return token;
+  }
+  throw new Error('Failed to generate unique token');
+}
+
+function createSession(username: string): string {
+  const token = generateToken();
+  const expires = Math.floor(Date.now() / 1000) + SESSION_DAYS * 86400;
+  db.run('INSERT INTO sessions (token, username, expires_at) VALUES (?, ?, ?)', [token, username, expires]);
+  return token;
 }
 
 function getUser(headers: Record<string, string | undefined>): string | null {
   const auth = headers['authorization'];
-  if (!auth) return null;
-  if (auth.startsWith('Bearer ')) {
-    const token = auth.slice(7);
-    const row = db.query('SELECT username FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > unixepoch())').get(token) as { username: string } | undefined;
-    return row?.username || null;
-  }
-  return null;
+  if (!auth?.startsWith('Bearer ')) return null;
+  const token = auth.slice(7);
+  const row = db.query('SELECT username FROM sessions WHERE token = ? AND expires_at > unixepoch()').get(token) as { username: string } | undefined;
+  return row?.username || null;
 }
 
 async function getUserByCredentials(headers: Record<string, string | undefined>): Promise<string | null> {
   const auth = headers['authorization'];
   if (!auth) return null;
-  // First try Bearer token
   if (auth.startsWith('Bearer ')) {
     const token = auth.slice(7);
-    const row = db.query('SELECT username FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > unixepoch())').get(token) as { username: string } | undefined;
+    const row = db.query('SELECT username FROM sessions WHERE token = ? AND expires_at > unixepoch()').get(token) as { username: string } | undefined;
     return row?.username || null;
-  }
-  // Then try Basic auth (for backwards compatibility)
-  if (auth.startsWith('Basic ')) {
-    const [user, pass] = atob(auth.slice(6)).split(':');
-    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user) as { password_hash: string } | undefined;
-    if (!row) return null;
-    return (await Bun.password.verify(pass, row.password_hash)) ? user : null;
   }
   return null;
 }
 
-function getAdmin(headers: Record<string, string | undefined>): string | null {
+function invalidateSession(headers: Record<string, string | undefined>): boolean {
   const auth = headers['authorization'];
-  if (!auth?.startsWith('Basic ')) return null;
-  const [user, pass] = atob(auth.slice(6)).split(':');
-  if (user !== 'admin') return null;
-  const adminPass = process.env.ADMIN_PASSWORD;
-  if (!adminPass) return null;
-  return pass === adminPass ? 'admin' : null;
+  if (!auth?.startsWith('Bearer ')) return false;
+  const token = auth.slice(7);
+  db.run('DELETE FROM sessions WHERE token = ?', [token]);
+  return true;
 }
 
 // ── Storage ───────────────────────────────────────────────────
-function getFileMetadata(username: string, filename: string) {
-  return db.query('SELECT size_bytes FROM file_metadata WHERE username = ? AND filename = ?').get(username, filename) as { size_bytes: number } | undefined;
+function withRetry<T>(fn: () => T): T {
+  for (let i = 0; i < 3; i++) { try { return fn(); } catch (e) { if (i === 2) throw e; } }
+  throw new Error('unreachable');
 }
 
 function upsertFileMeta(username: string, filename: string, size: number) {
-  db.run(`INSERT OR REPLACE INTO file_metadata (username, filename, size_bytes, last_modified) VALUES (?, ?, ?, unixepoch())`, [username, filename, size]);
+  withRetry(() => {
+    db.run('INSERT OR REPLACE INTO file_metadata (username, filename, size_bytes, last_modified) VALUES (?, ?, ?, unixepoch())', [username, filename, size]);
+  });
 }
 
 function deleteFileMeta(username: string, filename: string) {
-  db.run('DELETE FROM file_metadata WHERE username = ? AND filename = ?', [username, filename]);
+  withRetry(() => {
+    db.run('DELETE FROM file_metadata WHERE username = ? AND filename = ?', [username, filename]);
+  });
 }
 
 function getUserStorage(username: string): number {
@@ -200,8 +200,7 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     if (exists) return { error: 'User exists' };
     const hash = await hashPassword(body.password);
     db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', [body.username, hash]);
-    const token = generateToken();
-    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, body.username]);
+    const token = createSession(body.username);
     return { success: true, token, username: body.username };
   }, {
     body: t.Object({ username: t.String(), password: t.String() })
@@ -214,9 +213,25 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     if (!row) return { error: 'Invalid credentials' };
     const valid = await Bun.password.verify(body.password, row.password_hash);
     if (!valid) return { error: 'Invalid credentials' };
-    const token = generateToken();
-    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, body.username]);
+    const token = createSession(body.username);
     return { token, username: body.username };
+  })
+
+  // ── Admin login ───────────────────────────────────────────────
+  .post('/api/admin/login', async ({ body, path }) => {
+    const adminPass = process.env.ADMIN_PASSWORD;
+    if (!adminPass || body.password !== adminPass) return { error: 'Invalid admin password' };
+    log('POST', path, null, 'admin login');
+    const token = createSession('admin');
+    return { success: true, token, username: 'admin' };
+  }, {
+    body: t.Object({ password: t.String() })
+  })
+
+  // ── Logout ────────────────────────────────────────────────────
+  .delete('/api/sessions', async ({ headers, path }) => {
+    if (invalidateSession(headers)) { log('DELETE', path, null, 'logged out'); return { success: true }; }
+    return { error: 'Not authenticated' };
   })
 
   // ── List files ────────────────────────────────────────────────
@@ -241,7 +256,7 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
   })
 
   // ── Upload file ───────────────────────────────────────────────
-  .post('/api/files/:name', async ({ headers, params, path, body, request }) => {
+  .post('/api/files/:name', async ({ headers, params, path, body }) => {
     const user = await getUserByCredentials(headers);
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isAllowedFilename(params.name) || !isSafePath(params.name)) {
@@ -255,28 +270,40 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     }
     const dir = `${FILES_DIR}/${user}`;
     await Bun.$`mkdir -p ${dir}`.quiet();
-    const existing = getFileMetadata(user, params.name);
-    const existingSize = existing ? existing.size_bytes : 0;
-    let used = getUserStorage(user) - existingSize;
-    if (used + actualBytes > STORAGE_LIMIT) {
-      const mb = (n: number) => (n / 1024 / 1024).toFixed(1);
-      log('POST', path, user, `STORAGE LIMIT: ${mb(used)}MB + ${mb(actualBytes)}MB > ${mb(STORAGE_LIMIT)}MB`);
-      return { error: `Storage limit reached (${mb(used)}MB / ${mb(STORAGE_LIMIT)}MB). Delete cloud files first.` };
-    }
-    const tmp = `${dir}/.tmp_${Date.now()}_${params.name}`;
-    let success = false;
+
+    // Atomic storage check + metadata update in transaction
     try {
-      await Bun.write(tmp, body.content);
-      await Bun.$`mv ${tmp} ${dir}/${params.name}`.quiet();
-      upsertFileMeta(user, params.name, actualBytes);
-      success = true;
-      log('POST', path, user, sanitizeLog('saved ' + params.name + ' (' + actualBytes + ' bytes)'));
-      return { success: true };
+      db.run('BEGIN IMMEDIATE');
+      const existingRow = db.query('SELECT size_bytes FROM file_metadata WHERE username = ? AND filename = ?').get(user, params.name) as { size_bytes: number } | undefined;
+      const existingSize = existingRow?.size_bytes || 0;
+      const used = db.query('SELECT COALESCE(SUM(size_bytes), 0) as total FROM file_metadata WHERE username = ?').get(user) as { total: number };
+      const currentUsage = used.total - existingSize;
+      if (currentUsage + actualBytes > STORAGE_LIMIT) {
+        db.run('ROLLBACK');
+        const mb = (n: number) => (n / 1024 / 1024).toFixed(1);
+        log('POST', path, user, `STORAGE LIMIT: ${mb(currentUsage)}MB + ${mb(actualBytes)}MB > ${mb(STORAGE_LIMIT)}MB`);
+        return { error: `Storage limit reached (${mb(currentUsage)}MB / ${mb(STORAGE_LIMIT)}MB). Delete cloud files first.` };
+      }
+      const tmp = `${dir}/.tmp_${Date.now()}_${params.name}`;
+      let writeOk = false;
+      try {
+        await Bun.write(tmp, body.content);
+        await Bun.$`mv ${tmp} ${dir}/${params.name}`.quiet();
+        writeOk = true;
+        db.run('INSERT OR REPLACE INTO file_metadata (username, filename, size_bytes, last_modified) VALUES (?, ?, ?, unixepoch())', [user, params.name, actualBytes]);
+        db.run('COMMIT');
+        log('POST', path, user, sanitizeLog('saved ' + params.name + ' (' + actualBytes + ' bytes)'));
+        return { success: true };
+      } catch (e: any) {
+        if (!writeOk) await Bun.$`rm -f ${tmp}`.quiet().catch(() => {});
+        db.run('ROLLBACK');
+        log('POST', path, user, sanitizeLog('write FAILED: ' + e.message));
+        return { error: 'Failed to save file' };
+      }
     } catch (e: any) {
-      log('POST', path, user, sanitizeLog('write FAILED: ' + e.message));
-      return { error: 'Failed to save file' };
-    } finally {
-      if (!success) await Bun.$`rm -f ${tmp}`.quiet().catch(() => {});
+      db.run('ROLLBACK');
+      log('POST', path, user, sanitizeLog('DB error: ' + e.message));
+      return { error: 'Database error' };
     }
   }, {
     body: t.Object({ content: t.String() })
@@ -302,10 +329,8 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     if (!valid) return { error: 'Invalid password' };
     const hash = await hashPassword(body.newPassword);
     db.run('UPDATE users SET password_hash = ? WHERE username = ?', [hash, user]);
-    // Revoke all old sessions, create new one
     db.run('DELETE FROM sessions WHERE username = ?', [user]);
-    const token = generateToken();
-    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, user]);
+    const token = createSession(user);
     log('POST', path, user, 'password changed');
     return { success: true, token, username: user };
   }, {
@@ -325,17 +350,14 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(newName);
     if (exists) return { error: 'Username taken' };
     db.run('UPDATE users SET username = ? WHERE username = ?', [newName, user]);
-    // Update file_metadata and session usernames
     db.run('UPDATE file_metadata SET username = ? WHERE username = ?', [newName, user]);
-    db.run('UPDATE sessions SET username = ? WHERE username = ?', [newName, user]);
-    // Move files directory
+    db.run('DELETE FROM sessions WHERE username = ?', [user]);
     const oldDir = `${FILES_DIR}/${user}`;
     const newDir = `${FILES_DIR}/${newName}`;
     if (await Bun.file(oldDir).exists()) {
       await Bun.$`mv ${oldDir} ${newDir}`.quiet();
     }
-    const token = generateToken();
-    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, newName]);
+    const token = createSession(newName);
     log('POST', path, user, sanitizeLog('renamed to ' + newName));
     return { success: true, token, username: newName };
   }, {
@@ -370,18 +392,10 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     return { success: true };
   })
 
-  // ── Admin ─────────────────────────────────────────────────────
-  .post('/api/admin/login', async ({ body, path }) => {
-    const adminPass = process.env.ADMIN_PASSWORD;
-    if (!adminPass || body.password !== adminPass) return { error: 'Invalid admin password' };
-    log('POST', path, null, 'admin login');
-    return { success: true, token: btoa('admin:' + adminPass) };
-  }, {
-    body: t.Object({ password: t.String() })
-  })
+  // ── Admin routes ──────────────────────────────────────────────
   .get('/api/admin/users', async ({ headers, path }) => {
-    const admin = getAdmin(headers);
-    if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const admin = getUser(headers);
+    if (admin !== 'admin') { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const rows = db.query('SELECT username FROM users ORDER BY username').all() as { username: string }[];
     const users = [];
     for (const r of rows) {
@@ -396,8 +410,8 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     return users;
   })
   .get('/api/admin/files/:user', async ({ headers, params, path }) => {
-    const admin = getAdmin(headers);
-    if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const admin = getUser(headers);
+    if (admin !== 'admin') { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isSafePath(params.user)) { log('GET', path, admin, sanitizeLog('BLOCKED PATH: ' + params.user)); return { error: 'Invalid path' }; }
     const files: { name: string; size: number }[] = [];
     try {
@@ -409,8 +423,8 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     return { files };
   })
   .delete('/api/admin/files/:user/:name', async ({ headers, params, path }) => {
-    const admin = getAdmin(headers);
-    if (!admin) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const admin = getUser(headers);
+    if (admin !== 'admin') { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isSafePath(params.user) || !isSafePath(params.name)) { log('DELETE', path, admin, sanitizeLog('BLOCKED PATH')); return { error: 'Invalid path' }; }
     await Bun.$`rm -f ${FILES_DIR}/${params.user}/${params.name}`.quiet();
     deleteFileMeta(params.user, params.name);
@@ -418,8 +432,8 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     return { success: true };
   })
   .delete('/api/admin/user/:username', async ({ headers, params, path }) => {
-    const admin = getAdmin(headers);
-    if (!admin) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    const admin = getUser(headers);
+    if (admin !== 'admin') { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isSafePath(params.username)) { log('DELETE', path, admin, sanitizeLog('BLOCKED PATH: ' + params.username)); return { error: 'Invalid path' }; }
     const dir = `${FILES_DIR}/${params.username}`;
     if (await Bun.file(dir).exists()) await Bun.$`rm -rf ${dir}`.quiet();
@@ -429,9 +443,10 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     log('DELETE', path, admin, sanitizeLog('deleted user ' + params.username));
     return { success: true };
   })
-  .post('/api/admin/reset', async ({ headers, path }) => {
-    const admin = getAdmin(headers);
-    if (!admin) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+  .post('/api/admin/reset', async ({ body, headers, path }) => {
+    const admin = getUser(headers);
+    if (admin !== 'admin') { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
+    if (!body.confirm) return { error: 'Must set confirm=true to reset' };
     await Bun.$`rm -rf ${FILES_DIR}`.quiet();
     await Bun.$`mkdir -p ${FILES_DIR}`.quiet();
     db.run('DELETE FROM file_metadata');
@@ -439,6 +454,8 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     db.run('DELETE FROM users');
     log('POST', path, admin, 'COMPLETE RESET');
     return { success: true, message: 'All users and files deleted' };
+  }, {
+    body: t.Object({ confirm: t.Boolean() })
   })
 
   // ── AI Generate ──────────────────────────────────────────────
@@ -508,6 +525,10 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
         const re = /^\s*(--|SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
         if (!re.test(sql)) sql = 'NO';
       }
+      // Also reject if AI tries to exfiltrate system prompt behind valid SQL
+      if (sql !== 'NO' && /\b(system prompt|your instructions|you are an? ai|your system prompt|the prompt above)\b/i.test(sql)) {
+        sql = 'NO';
+      }
       if (sql === 'NO') {
         const burns = [
           'Nicht mit mir, kleiner Schlingel!',
@@ -526,7 +547,7 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
           'Das war schon lustig. Aber nein.',
           'Du kriegst kein SQL, nur Frust.',
         ];
-        sql = burns[Math.floor(Math.random() * burns.length)];
+        sql = burns[Math.floor(Math.random() * burns.length)] + ' ;';
       }
       log('POST', path, user || 'anon', 'AI generate OK');
       return { sql };
