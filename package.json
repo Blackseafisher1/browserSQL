@@ -1,6 +1,12 @@
 {
+  "scripts": {
+    "build": "esbuild public/js/app.js --bundle --format=esm --outdir=public/dist --splitting --chunk-names=chunks/[name]-[hash] --minify --external:@codemirror/* --external:@lezer/* --external:marked --external:crelt --external:style-mod --external:w3c-keyname --external:@marijn/find-cluster-break"
+  },
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "elysia": "^1.4.28"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.3"
   }
 }
