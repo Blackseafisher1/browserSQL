@@ -7,19 +7,20 @@ const TOKEN_KEY = 'browsersql-cloud-token';
 
 function getToken() { return localStorage.getItem(TOKEN_KEY); }
 function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
-function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+function clearToken() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('browsersql-cloud-username'); }
 
 function parseUserFromToken() {
-  const t = getToken();
-  if (!t) return null;
-  try { return atob(t).split(':')[0]; } catch { return null; }
+  return localStorage.getItem('browsersql-cloud-username') || null;
 }
 
 async function api(path, options = {}) {
   const token = getToken();
   const headers = { ...options.headers };
-  if (token) headers['Authorization'] = 'Basic ' + token;
-  const res = await fetch(API_BASE + path, { ...options, headers });
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  const res = await fetch(API_BASE + path, { ...options, headers, signal: controller.signal });
+  clearTimeout(timer);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `HTTP ${res.status}`);
@@ -106,13 +107,14 @@ function initAuthModal() {
     const btn = document.getElementById('auth-submit');
     btn.disabled = true;
     try {
+      let res;
       if (isRegister) {
-        const reg = await api('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-        if (reg.error) throw new Error(reg.error);
+        res = await api('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        if (res.error) throw new Error(res.error);
       }
-      const login = await api('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-      if (login.error) throw new Error(login.error);
-      if (login.token) setToken(login.token);
+      res = await api('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      if (res.error) throw new Error(res.error);
+      if (res.token) { setToken(res.token); if (res.username) localStorage.setItem('browsersql-cloud-username', res.username); }
       hideAuthModal();
       updateUI();
     } catch (err) { document.getElementById('auth-error').textContent = err.message || String(err); }
@@ -166,7 +168,7 @@ export async function syncToCloud() {
     // Sync tutorial progress
     const prog = localStorage.getItem('browsersql-tutorial-complete');
     if (prog) {
-      try { await api('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: prog }); } catch (_) {}
+      try { await api('/api/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: prog }); } catch (e) { console.warn('[cloud] progress upload failed', e); }
     }
   } catch (e) { console.error('[cloud] DB section failed:', e); setStatus('DB upload error: ' + e.message); }
 }
@@ -263,7 +265,7 @@ async function doImport() {
         const data = hexToArray(res.content);
         const tx = idb.transaction('dbs', 'readwrite');
         tx.objectStore('dbs').put({ name: dbName, data, savedAt: Date.now() });
-        await new Promise(r => { tx.oncomplete = r; });
+        await new Promise((r, rej) => { tx.oncomplete = r; tx.onerror = () => rej(tx.error); });
         ok++;
       } catch (e) { console.error('[cloud] DB import FAILED:', dbName, e); fail++; }
     }
@@ -320,7 +322,7 @@ async function doImport() {
     const firstIncomplete = lessons.findIndex((l, i) => !data[i]);
     if (firstIncomplete >= 0) localStorage.setItem('browsersql-tutorial-step', String(firstIncomplete));
     parts.push('progress');
-  } catch (_) {}
+  } catch (e) { console.warn('[cloud] progress sync failed', e); }
 
   setStatus(`Imported: ${parts.join(', ')}`);
 }
@@ -408,7 +410,7 @@ export function initCloudSync() {
     try {
       const r = await api('/api/rename-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword, newUsername }) });
       if (r.error) throw new Error(r.error);
-      if (r.token) setToken(r.token);
+      if (r.token) { setToken(r.token); if (r.username) localStorage.setItem('browsersql-cloud-username', r.username); }
       document.getElementById('account-msg').textContent = '';
       hideAccountModal();
       updateUI();
@@ -422,7 +424,7 @@ export function initCloudSync() {
     try {
       const r = await api('/api/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword, newPassword }) });
       if (r.error) throw new Error(r.error);
-      if (r.token) setToken(r.token);
+      if (r.token) { setToken(r.token); if (r.username) localStorage.setItem('browsersql-cloud-username', r.username); }
       document.getElementById('account-msg').textContent = 'Password changed';
       document.getElementById('account-old-pw').value = '';
       document.getElementById('account-new-pw').value = '';

@@ -37,225 +37,340 @@ const STORAGE_LIMIT = 100 * 1024 * 1024;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = ['.sql', '.js', '.md', '.json', '.txt', '.csv', '.zip', '.progress'];
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    username TEXT PRIMARY KEY,
-    password_hash TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
-  )
-`);
+// ── Database schema & migration ───────────────────────────────
+db.run('PRAGMA journal_mode=WAL');
+db.run('PRAGMA foreign_keys=ON');
+
+// Create sessions table first (referenced later)
+db.run(`CREATE TABLE IF NOT EXISTS sessions (
+  token TEXT PRIMARY KEY,
+  username TEXT NOT NULL,
+  created_at INTEGER DEFAULT (unixepoch()),
+  expires_at INTEGER
+)`);
+
+// Create file_metadata table
+db.run(`CREATE TABLE IF NOT EXISTS file_metadata (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL,
+  last_modified INTEGER DEFAULT (unixepoch()),
+  UNIQUE(username, filename)
+)`);
+db.run(`CREATE INDEX IF NOT EXISTS idx_file_meta_user ON file_metadata(username)`);
+
+// Migrate old users table (TEXT PK) → new with INTEGER PK, then drop old
+db.run(`CREATE TABLE IF NOT EXISTS users_v2 (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now'))
+)`);
+// Check if old users table exists and migrate data
+const hasOldUsers = db.query(`SELECT name FROM sqlite_master WHERE type='table' AND name='users'`).get();
+if (hasOldUsers) {
+  db.run(`INSERT OR IGNORE INTO users_v2 (username, password_hash, created_at) SELECT username, password_hash, created_at FROM users`);
+  db.run(`DROP TABLE IF EXISTS users`);
+}
+db.run(`ALTER TABLE users_v2 RENAME TO users`);
 
 await Bun.$`mkdir -p ${FILES_DIR}`;
 
-function log(method, path, user, msg) {
+// ── Logging ───────────────────────────────────────────────────
+function sanitizeLog(str: string): string {
+  return str.replace(/[\n\r\t\f\v\x00-\x1f\x7f]/g, ' ');
+}
+function log(method: string, path: string, user: string | null, msg: string) {
   console.log(`[${new Date().toISOString()}] ${method} ${path} user=${user || 'none'} ${msg}`);
 }
 
-function isValidUsername(u) {
+// ── Validation ────────────────────────────────────────────────
+function isValidUsername(u: string) {
   return /^[a-zA-Z0-9_-]{3,32}$/.test(u);
 }
-function isValidPassword(p) {
+function isValidPassword(p: string) {
   return p.length >= 6 && p.length <= 128;
 }
-function isAllowedFilename(name) {
+function isAllowedFilename(name: string) {
   if (name === '.progress') return true;
   const dot = name.lastIndexOf('.');
   if (dot < 0) return false;
   return ALLOWED_EXTENSIONS.includes(name.substring(dot).toLowerCase());
 }
-function isSafePath(name) {
+function isSafePath(name: string) {
   return !name.includes('..') && !name.startsWith('/') && !name.startsWith('~');
 }
 
-async function hashPassword(password) {
+// ── Auth ──────────────────────────────────────────────────────
+async function hashPassword(password: string) {
   return await Bun.password.hash(password);
 }
 
-async function getUser(headers) {
-  const authHeader = headers['authorization'];
-  if (!authHeader?.startsWith('Basic ')) return null;
-  const [user, pass] = atob(authHeader.replace('Basic ', '')).split(':');
-  const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user);
-  if (!row) return null;
-  const valid = await Bun.password.verify(pass, row.password_hash);
-  return valid ? user : null;
+function generateToken(): string {
+  const buf = new Uint8Array(32);
+  crypto.getRandomValues(buf);
+  return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function getUserStorage(user) {
-  const dir = `${FILES_DIR}/${user}`;
-  let total = 0;
-  try {
-    for await (const name of new Bun.Glob('*').scan(dir)) {
-      const stat = await Bun.file(`${dir}/${name}`).stat();
-      total += stat.size;
-    }
-  } catch (_) {}
-  return total;
+function getUser(headers: Record<string, string | undefined>): string | null {
+  const auth = headers['authorization'];
+  if (!auth) return null;
+  if (auth.startsWith('Bearer ')) {
+    const token = auth.slice(7);
+    const row = db.query('SELECT username FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > unixepoch())').get(token) as { username: string } | undefined;
+    return row?.username || null;
+  }
+  return null;
 }
 
-async function getAdmin(headers) {
+async function getUserByCredentials(headers: Record<string, string | undefined>): Promise<string | null> {
+  const auth = headers['authorization'];
+  if (!auth) return null;
+  // First try Bearer token
+  if (auth.startsWith('Bearer ')) {
+    const token = auth.slice(7);
+    const row = db.query('SELECT username FROM sessions WHERE token = ? AND (expires_at IS NULL OR expires_at > unixepoch())').get(token) as { username: string } | undefined;
+    return row?.username || null;
+  }
+  // Then try Basic auth (for backwards compatibility)
+  if (auth.startsWith('Basic ')) {
+    const [user, pass] = atob(auth.slice(6)).split(':');
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user) as { password_hash: string } | undefined;
+    if (!row) return null;
+    return (await Bun.password.verify(pass, row.password_hash)) ? user : null;
+  }
+  return null;
+}
+
+function getAdmin(headers: Record<string, string | undefined>): string | null {
   const auth = headers['authorization'];
   if (!auth?.startsWith('Basic ')) return null;
-  const [user, pass] = atob(auth.replace('Basic ', '')).split(':');
+  const [user, pass] = atob(auth.slice(6)).split(':');
   if (user !== 'admin') return null;
   const adminPass = process.env.ADMIN_PASSWORD;
   if (!adminPass) return null;
   return pass === adminPass ? 'admin' : null;
 }
 
+// ── Storage ───────────────────────────────────────────────────
+function getFileMetadata(username: string, filename: string) {
+  return db.query('SELECT size_bytes FROM file_metadata WHERE username = ? AND filename = ?').get(username, filename) as { size_bytes: number } | undefined;
+}
+
+function upsertFileMeta(username: string, filename: string, size: number) {
+  db.run(`INSERT OR REPLACE INTO file_metadata (username, filename, size_bytes, last_modified) VALUES (?, ?, ?, unixepoch())`, [username, filename, size]);
+}
+
+function deleteFileMeta(username: string, filename: string) {
+  db.run('DELETE FROM file_metadata WHERE username = ? AND filename = ?', [username, filename]);
+}
+
+function getUserStorage(username: string): number {
+  const row = db.query('SELECT COALESCE(SUM(size_bytes), 0) as total FROM file_metadata WHERE username = ?').get(username) as { total: number };
+  return row.total;
+}
+
+// ── Rate limiting ─────────────────────────────────────────────
+const __aiLog = new Map<string, number[]>();
+const __regLog = new Map<string, number[]>();
+setInterval(() => {
+  const n = Date.now();
+  for (const [k, v] of __aiLog) { const f = v.filter(t => n - t < 3600000); if (f.length) __aiLog.set(k, f); else __aiLog.delete(k); }
+  for (const [k, v] of __regLog) { const f = v.filter(t => n - t < 3600000); if (f.length) __regLog.set(k, f); else __regLog.delete(k); }
+}, 600000);
+
+// ── Elysia app ────────────────────────────────────────────────
 const app = new Elysia({ maxBodySize: 1024 * 1024 })
   .use(cors())
+
+  // ── Register ──────────────────────────────────────────────────
   .post('/api/register', async ({ body, path, request }) => {
-    log('POST', path, null, `register ${body.username}`);
+    log('POST', path, null, sanitizeLog('register ' + body.username));
     const regIP = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    const regLog = globalThis.__regLog || (globalThis.__regLog = new Map());
     const regNow = Date.now();
-    if (!regLog.has(regIP)) regLog.set(regIP, []);
-    const regHits = regLog.get(regIP).filter(t => regNow - t < 3600000);
+    if (!__regLog.has(regIP)) __regLog.set(regIP, []);
+    const regHits = __regLog.get(regIP)!.filter(t => regNow - t < 3600000);
     if (regHits.length >= 3) return { error: 'Too many registrations from this IP. Try later.' };
     regHits.push(regNow);
-    regLog.set(regIP, regHits);
+    __regLog.set(regIP, regHits);
     if (!isValidUsername(body.username)) return { error: 'Username must be 3-32 chars, alphanumeric, underscore, or hyphen' };
     if (!isValidPassword(body.password)) return { error: 'Password must be at least 6 characters' };
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(body.username);
     if (exists) return { error: 'User exists' };
     const hash = await hashPassword(body.password);
     db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', [body.username, hash]);
-    return { success: true };
+    const token = generateToken();
+    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, body.username]);
+    return { success: true, token, username: body.username };
   }, {
     body: t.Object({ username: t.String(), password: t.String() })
   })
+
+  // ── Login ─────────────────────────────────────────────────────
   .post('/api/login', async ({ body, path }) => {
-    log('POST', path, null, `login ${body.username}`);
-    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(body.username);
+    log('POST', path, null, sanitizeLog('login ' + body.username));
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(body.username) as { password_hash: string } | undefined;
     if (!row) return { error: 'Invalid credentials' };
     const valid = await Bun.password.verify(body.password, row.password_hash);
     if (!valid) return { error: 'Invalid credentials' };
-    return { token: btoa(`${body.username}:${body.password}`) };
+    const token = generateToken();
+    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, body.username]);
+    return { token, username: body.username };
   })
+
+  // ── List files ────────────────────────────────────────────────
   .get('/api/files', async ({ headers, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    const dir = `${FILES_DIR}/${user}`;
-    await Bun.$`mkdir -p ${dir}`.quiet();
-    const files = [];
-    for await (const name of new Bun.Glob('*').scan(dir)) {
-      const size = (await Bun.file(`${dir}/${name}`).stat()).size;
-      files.push({ name, size });
-    }
-    log('GET', path, user, `returning ${files.length} files: ${files.map(f => f.name).join(', ')}`);
+    const files = db.query('SELECT filename as name, size_bytes as size FROM file_metadata WHERE username = ? ORDER BY filename').all(user);
+    log('GET', path, user, `returning ${(files as any[]).length} files`);
     return files;
   })
+
+  // ── Get file ──────────────────────────────────────────────────
   .get('/api/files/:name', async ({ headers, params, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    if (!isSafePath(params.name)) { log('GET', path, user, `BLOCKED PATH: ${params.name}`); return { error: 'Invalid path' }; }
+    if (!isSafePath(params.name)) { log('GET', path, user, sanitizeLog('BLOCKED PATH: ' + params.name)); return { error: 'Invalid path' }; }
     const filePath = `${FILES_DIR}/${user}/${params.name}`;
-    if (!await Bun.file(filePath).exists()) { log('GET', path, user, `NOT FOUND ${params.name}`); return { error: 'Not found' }; }
+    if (!await Bun.file(filePath).exists()) { log('GET', path, user, sanitizeLog('NOT FOUND ' + params.name)); return { error: 'Not found' }; }
     const content = await Bun.file(filePath).text();
-    log('GET', path, user, `returning ${params.name} (${content.length} chars)`);
+    log('GET', path, user, sanitizeLog('returning ' + params.name + ' (' + content.length + ' chars)'));
     return { content };
   })
+
+  // ── Upload file ───────────────────────────────────────────────
   .post('/api/files/:name', async ({ headers, params, path, body, request }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isAllowedFilename(params.name) || !isSafePath(params.name)) {
-      log('POST', path, user, `BLOCKED: ${params.name}`);
+      log('POST', path, user, sanitizeLog('BLOCKED: ' + params.name));
       return { error: 'File type not allowed. Use: ' + ALLOWED_EXTENSIONS.join(', ') };
     }
-    const cl = request.headers.get('content-length');
-    if (cl && parseInt(cl) > MAX_FILE_SIZE) {
-      log('POST', path, user, `FILE TOO LARGE: ${cl} bytes`);
+    const actualBytes = Buffer.byteLength(body.content, 'utf8');
+    if (actualBytes > MAX_FILE_SIZE) {
+      log('POST', path, user, `FILE TOO LARGE: ${actualBytes} bytes`);
       return { error: `File exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` };
     }
     const dir = `${FILES_DIR}/${user}`;
     await Bun.$`mkdir -p ${dir}`.quiet();
-    const newBytes = new TextEncoder().encode(body.content).length;
-    let used = await getUserStorage(user);
-    const existingPath = `${dir}/${params.name}`;
-    if (await Bun.file(existingPath).exists()) {
-      try { used -= (await Bun.file(existingPath).stat()).size; } catch (_) {}
-    }
-    if (used + newBytes > STORAGE_LIMIT) {
-      const mb = (n) => (n / 1024 / 1024).toFixed(1);
-      log('POST', path, user, `STORAGE LIMIT: ${mb(used)}MB + ${mb(newBytes)}MB > ${mb(STORAGE_LIMIT)}MB`);
+    const existing = getFileMetadata(user, params.name);
+    const existingSize = existing ? existing.size_bytes : 0;
+    let used = getUserStorage(user) - existingSize;
+    if (used + actualBytes > STORAGE_LIMIT) {
+      const mb = (n: number) => (n / 1024 / 1024).toFixed(1);
+      log('POST', path, user, `STORAGE LIMIT: ${mb(used)}MB + ${mb(actualBytes)}MB > ${mb(STORAGE_LIMIT)}MB`);
       return { error: `Storage limit reached (${mb(used)}MB / ${mb(STORAGE_LIMIT)}MB). Delete cloud files first.` };
     }
     const tmp = `${dir}/.tmp_${Date.now()}_${params.name}`;
-    await Bun.write(tmp, body.content);
-    await Bun.$`mv ${tmp} ${existingPath}`.quiet();
-    log('POST', path, user, `saved ${params.name} (${newBytes} bytes)`);
-    return { success: true };
+    let success = false;
+    try {
+      await Bun.write(tmp, body.content);
+      await Bun.$`mv ${tmp} ${dir}/${params.name}`.quiet();
+      upsertFileMeta(user, params.name, actualBytes);
+      success = true;
+      log('POST', path, user, sanitizeLog('saved ' + params.name + ' (' + actualBytes + ' bytes)'));
+      return { success: true };
+    } catch (e: any) {
+      log('POST', path, user, sanitizeLog('write FAILED: ' + e.message));
+      return { error: 'Failed to save file' };
+    } finally {
+      if (!success) await Bun.$`rm -f ${tmp}`.quiet().catch(() => {});
+    }
   }, {
     body: t.Object({ content: t.String() })
   })
+
+  // ── Storage usage ─────────────────────────────────────────────
   .get('/api/storage', async ({ headers, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    const used = await getUserStorage(user);
+    const used = getUserStorage(user);
     log('GET', path, user, `storage: ${used} / ${STORAGE_LIMIT}`);
     return { used, limit: STORAGE_LIMIT, available: STORAGE_LIMIT - used, percent: Math.round((used / STORAGE_LIMIT) * 100) };
   })
+
+  // ── Change password ───────────────────────────────────────────
   .post('/api/change-password', async ({ headers, body, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     if (!isValidPassword(body.newPassword)) return { error: 'Password must be at least 6 characters' };
-    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user);
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user) as { password_hash: string } | undefined;
     if (!row) return { error: 'User not found' };
     const valid = await Bun.password.verify(body.oldPassword, row.password_hash);
     if (!valid) return { error: 'Invalid password' };
     const hash = await hashPassword(body.newPassword);
     db.run('UPDATE users SET password_hash = ? WHERE username = ?', [hash, user]);
+    // Revoke all old sessions, create new one
+    db.run('DELETE FROM sessions WHERE username = ?', [user]);
+    const token = generateToken();
+    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, user]);
     log('POST', path, user, 'password changed');
-    return { success: true, token: btoa(`${user}:${body.newPassword}`) };
+    return { success: true, token, username: user };
   }, {
     body: t.Object({ oldPassword: t.String(), newPassword: t.String() })
   })
+
+  // ── Rename user ───────────────────────────────────────────────
   .post('/api/rename-user', async ({ headers, body, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const newName = body.newUsername.trim();
     if (!isValidUsername(newName)) return { error: 'Username must be 3-32 chars, alphanumeric, underscore, or hyphen' };
-    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user);
+    const row = db.query('SELECT password_hash FROM users WHERE username = ?').get(user) as { password_hash: string } | undefined;
     if (!row) return { error: 'User not found' };
     const valid = await Bun.password.verify(body.oldPassword, row.password_hash);
     if (!valid) return { error: 'Invalid password' };
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(newName);
     if (exists) return { error: 'Username taken' };
     db.run('UPDATE users SET username = ? WHERE username = ?', [newName, user]);
+    // Update file_metadata and session usernames
+    db.run('UPDATE file_metadata SET username = ? WHERE username = ?', [newName, user]);
+    db.run('UPDATE sessions SET username = ? WHERE username = ?', [newName, user]);
+    // Move files directory
     const oldDir = `${FILES_DIR}/${user}`;
     const newDir = `${FILES_DIR}/${newName}`;
     if (await Bun.file(oldDir).exists()) {
       await Bun.$`mv ${oldDir} ${newDir}`.quiet();
     }
-    log('POST', path, user, `renamed to ${newName}`);
-    return { success: true, token: btoa(`${newName}:${body.oldPassword}`) };
+    const token = generateToken();
+    db.run('INSERT INTO sessions (token, username) VALUES (?, ?)', [token, newName]);
+    log('POST', path, user, sanitizeLog('renamed to ' + newName));
+    return { success: true, token, username: newName };
   }, {
     body: t.Object({ oldPassword: t.String(), newUsername: t.String() })
   })
+
+  // ── Delete file ───────────────────────────────────────────────
   .delete('/api/files/:name', async ({ headers, params, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    if (!isSafePath(params.name)) { log('DELETE', path, user, `BLOCKED PATH: ${params.name}`); return { error: 'Invalid path' }; }
+    if (!isSafePath(params.name)) { log('DELETE', path, user, sanitizeLog('BLOCKED PATH: ' + params.name)); return { error: 'Invalid path' }; }
     await Bun.$`rm -f ${FILES_DIR}/${user}/${params.name}`.quiet();
-    log('DELETE', path, user, `deleted ${params.name}`);
+    deleteFileMeta(user, params.name);
+    log('DELETE', path, user, sanitizeLog('deleted ' + params.name));
     return { success: true };
   })
+
+  // ── Progress ──────────────────────────────────────────────────
   .get('/api/progress', async ({ headers, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const filePath = `${FILES_DIR}/${user}/.progress`;
     if (!await Bun.file(filePath).exists()) return { completed: [] };
     return JSON.parse(await Bun.file(filePath).text());
   })
   .post('/api/progress', async ({ headers, body, path }) => {
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     if (!user) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     const filePath = `${FILES_DIR}/${user}/.progress`;
     await Bun.write(filePath, JSON.stringify(body));
     log('POST', path, user, 'saved progress');
     return { success: true };
   })
+
+  // ── Admin ─────────────────────────────────────────────────────
   .post('/api/admin/login', async ({ body, path }) => {
     const adminPass = process.env.ADMIN_PASSWORD;
     if (!adminPass || body.password !== adminPass) return { error: 'Invalid admin password' };
@@ -265,26 +380,26 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     body: t.Object({ password: t.String() })
   })
   .get('/api/admin/users', async ({ headers, path }) => {
-    const admin = await getAdmin(headers);
+    const admin = getAdmin(headers);
     if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    const rows = db.query('SELECT username FROM users ORDER BY username').all();
+    const rows = db.query('SELECT username FROM users ORDER BY username').all() as { username: string }[];
     const users = [];
     for (const r of rows) {
       let fileCount = 0;
       try {
         for await (const _ of new Bun.Glob('*').scan(`${FILES_DIR}/${r.username}`)) fileCount++;
       } catch (_) {}
-      const storage = await getUserStorage(r.username);
+      const storage = getUserStorage(r.username);
       users.push({ name: r.username, files: fileCount, storage });
     }
     log('GET', path, admin, `returning ${users.length} users`);
     return users;
   })
   .get('/api/admin/files/:user', async ({ headers, params, path }) => {
-    const admin = await getAdmin(headers);
+    const admin = getAdmin(headers);
     if (!admin) { log('GET', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    if (!isSafePath(params.user)) { log('GET', path, admin, `BLOCKED PATH: ${params.user}`); return { error: 'Invalid path' }; }
-    const files = [];
+    if (!isSafePath(params.user)) { log('GET', path, admin, sanitizeLog('BLOCKED PATH: ' + params.user)); return { error: 'Invalid path' }; }
+    const files: { name: string; size: number }[] = [];
     try {
       for await (const name of new Bun.Glob('*').scan(`${FILES_DIR}/${params.user}`)) {
         const size = (await Bun.file(`${FILES_DIR}/${params.user}/${name}`).stat()).size;
@@ -294,32 +409,38 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     return { files };
   })
   .delete('/api/admin/files/:user/:name', async ({ headers, params, path }) => {
-    const admin = await getAdmin(headers);
+    const admin = getAdmin(headers);
     if (!admin) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    if (!isSafePath(params.user) || !isSafePath(params.name)) { log('DELETE', path, admin, `BLOCKED PATH`); return { error: 'Invalid path' }; }
+    if (!isSafePath(params.user) || !isSafePath(params.name)) { log('DELETE', path, admin, sanitizeLog('BLOCKED PATH')); return { error: 'Invalid path' }; }
     await Bun.$`rm -f ${FILES_DIR}/${params.user}/${params.name}`.quiet();
-    log('DELETE', path, admin, `deleted ${params.name} for user ${params.user}`);
+    deleteFileMeta(params.user, params.name);
+    log('DELETE', path, admin, sanitizeLog('deleted ' + params.name + ' for user ' + params.user));
     return { success: true };
   })
   .delete('/api/admin/user/:username', async ({ headers, params, path }) => {
-    const admin = await getAdmin(headers);
+    const admin = getAdmin(headers);
     if (!admin) { log('DELETE', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
-    if (!isSafePath(params.username)) { log('DELETE', path, admin, `BLOCKED PATH: ${params.username}`); return { error: 'Invalid path' }; }
+    if (!isSafePath(params.username)) { log('DELETE', path, admin, sanitizeLog('BLOCKED PATH: ' + params.username)); return { error: 'Invalid path' }; }
     const dir = `${FILES_DIR}/${params.username}`;
     if (await Bun.file(dir).exists()) await Bun.$`rm -rf ${dir}`.quiet();
+    db.run('DELETE FROM file_metadata WHERE username = ?', [params.username]);
+    db.run('DELETE FROM sessions WHERE username = ?', [params.username]);
     db.run('DELETE FROM users WHERE username = ?', [params.username]);
-    log('DELETE', path, admin, `deleted user ${params.username}`);
+    log('DELETE', path, admin, sanitizeLog('deleted user ' + params.username));
     return { success: true };
   })
   .post('/api/admin/reset', async ({ headers, path }) => {
-    const admin = await getAdmin(headers);
+    const admin = getAdmin(headers);
     if (!admin) { log('POST', path, null, 'UNAUTHORIZED'); return { error: 'Unauthorized' }; }
     await Bun.$`rm -rf ${FILES_DIR}`.quiet();
     await Bun.$`mkdir -p ${FILES_DIR}`.quiet();
+    db.run('DELETE FROM file_metadata');
+    db.run('DELETE FROM sessions');
     db.run('DELETE FROM users');
     log('POST', path, admin, 'COMPLETE RESET');
     return { success: true, message: 'All users and files deleted' };
   })
+
   // ── AI Generate ──────────────────────────────────────────────
   .post('/api/ai/generate', async ({ body, headers, request, path }) => {
     const ALLOWED_ORIGINS = ['https://browsersql.vercel.app', 'https://blackseafisher1.github.io'];
@@ -331,18 +452,16 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) return { error: 'AI not configured' };
 
-    // Rate limit: 35/h if authed, 15/h if not
-    const user = await getUser(headers);
+    const user = await getUserByCredentials(headers);
     const AI_LIMIT = user ? 35 : 15;
     const AI_WINDOW = 3600 * 1000;
-    const aiLog = globalThis.__aiLog || (globalThis.__aiLog = new Map());
     const rlKey = user ? 'user:' + user : 'ip:' + (request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown');
     const now = Date.now();
-    if (!aiLog.has(rlKey)) aiLog.set(rlKey, []);
-    const hits = aiLog.get(rlKey).filter(t => now - t < AI_WINDOW);
+    if (!__aiLog.has(rlKey)) __aiLog.set(rlKey, []);
+    const hits = __aiLog.get(rlKey)!.filter(t => now - t < AI_WINDOW);
     if (hits.length >= AI_LIMIT) return { error: 'Rate limit exceeded. Try again later.' };
     hits.push(now);
-    aiLog.set(rlKey, hits);
+    __aiLog.set(rlKey, hits);
 
     let { mode, description, schema } = body;
     if (!description) return { error: 'Please provide a description' };
@@ -362,23 +481,31 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     else if (schema) userPrompt = `Schema:\n${schema}\n\nSQL to fix:\n${userPrompt}`;
 
     try {
-      const resp = await fetch('https://inference.do-ai.run/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + API_KEY },
-        body: JSON.stringify({
-          model: 'router:sql',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: 1000,
-          temperature: 0.1,
-        }),
-      });
-      const data = await resp.json();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let resp: Response;
+      try {
+        resp = await fetch('https://inference.do-ai.run/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + API_KEY },
+          body: JSON.stringify({
+            model: 'router:sql',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            max_tokens: 1000,
+            temperature: 0.1,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      const data = await resp.json() as any;
       let sql = (data.choices?.[0]?.message?.content || '').trim().replace(/^```sql\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
       if (sql !== 'NO') {
-        const re = /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
+        const re = /^\s*(--|SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
         if (!re.test(sql)) sql = 'NO';
       }
       if (sql === 'NO') {
@@ -403,12 +530,12 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
       }
       log('POST', path, user || 'anon', 'AI generate OK');
       return { sql };
-    } catch (err) {
+    } catch (err: any) {
       log('POST', path, user || 'anon', 'AI error: ' + err.message);
       return { error: err.message };
     }
   }, {
-    body: t.Object({ mode: t.String(), description: t.String(), schema: t.Optional(t.String()) }),
+    body: t.Object({ mode: t.String(), description: t.String(), schema: t.Optional(t.String({ maxLength: 5000 })) }),
   })
   .listen(8081);
 

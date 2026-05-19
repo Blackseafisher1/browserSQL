@@ -9,32 +9,12 @@ const selectedInfo = $('#ai-selected-info');
 const schemaCb = $('#ai-include-schema');
 const rateInfo = $('#ai-rate-info');
 
-const RATE_KEY = 'browsersql-ai-requests';
-const RATE_WINDOW = 60 * 1000;
-const RATE_LIMIT = 20;
-
 let selRange = null;
-
-function getLocalRequests() {
-  try {
-    const raw = localStorage.getItem(RATE_KEY);
-    if (!raw) return [];
-    const now = Date.now();
-    return JSON.parse(raw).filter(t => now - t < RATE_WINDOW);
-  } catch { return []; }
-}
-
-function trackLocalRequest() {
-  const list = getLocalRequests();
-  list.push(Date.now());
-  localStorage.setItem(RATE_KEY, JSON.stringify(list));
-}
 
 function updateRateDisplay() {
   const token = localStorage.getItem('browsersql-cloud-token');
-  const isAuthed = !!token;
-  const limit = isAuthed ? 35 : 15;
-  rateInfo.textContent = `⚡ ${limit}/h limit (${isAuthed ? 'logged in' : 'not logged in'})`;
+  const limit = token ? 35 : 15;
+  rateInfo.textContent = `⚡ ${limit}/h limit (${token ? 'logged in' : 'not logged in'})`;
   rateInfo.style.color = 'var(--color-text-muted)';
 }
 
@@ -120,16 +100,20 @@ async function handleGenerate() {
     const schema = schemaCb.checked ? buildSchemaString() : '';
     const body = { mode, description };
     if (schema) body.schema = schema;
+    const headers = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('browsersql-cloud-token');
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 60000);
     const res = await fetch('https://ideaboard.site/api/ai/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      method: 'POST', headers, body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
     const sql = data.sql || data;
     if (typeof sql !== 'string' || !sql.trim()) throw new Error('No SQL returned');
-    trackLocalRequest();
     insertSQL(sql);
     hideModal();
   } catch (err) {

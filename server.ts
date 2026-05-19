@@ -103,18 +103,25 @@ async function getAdmin(headers) {
   return pass === adminPass ? 'admin' : null;
 }
 
+const __aiLog = new Map();
+const __regLog = new Map();
+setInterval(() => {
+  const n = Date.now();
+  for (const [k, v] of __aiLog) { const f = v.filter(t => n - t < 3600000); if (f.length) __aiLog.set(k, f); else __aiLog.delete(k); }
+  for (const [k, v] of __regLog) { const f = v.filter(t => n - t < 3600000); if (f.length) __regLog.set(k, f); else __regLog.delete(k); }
+}, 300000);
+
 const app = new Elysia({ maxBodySize: 1024 * 1024 })
   .use(cors())
   .post('/api/register', async ({ body, path, request }) => {
     log('POST', path, null, `register ${body.username}`);
     const regIP = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    const regLog = globalThis.__regLog || (globalThis.__regLog = new Map());
     const regNow = Date.now();
-    if (!regLog.has(regIP)) regLog.set(regIP, []);
-    const regHits = regLog.get(regIP).filter(t => regNow - t < 3600000);
+    if (!__regLog.has(regIP)) __regLog.set(regIP, []);
+    const regHits = __regLog.get(regIP).filter(t => regNow - t < 3600000);
     if (regHits.length >= 3) return { error: 'Too many registrations from this IP. Try later.' };
     regHits.push(regNow);
-    regLog.set(regIP, regHits);
+    __regLog.set(regIP, regHits);
     if (!isValidUsername(body.username)) return { error: 'Username must be 3-32 chars, alphanumeric, underscore, or hyphen' };
     if (!isValidPassword(body.password)) return { error: 'Password must be at least 6 characters' };
     const exists = db.query('SELECT 1 FROM users WHERE username = ?').get(body.username);
@@ -182,8 +189,14 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
       return { error: `Storage limit reached (${mb(used)}MB / ${mb(STORAGE_LIMIT)}MB). Delete cloud files first.` };
     }
     const tmp = `${dir}/.tmp_${Date.now()}_${params.name}`;
-    await Bun.write(tmp, body.content);
-    await Bun.$`mv ${tmp} ${existingPath}`.quiet();
+    try {
+      await Bun.write(tmp, body.content);
+      await Bun.$`mv ${tmp} ${existingPath}`.quiet();
+    } catch (e) {
+      await Bun.$`rm -f ${tmp}`.quiet();
+      log('POST', path, user, `write FAILED: ${e.message}`);
+      return { error: 'Failed to save file' };
+    }
     log('POST', path, user, `saved ${params.name} (${newBytes} bytes)`);
     return { success: true };
   }, {
@@ -335,14 +348,13 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
     const user = await getUser(headers);
     const AI_LIMIT = user ? 35 : 15;
     const AI_WINDOW = 3600 * 1000;
-    const aiLog = globalThis.__aiLog || (globalThis.__aiLog = new Map());
     const rlKey = user ? 'user:' + user : 'ip:' + (request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown');
     const now = Date.now();
-    if (!aiLog.has(rlKey)) aiLog.set(rlKey, []);
-    const hits = aiLog.get(rlKey).filter(t => now - t < AI_WINDOW);
+    if (!__aiLog.has(rlKey)) __aiLog.set(rlKey, []);
+    const hits = __aiLog.get(rlKey).filter(t => now - t < AI_WINDOW);
     if (hits.length >= AI_LIMIT) return { error: 'Rate limit exceeded. Try again later.' };
     hits.push(now);
-    aiLog.set(rlKey, hits);
+    __aiLog.set(rlKey, hits);
 
     let { mode, description, schema } = body;
     if (!description) return { error: 'Please provide a description' };
@@ -378,7 +390,7 @@ const app = new Elysia({ maxBodySize: 1024 * 1024 })
       const data = await resp.json();
       let sql = (data.choices?.[0]?.message?.content || '').trim().replace(/^```sql\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
       if (sql !== 'NO') {
-        const re = /^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
+        const re = /^\s*(--|SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH|EXPLAIN|PRAGMA|ATTACH|DETACH|VACUUM|REINDEX|ANALYZE|BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\s/i;
         if (!re.test(sql)) sql = 'NO';
       }
       if (sql === 'NO') {
