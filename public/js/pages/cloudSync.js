@@ -85,6 +85,7 @@ function hideAuthModal() {
 function initAuthModal() {
   let isRegister = false;
   const overlay = document.getElementById('auth-modal-overlay');
+  document.getElementById('auth-modal-close').addEventListener('click', hideAuthModal);
   overlay.addEventListener('click', e => {
     const link = e.target.closest('#auth-toggle-link');
     if (!link) return;
