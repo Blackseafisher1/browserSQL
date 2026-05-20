@@ -85,8 +85,6 @@ function hideAuthModal() {
 function initAuthModal() {
   let isRegister = false;
   const overlay = document.getElementById('auth-modal-overlay');
-  overlay.addEventListener('click', e => { if (e.target === overlay) hideAuthModal(); });
-  document.getElementById('auth-modal-close').addEventListener('click', hideAuthModal);
   overlay.addEventListener('click', e => {
     const link = e.target.closest('#auth-toggle-link');
     if (!link) return;
@@ -122,6 +120,9 @@ function initAuthModal() {
   });
   document.getElementById('auth-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('auth-submit').click();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('auth-modal-overlay').classList.contains('hidden')) hideAuthModal();
   });
 }
 

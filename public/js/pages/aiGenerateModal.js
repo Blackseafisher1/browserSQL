@@ -130,9 +130,7 @@ promptInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.ctrlKey) handleGenerate();
 });
 
-overlay.addEventListener('click', (e) => {
-  if (e.target === overlay) hideModal();
-});
+
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !overlay.classList.contains('hidden')) hideModal();

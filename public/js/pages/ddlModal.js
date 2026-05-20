@@ -136,9 +136,7 @@ document.getElementById('btn-copy-ddl')?.addEventListener('click', () => {
   const text = content.textContent;
   if (text) navigator.clipboard?.writeText(text).catch(() => {});
 });
-overlay.addEventListener('click', (e) => {
-  if (e.target === overlay && !window.getSelection()?.toString()) hideDDLModal();
-});
+
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') hideDDLModal();

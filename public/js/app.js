@@ -82,7 +82,7 @@ async function main() {
   document.querySelector('.app-logo')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
   document.getElementById('ops-about-trigger')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
   document.getElementById('about-modal-close')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.add('hidden'));
-  document.getElementById('about-overlay')?.addEventListener('click', (e) => { if (e.target === document.getElementById('about-overlay')) document.getElementById('about-overlay').classList.add('hidden'); });
+
 
   // Init SQLite in background — UI stays responsive
   const dbOk = await initDatabase();
@@ -467,7 +467,7 @@ function initShortcutsHelp() {
   const overlay = document.getElementById('shortcuts-overlay');
   const closeBtn = document.getElementById('shortcuts-modal-close');
   closeBtn?.addEventListener('click', () => overlay?.classList.add('hidden'));
-  overlay?.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+
   document.addEventListener('keydown', (e) => {
     if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (document.activeElement?.closest('.cm-editor, input, textarea, select, [contenteditable]')) return;
