@@ -1,7 +1,7 @@
 {
   "name": "browserSQL",
   "short_name": "browserSQL",
-  "start_url": "/",
+  "start_url": "/editor.html",
   "display": "standalone",
   "background_color": "#1a1b1e",
   "theme_color": "#4c9aff",
