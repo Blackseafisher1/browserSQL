@@ -259,6 +259,7 @@
     overflow-y: auto;
     font-size: 12px;
     line-height: 1.45;
+    padding-right: 4px;
   }
 
   .tutorial-content h1,

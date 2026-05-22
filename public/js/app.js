@@ -117,28 +117,36 @@ function initSidebarResize() {
   const handle = document.getElementById('schema-resize-handle');
   if (!handle) return;
   let startX, startWidth;
+  function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
 
-  function onMouseMove(e) {
-    const newWidth = Math.max(180, Math.min(500, startWidth + (e.clientX - startX)));
+  function move(e) {
+    const newWidth = Math.max(180, Math.min(500, startWidth + (getX(e) - startX)));
     document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
   }
 
-  function onMouseUp() {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
+  function end() {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }
 
-  handle.addEventListener('mousedown', (e) => {
-    startX = e.clientX;
+  function start(e) {
+    startX = getX(e);
     startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width')) || 260;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('touchend', end);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
-  });
+  }
+
+  handle.addEventListener('mousedown', start);
+  handle.addEventListener('touchstart', start, { passive: false });
 }
 
 function initMobileToggles() {
