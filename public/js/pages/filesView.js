@@ -92,9 +92,9 @@ export function getActiveFileName() {
 function setActiveFileName(n) {
   localStorage.setItem(getActiveKey(), n);
   activeFile = n;
-  state.activeFileIsJS = n.endsWith('.js');
+  state.activeFileIsJS = false;
   state.activeFileIsMD = n.endsWith('.md');
-  setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql');
+  setLanguage(state.activeFileIsMD ? 'md' : 'sql');
 }
 
 export async function replaceFiles(files, activeName) {
@@ -373,9 +373,9 @@ export async function initFilesView() {
   const files = await getFiles();
   const name = getActiveFileName();
   activeFile = name;
-  state.activeFileIsJS = name.endsWith('.js');
+  state.activeFileIsJS = false;
   state.activeFileIsMD = name.endsWith('.md');
-  setLanguage(state.activeFileIsJS ? 'js' : state.activeFileIsMD ? 'md' : 'sql');
+  setLanguage(state.activeFileIsMD ? 'md' : 'sql');
   setEditorContent(files[name] || '');
   paneTabs[0] = [name];
   showEditors(1);

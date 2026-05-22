@@ -3,11 +3,11 @@ import { EditorView, drawSelection, keymap, lineNumbers, highlightActiveLineGutt
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { Compartment, EditorState } from '@codemirror/state';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
-import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { javascript } from '@codemirror/lang-javascript';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
@@ -17,6 +17,28 @@ import { evaluateTutorialQuery } from './tutorialView.js';
 import { saveCurrentFile } from './filesView.js';
 import { getSettings } from './settings.js';
 import { $ } from '../utils.js';
+
+const darkHighlight = HighlightStyle.define([
+  { tag: tags.keyword, color: '#7db1dc' },
+  { tag: tags.typeName, color: '#4ec9b0' },
+  { tag: tags.string, color: '#d49f8a' },
+  { tag: tags.number, color: '#b5cea8' },
+  { tag: tags.comment, color: '#93b583' },
+  { tag: tags.function(tags.propertyName), color: '#dcdcaa' },
+  { tag: tags.bool, color: '#ff8484' },
+  { tag: tags.null, color: '#ff8484' },
+]);
+const syntaxThemeComp = new Compartment();
+function getSyntaxTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? syntaxHighlighting(darkHighlight)
+    : syntaxHighlighting(defaultHighlightStyle, { fallback: true });
+}
+function updateSyntaxTheme() {
+  for (const ed of Object.values(editors)) {
+    if (ed) ed.dispatch({ effects: syntaxThemeComp.reconfigure(getSyntaxTheme()) });
+  }
+}
 
 const container0 = $('#editor-container-0');
 const container1 = $('#editor-container-1');
@@ -56,7 +78,7 @@ function makeEditor(doc, parent) {
       drawSelection(prefersReducedMotion ? { cursorBlinkRate: 0 } : undefined),
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
-      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      syntaxThemeComp.of(getSyntaxTheme()),
       bracketMatching(), closeBrackets(), autocompletion({ tooltipClass: () => 'notranslate' }),
       rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
@@ -98,6 +120,7 @@ export function initEditor() {
       view.dispatch({ effects: view._langComp.reconfigure(makeSql()) });
     }
   });
+  new MutationObserver(() => updateSyntaxTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   setupExecuteShortcut();
   setupExecuteButton();
   setupPreviewButton();
@@ -197,7 +220,7 @@ export function updateEditorSchema(tables) {
  * @param {'js' | 'md' | 'sql'} lang Language key.
  */
 export function setLanguage(lang) {
-  const map = { js: javascript(), md: markdown(), sql: makeSql() };
+  const map = { md: markdown(), sql: makeSql() };
   const ext = map[lang] || map.sql;
   for (const idx of [0, 1]) {
     const ed = editors[idx];

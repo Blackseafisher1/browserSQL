@@ -4,6 +4,14 @@
     font-size: var(--editor-font-size, 14px);
   }
 
+  [data-theme="dark"] .cm-editor {
+    background: #202123;
+  }
+
+
+
+
+
   .cm-editor .cm-scroller {
     font-family: var(--font-mono);
     line-height: 1.6;
