@@ -25,6 +25,18 @@
 
 ## CSS
 
+### `@layer` vs Unlayered CSS (CM6 overrides)
+- CodeMirror 6 injects styles **without** a CSS `@layer`.
+- Unlayered styles always beat layered styles **regardless of specificity**.
+- If your override is inside `@layer components` and CM6's style is unlayered, CM6 wins even with `!important`.
+- **Fix**: put CM6 overrides **outside** `@layer` blocks, or use a separate non-layered stylesheet.
+- Example: `[data-theme="dark"] .cm-editor .cm-activeLine { background-color: #3a3b3c; }` — placed after the `}` closing `@layer components`.
+
+### `light-dark()` CSS Function
+- `light-dark(#lightVal, #darkVal)` follows the **system** `prefers-color-scheme`, NOT the page's `data-theme` attribute.
+- If system is light but page shows dark via `data-theme`, `light-dark()` returns the **light** value → white background on dark mode.
+- **Fix**: use `[data-theme="dark"]` scoped rules with hardcoded values instead of `light-dark()` for critical elements.
+
 ### Invalid Selectors
 - `html.no-blink .cm-editor .cm-cursor, @media (...) { }` — comma between selector and media query is INVALID
 - **Fix**: separate into two rules
