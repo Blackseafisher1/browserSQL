@@ -4,28 +4,125 @@ export const module2 = [
   {
     id: '06-primary',
     module: 2,
-    title: 'Primary Keys',
-    type: 'practice',
-    file: '06-primary.sql',
-    sql: 'CREATE TABLE projects (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  name TEXT NOT NULL\n);\nINSERT INTO projects (name) VALUES (\'Apollo\');\n',
-    markdown: `# Primary keys
+    title: 'PRIMARY KEY',
+    type: 'theory',
+    file: '06-primary.md',
+    markdown: `# PRIMARY KEY
 
-A \`PRIMARY KEY\` uniquely identifies each row. Use \`INTEGER PRIMARY KEY AUTOINCREMENT\` to have SQLite automatically assign increasing IDs.
+A \`PRIMARY KEY\` uniquely identifies each row in a table.
 
 \`\`\`sql
-CREATE TABLE tablename (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  column TYPE
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
 );
 \`\`\`
 
-**Goal:** Create a table called \`projects\` with an auto-incrementing \`id\` primary key and a \`name\` column (TEXT NOT NULL). Then insert a project row.`,
+**Key facts:**
+- Implies **NOT NULL** + **UNIQUE** automatically
+- Only **one** PRIMARY KEY per table
+- Most common: \`INTEGER PRIMARY KEY\` (SQLite auto-fills it)
+- Can be text or any other type
+- SQLite creates an index for fast lookups
+
+Every table should have a primary key. Without one, you cannot reliably target a specific row.
+
+**Goal:** understand what PRIMARY KEY guarantees.`,
+    question: {
+      prompt: 'What does PRIMARY KEY automatically imply?',
+      options: ['NOT NULL only', 'UNIQUE only', 'NOT NULL + UNIQUE', 'AUTOINCREMENT'],
+      answer: 2,
+      explanation: 'PRIMARY KEY implies both NOT NULL and UNIQUE — it must identify each row uniquely and cannot be NULL.',
+    },
     seed: SEED_EMPTY,
-    check: { type: 'pk', table: 'projects', column: 'id' },
+  },
+  {
+    id: '10-constraints',
+    module: 2,
+    title: 'Constraints',
+    type: 'practice',
+    file: '10-constraints.sql',
+    sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
+    markdown: `# Constraints
+
+Constraints enforce rules on your data. You have already used several:
+
+\`\`\`sql
+id INTEGER PRIMARY KEY  -- PRIMARY KEY is a constraint (unique + not null)
+name TEXT NOT NULL       -- NOT NULL is a constraint
+email TEXT UNIQUE        -- UNIQUE is a constraint
+\`\`\`
+
+Additional constraint types:
+
+\`\`\`sql
+CREATE TABLE table (
+  col1 TYPE CONSTRAINT,
+  col2 TYPE CONSTRAINT
+);
+\`\`\`
+
+| Constraint | What it does | Example |
+|---|---|---|
+| \`PRIMARY KEY\` | unique identifier, implies NOT NULL | \`id INTEGER PRIMARY KEY\` |
+| \`NOT NULL\` | column must have a value | \`name TEXT NOT NULL\` |
+| \`UNIQUE\` | all values must be different | \`email TEXT UNIQUE\` |
+| \`DEFAULT\` | fallback value if omitted | \`status TEXT DEFAULT 'active'\` |
+| \`CHECK\` | validate against a condition | \`age INTEGER CHECK (age >= 18)\` |
+
+\`CHECK\` can use comparisons (\`=\`, \`>\`, \`>=\`, \`LIKE\`, \`IN\`, etc.):
+
+\`\`\`sql
+CHECK (age >= 18)
+CHECK (status IN ('active', 'inactive'))
+CHECK (email LIKE '%@%')
+CHECK (price > 0)
+CHECK (length(name) <= 32)  -- enforce max TEXT length
+CHECK (salary >= 0)        -- enforce non-negative
+\`\`\`
+
+**Important:** \`PRIMARY KEY\` already implies \`NOT NULL\` + \`UNIQUE\` automatically — do NOT add them to the PK column. Put them on other columns instead.
+
+**Goal:** Create an \`accounts\` table with:
+- \`id\` (INTEGER PRIMARY KEY)
+- \`email\` (TEXT, NOT NULL, UNIQUE)
+- \`status\` (TEXT, NOT NULL, DEFAULT 'active')
+- \`age\` (INTEGER, CHECK that age >= 18)
+
+Then insert one valid row. After that, try inserting a row where age < 18 — you should get a CHECK constraint error. Try inserting a duplicate email — you should get a UNIQUE constraint error.
+
+**Tip:** After creating \`accounts\`, open the **Schema viewer** (bottom-left) and expand it. Each column shows its constraints (PK, NOT NULL, UNIQUE, CHECK).`,
+    seed: SEED_EMPTY,
+    check: { type: 'constraints', table: 'accounts', tokens: ['not null', 'unique', 'default', 'check'] },
+    hint: 'CREATE TABLE accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT \'active\', age INTEGER CHECK (age >= 18)); then INSERT a row with valid data.',
+  },
+  {
+    id: '16-pk-vs-unique',
+    module: 2,
+    title: 'PRIMARY KEY vs UNIQUE',
+    type: 'theory',
+    file: '12-pk-vs-unique.md',
+    markdown: `# PRIMARY KEY vs UNIQUE
+
+Both ensure unique values, but:
+
+| Feature | PRIMARY KEY | UNIQUE |
+|---------|-------------|--------|
+| Allowed per table | Only 1 | Multiple |
+| Allows NULL | No | Yes |
+| Auto-indexed | Yes | Yes |
+
+**Goal:** know the difference.`,
+    question: {
+      prompt: 'How many PRIMARY KEYs can a table have?',
+      options: ['Unlimited', 'Two', 'One', 'Depends on columns'],
+      answer: 2,
+      explanation: 'A table can have only one PRIMARY KEY, but multiple UNIQUE constraints.',
+    },
+    seed: SEED_EMPTY,
   },
   {
     id: '07-autoincrement',
-    order: 2,
     module: 2,
     title: 'AUTOINCREMENT',
     type: 'theory',
@@ -60,9 +157,8 @@ In SQLite, \`INTEGER PRIMARY KEY\` automatically gets a value using \`max(rowid)
   },
   {
     id: '08-foreign',
-    order: 3,
     module: 2,
-    title: 'Foreign Keys',
+    title: 'FOREIGN KEY',
     type: 'practice',
     file: '07-foreign.sql',
     sql: 'PRAGMA foreign_keys = ON;\nCREATE TABLE authors (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);\nCREATE TABLE books (\n  id INTEGER PRIMARY KEY,\n  title TEXT NOT NULL,\n  author_id INTEGER NOT NULL,\n  FOREIGN KEY (author_id) REFERENCES authors(id)\n);\n',
@@ -84,8 +180,47 @@ FOREIGN KEY (local_column) REFERENCES other_table(other_column);
     hint: 'PRAGMA foreign_keys = ON; CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
   },
   {
+    id: '12-relationship-1-n',
+    module: 2,
+    title: 'One-to-Many Relationships',
+    type: 'practice',
+    file: '12-relationship-1-n.sql',
+    markdown: `# One-to-Many Relationships
+
+In a 1:N relationship, one row in table A can match many rows in table B. A foreign key in the many-side table links back:
+
+\`\`\`sql
+CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, cat_id INTEGER REFERENCES categories(id));
+\`\`\`
+
+**Goal:** Create \`authors\` (id, name) and \`books\` (id, title, author_id FK) tables.`,
+    seed: SEED_EMPTY_FK,
+    check: { type: 'fk', table: 'books', column: 'author_id' },
+    hint: 'CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
+  },
+  {
+    id: '11-relationship-1-1',
+    module: 2,
+    title: 'One-to-One Relationships',
+    type: 'practice',
+    file: '11-relationship-1-1.sql',
+    markdown: `# One-to-One Relationships
+
+In a 1:1 relationship, one row in table A matches exactly one row in table B. Often the shared primary key enforces this:
+
+\`\`\`sql
+CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+CREATE TABLE profiles (id INTEGER PRIMARY KEY, bio TEXT, FOREIGN KEY (id) REFERENCES users(id));
+\`\`\`
+
+**Goal:** Create a \`passports\` table with \`id\` (INTEGER PK referencing \`citizens(id)\`) and \`number\` (TEXT). Create \`citizens\` with \`id\` (INTEGER PK) and \`name\` (TEXT).`,
+    seed: SEED_EMPTY,
+    check: { type: 'fk', table: 'passports', column: 'id' },
+    hint: 'CREATE TABLE citizens (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE passports (id INTEGER PRIMARY KEY, number TEXT, FOREIGN KEY (id) REFERENCES citizens(id));',
+  },
+  {
     id: '09-cascade',
-    order: 4,
     module: 2,
     title: 'ON DELETE CASCADE',
     type: 'theory',
@@ -140,150 +275,9 @@ Now deleting an author also deletes all their books. Other options:
     seed: SEED_EMPTY_FK,
   },
   {
-    id: '10-constraints',
-    order: 1,
-    module: 2,
-    title: 'Constraints',
-    type: 'practice',
-    file: '10-constraints.sql',
-    sql: "CREATE TABLE accounts (\n  id INTEGER PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  status TEXT NOT NULL DEFAULT 'active',\n  age INTEGER CHECK (age >= 18)\n);\nINSERT INTO accounts (email, age) VALUES ('test@example.com', 25);\n",
-    markdown: `# Constraints
-
-Constraints enforce rules on your data. You have already used several:
-
-\`\`\`sql
-id INTEGER PRIMARY KEY  -- PRIMARY KEY is a constraint (unique + not null)
-name TEXT NOT NULL       -- NOT NULL is a constraint
-email TEXT UNIQUE        -- UNIQUE is a constraint
-\`\`\`
-
-Additional constraint types:
-
-\`\`\`sql
-CREATE TABLE table (
-  col1 TYPE CONSTRAINT,
-  col2 TYPE CONSTRAINT
-);
-\`\`\`
-
-| Constraint | What it does | Example |
-|---|---|---|
-| \`PRIMARY KEY\` | unique identifier, implies NOT NULL | \`id INTEGER PRIMARY KEY\` |
-| \`NOT NULL\` | column must have a value | \`name TEXT NOT NULL\` |
-| \`UNIQUE\` | all values must be different | \`email TEXT UNIQUE\` |
-| \`DEFAULT\` | fallback value if omitted | \`status TEXT DEFAULT 'active'\` |
-| \`CHECK\` | validate against a condition | \`age INTEGER CHECK (age >= 18)\` |
-
-\`CHECK\` can use comparisons (\`=\`, \`>\`, \`>=\`, \`LIKE\`, \`IN\`, etc.):
-
-\`\`\`sql
-CHECK (age >= 18)
-CHECK (status IN ('active', 'inactive'))
-CHECK (email LIKE '%@%')
-CHECK (price > 0)
-CHECK (length(name) <= 32)  -- enforce max TEXT length
-CHECK (salary >= 0)        -- enforce non-negative
-\`\`\`
-
-**Important:** \`PRIMARY KEY\` already implies \`NOT NULL\` + \`UNIQUE\` automatically — do NOT add them to the PK column. Put them on other columns instead.
-
-**Goal:** Create an \`accounts\` table with:
-- \`id\` (INTEGER PRIMARY KEY)
-- \`email\` (TEXT, NOT NULL, UNIQUE)
-- \`status\` (TEXT, NOT NULL, DEFAULT 'active')
-- \`age\` (INTEGER, CHECK that age >= 18)
-
-Then insert one valid row. After that, try inserting a row where age < 18 — you should get a CHECK constraint error. Try inserting a duplicate email — you should get a UNIQUE constraint error.`,
-    seed: SEED_EMPTY,
-    check: { type: 'constraints', table: 'accounts', tokens: ['not null', 'unique', 'default', 'check'] },
-    hint: 'CREATE TABLE accounts (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, status TEXT NOT NULL DEFAULT \'active\', age INTEGER CHECK (age >= 18)); then INSERT a row with valid data.',
-  },
-  {
-    id: '09-alter-table',
-    module: 2,
-    title: 'ALTER TABLE',
-    type: 'practice',
-    file: '09-alter-table.sql',
-    markdown: `# ALTER TABLE
-
-Modify existing tables with \`ALTER TABLE\`:
-
-\`\`\`sql
-ALTER TABLE table ADD COLUMN column TYPE;
-ALTER TABLE table RENAME COLUMN old TO new;
-ALTER TABLE table DROP COLUMN column;
-\`\`\`
-
-The \`users\` table already has columns: id, name, city, age, email.
-
-**Goal:** Add a column \`phone\` (TEXT) to \`users\`, then rename \`phone\` to \`phone_number\`.`,
-    seed: SEED_USERS,
-    check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
-    hint: 'ALTER TABLE users ADD COLUMN phone TEXT; then ALTER TABLE users RENAME COLUMN phone TO phone_number;',
-  },
-  {
-    id: '10-schema',
-    module: 2,
-    title: 'Schema Design',
-    type: 'theory',
-    file: '10-schema.md',
-    markdown: `# Schema design
-
-Relationships can be one-to-one, one-to-many, or many-to-many.
-
-**Goal:** know when a junction table is used.`,
-    question: {
-      prompt: 'Which relationship uses a junction table?',
-      options: ['One-to-one', 'One-to-many', 'Many-to-many', 'Self-referencing'],
-      answer: 2,
-      explanation: 'Many-to-many relationships need a junction table.',
-    },
-    seed: SEED_USERS,
-  },
-  {
-    id: '11-relationship-1-1',
-    module: 2,
-    title: 'One-to-One Relationships',
-    type: 'practice',
-    file: '11-relationship-1-1.sql',
-    markdown: `# One-to-One Relationships
-
-In a 1:1 relationship, one row in table A matches exactly one row in table B. Often the shared primary key enforces this:
-
-\`\`\`sql
-CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
-CREATE TABLE profiles (id INTEGER PRIMARY KEY, bio TEXT, FOREIGN KEY (id) REFERENCES users(id));
-\`\`\`
-
-**Goal:** Create a \`passports\` table with \`id\` (INTEGER PK referencing \`citizens(id)\`) and \`number\` (TEXT). Create \`citizens\` with \`id\` (INTEGER PK) and \`name\` (TEXT).`,
-    seed: SEED_EMPTY,
-    check: { type: 'fk', table: 'passports', column: 'id' },
-    hint: 'CREATE TABLE citizens (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE passports (id INTEGER PRIMARY KEY, number TEXT, FOREIGN KEY (id) REFERENCES citizens(id));',
-  },
-  {
-    id: '12-relationship-1-n',
-    module: 2,
-    title: 'One-to-Many Relationships',
-    type: 'practice',
-    file: '12-relationship-1-n.sql',
-    markdown: `# One-to-Many Relationships
-
-In a 1:N relationship, one row in table A can match many rows in table B. A foreign key in the many-side table links back:
-
-\`\`\`sql
-CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);
-CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, cat_id INTEGER REFERENCES categories(id));
-\`\`\`
-
-**Goal:** Create \`authors\` (id, name) and \`books\` (id, title, author_id FK) tables.`,
-    seed: SEED_EMPTY_FK,
-    check: { type: 'fk', table: 'books', column: 'author_id' },
-    hint: 'CREATE TABLE authors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE books (id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER REFERENCES authors(id));',
-  },
-  {
     id: '13-composite-pk',
     module: 2,
-    title: 'Composite Primary Keys',
+    title: 'Composite PRIMARY KEY',
     type: 'practice',
     file: '13-composite-pk.sql',
     markdown: `# Composite Primary Keys
@@ -336,6 +330,29 @@ CREATE TABLE enrollment (
     hint: 'CREATE TABLE actors (id INTEGER PRIMARY KEY, name TEXT); CREATE TABLE movies (id INTEGER PRIMARY KEY, title TEXT); CREATE TABLE cast (actor_id INTEGER, movie_id INTEGER, PRIMARY KEY (actor_id, movie_id), FOREIGN KEY (actor_id) REFERENCES actors(id), FOREIGN KEY (movie_id) REFERENCES movies(id));',
   },
   {
+    id: '09-alter-table',
+    module: 2,
+    title: 'ALTER TABLE',
+    type: 'practice',
+    file: '09-alter-table.sql',
+    markdown: `# ALTER TABLE
+
+Modify existing tables with \`ALTER TABLE\`:
+
+\`\`\`sql
+ALTER TABLE table ADD COLUMN column TYPE;
+ALTER TABLE table RENAME COLUMN old TO new;
+ALTER TABLE table DROP COLUMN column;
+\`\`\`
+
+The \`users\` table already has columns: id, name, city, age, email.
+
+**Goal:** Add a column \`phone\` (TEXT) to \`users\`, then rename \`phone\` to \`phone_number\`.`,
+    seed: SEED_USERS,
+    check: { type: 'schema', table: 'users', columns: ['id', 'name', 'city', 'age', 'email', 'phone_number'] },
+    hint: 'ALTER TABLE users ADD COLUMN phone TEXT; then ALTER TABLE users RENAME COLUMN phone TO phone_number;',
+  },
+  {
     id: '15-drop-table',
     module: 2,
     title: 'DROP TABLE',
@@ -356,28 +373,22 @@ DROP TABLE IF EXISTS table_name;  -- no error if missing
     hint: 'DROP TABLE users;',
   },
   {
-    id: '16-pk-vs-unique',
+    id: '10-schema',
     module: 2,
-    title: 'PRIMARY KEY vs UNIQUE',
+    title: 'Schema Design',
     type: 'theory',
-    file: '12-pk-vs-unique.md',
-    markdown: `# PRIMARY KEY vs UNIQUE
+    file: '10-schema.md',
+    markdown: `# Schema design
 
-Both ensure unique values, but:
+Relationships can be one-to-one, one-to-many, or many-to-many.
 
-| Feature | PRIMARY KEY | UNIQUE |
-|---------|-------------|--------|
-| Allowed per table | Only 1 | Multiple |
-| Allows NULL | No | Yes |
-| Auto-indexed | Yes | Yes |
-
-**Goal:** know the difference.`,
+**Goal:** know when a junction table is used.`,
     question: {
-      prompt: 'How many PRIMARY KEYs can a table have?',
-      options: ['Unlimited', 'Two', 'One', 'Depends on columns'],
+      prompt: 'Which relationship uses a junction table?',
+      options: ['One-to-one', 'One-to-many', 'Many-to-many', 'Self-referencing'],
       answer: 2,
-      explanation: 'A table can have only one PRIMARY KEY, but multiple UNIQUE constraints.',
+      explanation: 'Many-to-many relationships need a junction table.',
     },
-    seed: SEED_EMPTY,
+    seed: SEED_USERS,
   },
 ];

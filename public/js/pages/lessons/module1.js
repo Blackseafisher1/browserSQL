@@ -11,7 +11,9 @@ export const module1 = [
 
 A database stores information in tables. Tables have rows and columns.
 
-**Goal:** understand where data lives before writing SQL.`,
+**Goal:** understand where data lives before writing SQL.
+
+> **Editor features:** The left panel shows files — add \`.md\` or \`.txt\` files here for notes. The **Schema viewer** (bottom-left) lists all tables; expand one to see columns, types, and constraints. Click any table name to auto-run \`SELECT * FROM table LIMIT 100\`. You can download all your work as a \`.zip\` with the export button.`,
     question: {
       prompt: 'What stores data in rows and columns?',
       options: ['Index', 'Query', 'Table', 'View'],
@@ -88,7 +90,9 @@ CREATE TABLE tablename (
 );
 \`\`\`
 
-**Goal:** Create a table called \`people\` with columns \`id\` (INTEGER PRIMARY KEY), \`name\` (TEXT NOT NULL), and \`age\` (INTEGER NOT NULL).`,
+**Goal:** Create a table called \`people\` with columns \`id\` (INTEGER PRIMARY KEY), \`name\` (TEXT NOT NULL), and \`age\` (INTEGER NOT NULL).
+
+**Tip:** After running, open the **Schema viewer** (bottom-left panel) and expand \`people\` to see its columns and types.`,
     seed: SEED_EMPTY,
     check: { type: 'schema', table: 'people', columns: ['id', 'name', 'age'] },
   },
@@ -109,6 +113,16 @@ SQLite has 5 native storage classes, but accepts many SQL standard type names fo
 | \`TEXT\` | Strings (any length) | Names, descriptions, emails |
 | \`BLOB\` | Binary data (bytes) | Images, files, encrypted data |
 | \`NULL\` | Missing value | Unknown / empty |
+
+**Dates & times:** SQLite has no native DATE type. Store them in one of these formats:
+
+| Format | Stored as | Example |
+|--------|-----------|---------|
+| ISO8601 string | TEXT | '2024-01-15' |
+| Unix timestamp | INTEGER | 1705276800 |
+| Julian day | REAL | 2460423.5 |
+
+SQLite date functions (\`date()\`, \`datetime()\`, \`strftime()\`) work with all three formats.
 
 **SQLite is weakly typed.** Unlike PostgreSQL, MySQL, or Oracle, SQLite does **not** enforce column types. You can insert an integer into a TEXT column, or text into an INTEGER column, and SQLite accepts it:
 
@@ -154,6 +168,12 @@ On other databases (PostgreSQL, MySQL, Oracle), \`VARCHAR(32)\` **enforces** the
         answer: 3,
         explanation: 'BLOB is for binary data like images, PDFs, or any file content.',
       },
+      {
+        prompt: 'How do you store a date in SQLite?',
+        options: ['Use the DATE type', 'As TEXT, INTEGER, or REAL', 'Dates are not supported', 'Use the DATETIME type'],
+        answer: 1,
+        explanation: 'SQLite has no native DATE type. Store dates as TEXT (ISO8601), INTEGER (Unix timestamp), or REAL (Julian day).',
+      },
     ],
     seed: SEED_USERS,
   },
@@ -183,11 +203,45 @@ Choose the right SQLite type for each column. Only \`PRIMARY KEY\` is required a
     hint: 'CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE, salary REAL NOT NULL, photo BLOB, department TEXT NOT NULL DEFAULT \'Engineering\');',
   },
   {
-    id: '07-calc',
+    id: '07-select',
+    module: 1,
+    title: 'SELECT Intro',
+    type: 'practice',
+    file: '07-select.sql',
+    seed: SEED_USERS,
+    markdown: `# SELECT Intro
+
+The \`SELECT\` statement reads data from tables.
+
+\`\`\`sql
+SELECT * FROM users;
+\`\`\`
+
+\`*\` means "all columns". Pick specific columns:
+
+\`\`\`sql
+SELECT name, age FROM users;
+\`\`\`
+
+You can prefix columns with the table name — important for later:
+
+\`\`\`sql
+SELECT users.name, users.age FROM users;
+\`\`\`
+
+SELECT does not modify data — it only reads.
+
+**Goal:** Write \`SELECT * FROM users;\` to see all users.
+
+**Tip:** In the **Schema viewer** (bottom-left), click any table name to auto-generate \`SELECT * FROM table LIMIT 100;\`. Try it on \`users\`.`,
+    check: { type: 'result', expectedSql: 'SELECT * FROM users;' },
+  },
+  {
+    id: '08-calc',
     module: 1,
     title: 'Basic Calculations',
     type: 'practice',
-    file: '07-calc.sql',
+    file: '08-calc.sql',
     seed: SEED_EMPTY,
     markdown: `# Basic Calculations
 

@@ -16,7 +16,9 @@ SELECT a.col, b.col FROM table_a
 INNER JOIN table_b ON a.id = b.foreign_id;
 \`\`\`
 
-Only rows with matches in both tables appear.
+Use \`table.column\` notation to avoid ambiguity when both tables have the same column name.
+
+\`INNER JOIN\` is the most common join — you can write just \`JOIN\` and SQLite treats it the same. \`LEFT JOIN\` is second most common.
 
 **Goal:** Write a query that shows each customer name alongside their order item. Use \`INNER JOIN\` on \`customers.id = orders.customer_id\`.`,
     seed: SEED_SHOP,
