@@ -158,6 +158,11 @@ function initSidebarCollapse() {
   const btn = document.getElementById('btn-sidebar-collapse');
   if (!panel || !btn) return;
   btn.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      panel.classList.toggle('open');
+      pushContent();
+      return;
+    }
     const collapsed = panel.classList.toggle('collapsed');
     const w = collapsed ? '26px' : '260px';
     document.documentElement.style.setProperty('--sidebar-width', w);
@@ -167,22 +172,24 @@ function initSidebarCollapse() {
   });
 }
 
-function initMobileToggles() {
-  const schemaPanel = document.getElementById('schema-panel');
-  const mobileMenu = document.getElementById('mobile-menu-panel');
+let schemaPanel, mobileMenu;
 
-  function pushContent() {
-    const main = document.querySelector('.main-content');
-    if (!main) return;
-    if (window.innerWidth > 768) { main.style.marginLeft = ''; return; }
-    main.style.marginLeft = schemaPanel.classList.contains('open') ? schemaPanel.offsetWidth + 'px' : '';
-  }
-  function pushContentRight() {
-    const main = document.querySelector('.main-content');
-    if (!main) return;
-    if (window.innerWidth > 768) { main.style.marginRight = ''; return; }
-    main.style.marginRight = mobileMenu.classList.contains('open') ? mobileMenu.offsetWidth + 'px' : '';
-  }
+function pushContent() {
+  const main = document.querySelector('.main-content');
+  if (!main || !schemaPanel) return;
+  if (window.innerWidth > 768) { main.style.marginLeft = ''; return; }
+  main.style.marginLeft = schemaPanel.classList.contains('open') ? schemaPanel.offsetWidth + 'px' : '';
+}
+function pushContentRight() {
+  const main = document.querySelector('.main-content');
+  if (!main || !mobileMenu) return;
+  if (window.innerWidth > 768) { main.style.marginRight = ''; return; }
+  main.style.marginRight = mobileMenu.classList.contains('open') ? mobileMenu.offsetWidth + 'px' : '';
+}
+
+function initMobileToggles() {
+  schemaPanel = document.getElementById('schema-panel');
+  mobileMenu = document.getElementById('mobile-menu-panel');
 
   document.getElementById('btn-schema-toggle')?.addEventListener('click', () => {
     schemaPanel.classList.toggle('open');
