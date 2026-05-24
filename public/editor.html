@@ -81,6 +81,8 @@
       </div>
     </header>
     <aside id="schema-panel" class="schema-panel notranslate">
+      <button id="btn-sidebar-collapse" class="sidebar-collapse-btn" title="Collapse sidebar">◀</button>
+      <div class="sidebar-inner">
       <div class="section-node section-node-fixed">
         <div class="section-header" data-section="ops">
           <span class="section-arrow">▾</span><span class="section-label">Operations</span>
@@ -97,7 +99,7 @@
             <button class="btn btn-sm" id="btn-schema-cloud-user" title="Log out" style="display:none;font-size:11px"></button>
             <button class="btn btn-sm" id="btn-schema-recent" title="Recent">Recent</button>
             <button class="btn btn-sm" id="btn-schema-theme" title="Theme">&#9790;</button>
-            <button class="btn btn-sm" id="btn-schema-settings" title="Settings">&#9881;</button>
+            <button class="btn btn-sm" id="btn-schema-settings" title="Settings" disabled>&#9881;</button>
           </div>
           <div id="ops-cloud" class="ops-bar" style="display:none;border-top:1px solid var(--color-border-light);padding-top:var(--space-1);margin-top:var(--space-1);flex-wrap:wrap">
             <button type="button" class="btn btn-sm" id="btn-cloud-sync">☁ Save</button>
@@ -164,6 +166,7 @@
         </div>
       </div>
       <div id="schema-resize-handle" class="schema-resize-handle"></div>
+      </div>
     </aside>
     <div id="mobile-menu-panel" class="mobile-menu-panel hidden">
       <div class="mobile-menu-header">

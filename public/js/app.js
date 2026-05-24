@@ -61,6 +61,7 @@ async function main() {
 
   wireSchemaToolbar();
   initSidebarResize();
+  initSidebarCollapse();
   initEditorResize();
   initPaneResize();
   initSidebarSectionResize();
@@ -116,6 +117,7 @@ async function main() {
 function initSidebarResize() {
   const handle = document.getElementById('schema-resize-handle');
   if (!handle) return;
+  const panel = document.getElementById('schema-panel');
   let startX, startWidth;
   function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
 
@@ -131,6 +133,7 @@ function initSidebarResize() {
     document.removeEventListener('touchend', end);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    panel.classList.remove('notrans');
   }
 
   function start(e) {
@@ -142,6 +145,7 @@ function initSidebarResize() {
     document.addEventListener('touchend', end);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
+    panel.classList.add('notrans');
     e.preventDefault();
   }
 
@@ -149,24 +153,55 @@ function initSidebarResize() {
   handle.addEventListener('touchstart', start, { passive: false });
 }
 
+function initSidebarCollapse() {
+  const panel = document.getElementById('schema-panel');
+  const btn = document.getElementById('btn-sidebar-collapse');
+  if (!panel || !btn) return;
+  btn.addEventListener('click', () => {
+    const collapsed = panel.classList.toggle('collapsed');
+    const w = collapsed ? '26px' : '260px';
+    document.documentElement.style.setProperty('--sidebar-width', w);
+    btn.textContent = collapsed ? '▶' : '◀';
+    const handle = panel.querySelector('.schema-resize-handle');
+    if (handle) handle.style.display = collapsed ? 'none' : '';
+  });
+}
+
 function initMobileToggles() {
   const schemaPanel = document.getElementById('schema-panel');
   const mobileMenu = document.getElementById('mobile-menu-panel');
 
+  function pushContent() {
+    const main = document.querySelector('.main-content');
+    if (!main) return;
+    if (window.innerWidth > 768) { main.style.marginLeft = ''; return; }
+    main.style.marginLeft = schemaPanel.classList.contains('open') ? schemaPanel.offsetWidth + 'px' : '';
+  }
+  function pushContentRight() {
+    const main = document.querySelector('.main-content');
+    if (!main) return;
+    if (window.innerWidth > 768) { main.style.marginRight = ''; return; }
+    main.style.marginRight = mobileMenu.classList.contains('open') ? mobileMenu.offsetWidth + 'px' : '';
+  }
+
   document.getElementById('btn-schema-toggle')?.addEventListener('click', () => {
     schemaPanel.classList.toggle('open');
+    pushContent();
   });
 
   document.getElementById('btn-schema-close')?.addEventListener('click', () => {
     schemaPanel.classList.remove('open');
+    pushContent();
   });
 
   document.getElementById('btn-mobile-menu')?.addEventListener('click', () => {
     mobileMenu.classList.toggle('open');
+    pushContentRight();
   });
 
   document.getElementById('btn-mobile-menu-close')?.addEventListener('click', () => {
     mobileMenu.classList.remove('open');
+    pushContentRight();
   });
 
   document.querySelectorAll('#mobile-menu-panel .mobile-menu-actions .btn[data-action]').forEach(btn => {
@@ -202,9 +237,18 @@ function initMobileToggles() {
     if (window.innerWidth > 768) return;
     if (!e.target.closest('#schema-panel') && !e.target.closest('#btn-schema-toggle')) {
       schemaPanel.classList.remove('open');
+      pushContent();
     }
     if (!e.target.closest('#mobile-menu-panel') && !e.target.closest('#btn-mobile-menu')) {
       mobileMenu.classList.remove('open');
+      pushContentRight();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      const main = document.querySelector('.main-content');
+      if (main) { main.style.marginLeft = ''; main.style.marginRight = ''; }
     }
   });
 }

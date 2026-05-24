@@ -7,7 +7,8 @@ import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, foldGutter, 
 import { tags } from '@lezer/highlight';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
-import { sql, SQLite } from '@codemirror/lang-sql';
+import { sql, SQLite, schemaCompletionSource, keywordCompletionSource } from '@codemirror/lang-sql';
+import { sqlAutoTriggerSource } from './sqlCompletion.js';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
@@ -29,6 +30,7 @@ const darkHighlight = HighlightStyle.define([
   { tag: tags.null, color: '#7db1dc' },
 ]);
 const syntaxThemeComp = new Compartment();
+const autocompleteComp = new Compartment();
 const lightHighlight = HighlightStyle.define([
   { tag: tags.keyword, color: '#125089' },
   { tag: tags.typeName, color: '#14604f' },
@@ -72,6 +74,16 @@ function debounceUpdate(update) {
 function makeSql(schema) {
   return sql({ dialect: SQLite, upperCaseKeywords: getSettings().keywordUpper, schema: schema || currentSchema });
 }
+function makeAutocomplete() {
+  return autocompletion({
+    tooltipClass: () => 'notranslate',
+    override: [
+      sqlAutoTriggerSource,
+      keywordCompletionSource(SQLite, getSettings().keywordUpper),
+      schemaCompletionSource({ dialect: SQLite, schema: currentSchema }),
+    ],
+  });
+}
 
 /**
  * Creates a CodeMirror editor instance with the app's shared extension set.
@@ -90,7 +102,7 @@ function makeEditor(doc, parent) {
       EditorState.allowMultipleSelections.of(true),
       indentOnInput(),
       syntaxThemeComp.of(getSyntaxTheme()),
-      bracketMatching(), closeBrackets(), autocompletion({ tooltipClass: () => 'notranslate' }),
+      bracketMatching(), closeBrackets(), autocompleteComp.of(makeAutocomplete()),
       rectangularSelection(), crosshairCursor(), highlightActiveLine(),
       highlightSelectionMatches(),
       keymap.of([
@@ -129,6 +141,7 @@ export function initEditor() {
   window.addEventListener('settings-changed', () => {
     if (view && view._langComp) {
       view.dispatch({ effects: view._langComp.reconfigure(makeSql()) });
+      view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
     }
   });
   new MutationObserver(() => updateSyntaxTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -224,6 +237,7 @@ export function updateEditorSchema(tables) {
   currentSchema = schema;
   if (!view || !view._langComp) return;
   view.dispatch({ effects: view._langComp.reconfigure(makeSql(schema)) });
+  view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
 }
 
 /**
