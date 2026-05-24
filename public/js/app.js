@@ -153,6 +153,8 @@ function initSidebarResize() {
   handle.addEventListener('touchstart', start, { passive: false });
 }
 
+let savedSidebarWidth = 260;
+
 function initSidebarCollapse() {
   const panel = document.getElementById('schema-panel');
   const btn = document.getElementById('btn-sidebar-collapse');
@@ -164,9 +166,14 @@ function initSidebarCollapse() {
       return;
     }
     const collapsed = panel.classList.toggle('collapsed');
-    const w = collapsed ? '26px' : '260px';
-    document.documentElement.style.setProperty('--sidebar-width', w);
-    btn.textContent = collapsed ? '▶' : '◀';
+    if (collapsed) {
+      savedSidebarWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width')) || 260;
+      document.documentElement.style.setProperty('--sidebar-width', '26px');
+      btn.textContent = '▶';
+    } else {
+      document.documentElement.style.setProperty('--sidebar-width', savedSidebarWidth + 'px');
+      btn.textContent = '◀';
+    }
     const handle = panel.querySelector('.schema-resize-handle');
     if (handle) handle.style.display = collapsed ? 'none' : '';
   });
