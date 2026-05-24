@@ -32,12 +32,11 @@
     min-height: 0;
     flex: 1;
     overflow: hidden;
-    border-top: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
   }
 
   .section-node-fixed {
     flex: 0 0 auto;
+    border-top: 1px solid var(--color-border);
   }
 
 
@@ -51,6 +50,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border-light);
     border-bottom: 1px solid var(--color-border-light);
     cursor: pointer;
     user-select: none;
@@ -403,16 +403,16 @@
 
   .folder-toggle {
     flex-shrink: 0;
-    width: 20px;
+    width: 24px;
     text-align: center;
-    font-size: 10px;
+    font-size: 16px;
     color: var(--color-text-muted);
     cursor: pointer;
     user-select: none;
   }
 
   .folder-toggle:hover {
-    color: var(--color-text);
+    color: var(--color-accent);
   }
 
   .folder-children {

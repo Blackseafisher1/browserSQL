@@ -240,16 +240,20 @@ async function switchToTab(name) {
 function startInlineRename(oldName) {
   const el = document.querySelector(`[data-file="${escAttr(oldName)}"] .file-name`);
   if (!el) return;
+  const slashIdx = oldName.lastIndexOf('/');
+  const folder = slashIdx >= 0 ? oldName.substring(0, slashIdx + 1) : '';
+  const baseName = slashIdx >= 0 ? oldName.substring(slashIdx + 1) : oldName;
   const input = document.createElement('input');
   input.className = 'file-rename-input';
-  input.value = oldName;
+  input.value = baseName;
   input.style.width = el.offsetWidth + 'px';
   el.replaceWith(input);
   input.focus();
-  const extPos = oldName.lastIndexOf('.sql');
-  input.setSelectionRange(extPos > 0 ? extPos : oldName.length, extPos > 0 ? extPos : oldName.length);
+  const extPos = baseName.lastIndexOf('.sql');
+  input.setSelectionRange(extPos > 0 ? extPos : baseName.length, extPos > 0 ? extPos : baseName.length);
   const finish = async () => {
-    const newName = input.value.trim();
+    const raw = input.value.trim();
+    const newName = raw ? folder + raw : '';
     if (newName && newName !== oldName) {
       const files = await getFiles();
       if (files[newName]) { alert('File already exists'); input.focus(); return; }
@@ -267,11 +271,11 @@ function startInlineRename(oldName) {
       await renderTree();
     }
   };
+  input.addEventListener('mousedown', (ev) => ev.stopPropagation());
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Enter') { finish(); }
     if (e.key === 'Escape') { renderTree(); }
   });
-  input.addEventListener('blur', finish);
 }
 
 function escAttr(s) {
@@ -387,6 +391,7 @@ export async function initFilesView() {
   if (!tree) return;
 
   tree.addEventListener('click', async (e) => {
+    if (e.target.closest('.file-rename-input')) return;
     const del = e.target.closest('[data-del]');
     const delf = e.target.closest('[data-delfolder]');
     const item = e.target.closest('[data-file]');
@@ -448,10 +453,18 @@ export async function initFilesView() {
     input.className = 'file-rename-input';
     input.value = '.sql';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
-    list.insertBefore(input, list.firstChild);
+    if (selectedFolder) {
+      const folderEl = list.querySelector(`[data-folder="${escAttr(selectedFolder)}"]`);
+      if (folderEl) folderEl.after(input);
+      else list.insertBefore(input, list.firstChild);
+    } else {
+      list.insertBefore(input, list.firstChild);
+    }
     input.focus();
     input.setSelectionRange(0, 0);
+    input.addEventListener('mousedown', (ev) => ev.stopPropagation());
     const finish = async () => {
+      if (!input.parentNode) return;
       let name = input.value.trim();
       if (!name || name === '.sql') { input.remove(); return; }
       if (!name.includes('.')) name += '.sql';
@@ -463,10 +476,9 @@ export async function initFilesView() {
       input.remove();
     };
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Enter') { finish(); }
       if (e.key === 'Escape') { input.remove(); }
     });
-    input.addEventListener('blur', finish);
   });
 
   document.getElementById('btn-folder-new')?.addEventListener('click', (e) => {
@@ -476,9 +488,17 @@ export async function initFilesView() {
     input.className = 'file-rename-input';
     input.placeholder = 'folder name';
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
-    list.insertBefore(input, list.firstChild);
+    if (selectedFolder) {
+      const folderEl = list.querySelector(`[data-folder="${escAttr(selectedFolder)}"]`);
+      if (folderEl) folderEl.after(input);
+      else list.insertBefore(input, list.firstChild);
+    } else {
+      list.insertBefore(input, list.firstChild);
+    }
     input.focus();
+    input.addEventListener('mousedown', (ev) => ev.stopPropagation());
     const finish = async () => {
+      if (!input.parentNode) return;
       const raw = input.value.trim();
       input.remove();
       if (!raw) return;
@@ -493,10 +513,9 @@ export async function initFilesView() {
       await renderTree();
     };
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Enter') { finish(); }
       if (e.key === 'Escape') { input.remove(); }
     });
-    input.addEventListener('blur', finish);
   });
 
   const panel = document.getElementById('schema-panel');

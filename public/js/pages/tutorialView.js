@@ -331,8 +331,12 @@ export async function initTutorialMode() {
   const panel = getPanel();
   panel.start?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const hasProgress = Object.keys(loadCompletion()).length > 0;
-    startTutorialMode(!hasProgress);
+    if (state.tutorialActive) {
+      startTutorialMode(true);
+    } else {
+      const hasProgress = Object.keys(loadCompletion()).length > 0;
+      startTutorialMode(!hasProgress);
+    }
   });
   panel.end?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -403,11 +407,6 @@ async function exitTutorialMode() {
   if (state.editorView?.dom) state.editorView.dom.style.display = '';
   const executeBtn = document.getElementById('btn-execute');
   if (executeBtn) executeBtn.disabled = false;
-  if (confirm('Tutorial complete! Export your lesson files as ZIP?')) {
-    const { getFiles } = await import('./filesView.js');
-    const { downloadAsZip } = await import('./zip.js');
-    downloadAsZip(await getFiles(), 'browsersql-tutorial-lessons');
-  }
 }
 
 /**

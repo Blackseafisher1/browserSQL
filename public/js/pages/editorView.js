@@ -29,10 +29,21 @@ const darkHighlight = HighlightStyle.define([
   { tag: tags.null, color: '#7db1dc' },
 ]);
 const syntaxThemeComp = new Compartment();
+const lightHighlight = HighlightStyle.define([
+  { tag: tags.keyword, color: '#125089' },
+  { tag: tags.typeName, color: '#14604f' },
+  { tag: tags.string, color: '#7d291b' },
+  { tag: tags.number, color: '#25501a' },
+  { tag: tags.comment, color: '#3e5c30' },
+  { tag: tags.function(tags.propertyName), color: '#4f4a10' },
+  { tag: tags.bool, color: '#8b1818' },
+  { tag: tags.null, color: '#125089' },
+]);
 function getSyntaxTheme() {
+  if (state.activeFileIsMD) return syntaxHighlighting(defaultHighlightStyle, { fallback: true });
   return document.documentElement.getAttribute('data-theme') === 'dark'
     ? syntaxHighlighting(darkHighlight)
-    : syntaxHighlighting(defaultHighlightStyle, { fallback: true });
+    : syntaxHighlighting(lightHighlight);
 }
 function updateSyntaxTheme() {
   for (const ed of Object.values(editors)) {
@@ -226,6 +237,7 @@ export function setLanguage(lang) {
     const ed = editors[idx];
     if (ed && ed._langComp) ed.dispatch({ effects: ed._langComp.reconfigure(ext) });
   }
+  updateSyntaxTheme();
 }
 
 /**
