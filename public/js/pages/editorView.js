@@ -26,7 +26,7 @@ const darkHighlight = HighlightStyle.define([
   { tag: tags.comment, color: '#93b583' },
   { tag: tags.function(tags.propertyName), color: '#dcdcaa' },
   { tag: tags.bool, color: '#ff8484' },
-  { tag: tags.null, color: '#ff8484' },
+  { tag: tags.null, color: '#7db1dc' },
 ]);
 const syntaxThemeComp = new Compartment();
 function getSyntaxTheme() {
