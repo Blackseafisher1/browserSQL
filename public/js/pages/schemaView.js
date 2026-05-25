@@ -331,7 +331,7 @@ function handleTreeClick(e) {
     try {
       const sql = `SELECT * FROM ${escId(viewName)} LIMIT 100`;
       const rows = state.db.exec(sql, { rowMode: 'object' });
-      import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
+      import('./resultsView.js').then(r => r.showResults(rows, '0.01', sql));
     } catch (err) {
       import('./resultsView.js').then(r => r.showError(err.message));
     }
@@ -367,7 +367,7 @@ function handleTreeClick(e) {
   try {
     const sql = `SELECT * FROM ${escId(tableName)} LIMIT 100`;
     const rows = state.db.exec(sql, { rowMode: 'object' });
-    import('./resultsView.js').then(r => r.showResults(rows, '0.01'));
+    import('./resultsView.js').then(r => r.showResults(rows, '0.01', sql));
   } catch (err) {
     import('./resultsView.js').then(r => r.showError(err.message));
   }

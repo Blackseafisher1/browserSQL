@@ -424,12 +424,12 @@ export async function executeQuery() {
     const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer) || 0;
     
     if (rows.length > 0) {
-      showResults(rows, elapsed);
+      showResults(rows, elapsed, code);
     } else {
       const message = changes > 0 
         ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`
         : `0 rows | ${elapsed}ms`;
-      showNoResults(message);
+      showNoResults(message, code);
     }
     
     if (state.dbName !== 'untitled') saveCurrentToLocal();
@@ -452,7 +452,7 @@ export async function executeAll() {
   try {
     state.db.exec(wrapped, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    showNoResults(`All statements executed successfully | ${elapsed}ms`);
+    showNoResults(`All statements executed successfully | ${elapsed}ms`, code);
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
   } catch (err) {

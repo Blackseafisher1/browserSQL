@@ -8,16 +8,75 @@ let lastCols = null;
 
 export function getLastResults() { return { rows: lastRows, cols: lastCols }; }
 
-export function showResults(rows, queryTime) {
+function getMultiplier(sql) {
+  const s = (sql || '').trim().toUpperCase()
+    .replace(/--.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .trim();
+  if (!s) return { mul: 6, label: 'SELECT' };
+  if (s.startsWith('SELECT') || s.startsWith('WITH') || s.startsWith('PRAGMA') || s.startsWith('EXPLAIN')) {
+    return { mul: 6, label: 'SELECT' };
+  }
+  if (s.startsWith('INSERT')) {
+    const vals = s.match(/VALUES\s*\(/gi);
+    if (vals && vals.length > 5) return { mul: 1150, label: 'batched INSERT' };
+    return { mul: 75000, label: 'single INSERT' };
+  }
+  if (s.startsWith('UPDATE')) {
+    if (s.includes('WHERE') && !s.includes('WHERE 1=1') && !s.includes('WHERE true')) {
+      return { mul: 75000, label: 'single UPDATE' };
+    }
+    return { mul: 1750, label: 'batched UPDATE' };
+  }
+  if (s.startsWith('DELETE')) {
+    if (s.includes('WHERE') && !s.includes('WHERE 1=1') && !s.includes('WHERE true')) {
+      return { mul: 75000, label: 'single DELETE' };
+    }
+    return { mul: 1750, label: 'batched DELETE' };
+  }
+  if (s.startsWith('CREATE') || s.startsWith('DROP') || s.startsWith('ALTER')) {
+    return { mul: 1000, label: 'DDL' };
+  }
+  if (s.startsWith('REPLACE')) {
+    const vals = s.match(/VALUES\s*\(/gi);
+    if (vals && vals.length > 5) return { mul: 1150, label: 'batched REPLACE' };
+    return { mul: 75000, label: 'single REPLACE' };
+  }
+  return { mul: 10, label: 'other' };
+}
+
+function trimZeros(s) {
+  s = s.replace(/0+$/, '');
+  if (s.endsWith('.')) s = s.slice(0, -1);
+  return s || '0';
+}
+
+function formatTime(seconds) {
+  const n = parseFloat(seconds);
+  if (isNaN(n)) return seconds;
+  return trimZeros(n.toFixed(8));
+}
+
+function formatEstimate(seconds, mul) {
+  const n = parseFloat(seconds);
+  if (isNaN(n)) return '';
+  const est = n * mul;
+  return trimZeros(est.toFixed(8));
+}
+
+export function showResults(rows, queryTime, sql) {
   if (!rows || rows.length === 0) {
-    showNoResults('0 rows');
+    showNoResults('0 rows', sql);
     return;
   }
   const cols = Object.keys(rows[0]);
   lastRows = rows;
   lastCols = cols;
   const rowCount = rows.length;
-  info.textContent = `${rowCount} row${rowCount !== 1 ? 's' : ''} | ${queryTime}ms`;
+  const mul = getMultiplier(sql);
+  const ft = formatTime(queryTime);
+  const est = formatEstimate(queryTime, mul.mul);
+  info.textContent = `${rowCount} row${rowCount !== 1 ? 's' : ''} | ${ft}s (est. disk time: ~${est}s, ${mul.label})`;
 
   let table = '<div class="results-table-wrapper"><table class="results-table"><thead><tr>';
   for (const col of cols) {
@@ -68,10 +127,19 @@ export function csvFromLastResult() {
 /**
  * Displays a short no-results message in the results pane.
  * @param {string} msg Message to show.
+ * @param {string} [sql] Optional SQL for disk time estimation.
  */
-export function showNoResults(msg) {
-  info.textContent = msg;
-  output.innerHTML = `<div class="results-empty">${esc(msg)}</div>`;
+export function showNoResults(msg, sql) {
+  const parts = msg.match(/^([\d,\s]*\w+\s*(?:row|rows)?\s*)?(affected\s*)?[|]\s*([\d.]+)(ms)?$/i);
+  if (parts && sql) {
+    const elapsed = parts[3];
+    const mul = getMultiplier(sql);
+    const est = formatEstimate(elapsed, mul.mul);
+    info.textContent = `${parts[1] || ''}${parts[2] || ''}| ${formatTime(elapsed)}s (est. disk time: ~${est}s, ${mul.label})`;
+  } else {
+    info.textContent = msg;
+  }
+  output.innerHTML = `<div class="results-empty">${esc(info.textContent)}</div>`;
 }
 
 /**
