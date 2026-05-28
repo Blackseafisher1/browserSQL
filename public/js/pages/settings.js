@@ -4,7 +4,7 @@ import { state } from '../state.js';
 const STORAGE_KEY = 'browsersql-settings';
 
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false };
 }
 
 let settings = loadSettings();
@@ -57,6 +57,9 @@ export function applySettings() {
   if (skCb) skCb.checked = settings.skipEnabled === true;
   const kwCb = $('#setting-keyword-case');
   if (kwCb) kwCb.checked = settings.keywordUpper === true;
+  document.body.classList.toggle('block-cursor', settings.blockCursor === true);
+  const bcCb = $('#setting-block-cursor');
+  if (bcCb) bcCb.checked = settings.blockCursor === true;
   const kdSlider = $('#setting-kbdoffset');
   if (kdSlider) kdSlider.value = settings.kbdOffset;
   const kdDisplay = $('#setting-kbdoffset-value');
@@ -151,6 +154,12 @@ export function initSettings() {
     saveSettings();
     applySettings();
     window.dispatchEvent(new CustomEvent('settings-changed'));
+  });
+
+  $('#setting-block-cursor')?.addEventListener('change', (e) => {
+    settings.blockCursor = e.target.checked;
+    saveSettings();
+    applySettings();
   });
 
   $('#setting-kbdoffset')?.addEventListener('input', (e) => {
