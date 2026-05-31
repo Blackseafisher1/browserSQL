@@ -128,6 +128,8 @@ function renderTutorialPanel() {
     hintBtn.style.display = state.tutorialActive && lesson.hint ? '' : 'none';
   }
   const completed = isComplete(state.tutorialStep);
+  const verifyBtn = document.getElementById('btn-verify');
+  if (verifyBtn) verifyBtn.style.display = state.tutorialActive ? '' : 'none';
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
     const modEnd = state.tutorialStep >= lessons.length - 1;
@@ -323,6 +325,26 @@ export function evaluateTutorialQuery(result) {
   }
 }
 
+export function verifyLesson(code) {
+  if (!state.tutorialActive) return;
+  const lesson = lessons[state.tutorialStep];
+  if (!lesson || lesson.type === 'theory') {
+    setStatus('This is a theory lesson. Answer the quiz to continue.', '');
+    return;
+  }
+  if (!code?.trim()) {
+    setStatus('Write your SQL query first, then click Verify.', '');
+    return;
+  }
+  try {
+    const rows = state.db.exec(code, { rowMode: 'object' });
+    const changes = state.sqlite3?.capi?.sqlite3_changes(state.db.pointer) || 0;
+    evaluateTutorialQuery({ sql: code, rows, changes, error: null });
+  } catch (err) {
+    setStatus(`Query failed: ${err.message || String(err)}`, 'error');
+  }
+}
+
 /**
  * Starts or resumes tutorial mode.
  * @returns {Promise<boolean>} Whether tutorial mode is active after initialization.
@@ -444,7 +466,7 @@ export async function startTutorialMode(resetProgress = true) {
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
   } else {
-    setStatus('Run the lesson query to complete this step.', '');
+    setStatus('Write your SQL, then click Verify to check.', '');
   }
   renderTutorialPanel();
   return true;
@@ -464,7 +486,7 @@ async function goToLesson(step) {
     setStatus('Answer the quiz to unlock Next.', '');
   } else {
     await openSingleFile(lesson.file);
-    setStatus('Run the lesson query to complete this step.', '');
+    setStatus('Write your SQL, then click Verify to check.', '');
   }
   renderTutorialPanel();
 }

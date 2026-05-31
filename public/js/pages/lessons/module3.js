@@ -43,10 +43,10 @@ SELECT column1, column2 FROM tablename;
 
 Use \`*\` as shorthand for all columns.
 
-Different tables can have columns with the same name (e.g., both \`users\` and \`orders\` might have \`id\`). Prefix with the table name to remove ambiguity:
+Tables have columns. Prefix with the table name to be explicit — important when working with multiple tables later:
 
 \`\`\`sql
-SELECT users.name, orders.total FROM users, orders;
+SELECT users.name, users.age FROM users;
 \`\`\`
 
 You can also rename tables or columns with \`AS\` (alias):
@@ -130,6 +130,8 @@ ORDER BY column;
 SELECT columns FROM table WHERE column IS NULL;
 SELECT columns FROM table WHERE column IS NOT NULL;
 \`\`\`
+
+**Note:** \`NULL\` is different from an empty string (\`''\`) or \`0\`. Empty string and zero are real values. Only \`NULL\` means "no value".
 
 Use \`COALESCE(val, default)\` or \`IFNULL(val, default)\` to replace \`NULL\` with a fallback:
 

@@ -197,6 +197,7 @@
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
         <button id="btn-execute-all" class="btn btn-sm" data-action="execute-all" title="Run all (Ctrl+Shift+Enter)">Run All</button>
+        <button id="btn-verify" class="btn btn-sm btn-verify" data-action="verify" title="Check your solution" style="display:none">Verify</button>
         <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>
           <span class="execute-hint">Ctrl+Enter</span>
           <span class="execute-spacer"></span>
@@ -400,6 +401,23 @@
           <span>Block cursor (overtype)</span>
           <input type="checkbox" id="setting-block-cursor">
         </label>
+        <label class="settings-row">
+          <span>Cursor color over text</span>
+          <input type="color" id="setting-cursor-color-text">
+        </label>
+        <label class="settings-row">
+          <span>Cursor color over space</span>
+          <input type="color" id="setting-cursor-color-space">
+        </label>
+        <label class="settings-row">
+          <span>Normal cursor color</span>
+          <input type="color" id="setting-cursor-color-normal">
+          <span class="settings-value" style="font-size:11px;min-width:auto">(theme)</span>
+        </label>
+        <div class="settings-row">
+          <span></span>
+          <button id="setting-cursor-colors-reset" class="btn-sm">Reset cursor colors</button>
+        </div>
         <label class="settings-row">
           <span>Kbd bar offset</span>
           <input type="range" id="setting-kbdoffset" min="0" max="500" step="5">

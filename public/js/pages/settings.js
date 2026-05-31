@@ -3,8 +3,10 @@ import { state } from '../state.js';
 
 const STORAGE_KEY = 'browsersql-settings';
 
+const DEFAULT_CURSOR_COLOR = '#0056d9';
+
 function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: '' };
 }
 
 let settings = loadSettings();
@@ -60,6 +62,19 @@ export function applySettings() {
   document.body.classList.toggle('block-cursor', settings.blockCursor === true);
   const bcCb = $('#setting-block-cursor');
   if (bcCb) bcCb.checked = settings.blockCursor === true;
+  document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
+  document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
+  if (settings.cursorNormalColor) {
+    document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor);
+  } else {
+    document.documentElement.style.removeProperty('--cursor-normal-color');
+  }
+  const cct = $('#setting-cursor-color-text');
+  if (cct) cct.value = settings.cursorColorText || DEFAULT_CURSOR_COLOR;
+  const ccs = $('#setting-cursor-color-space');
+  if (ccs) ccs.value = settings.cursorColorSpace || DEFAULT_CURSOR_COLOR;
+  const cnc = $('#setting-cursor-color-normal');
+  if (cnc) cnc.value = settings.cursorNormalColor || '#0056d9';
   const kdSlider = $('#setting-kbdoffset');
   if (kdSlider) kdSlider.value = settings.kbdOffset;
   const kdDisplay = $('#setting-kbdoffset-value');
@@ -158,6 +173,32 @@ export function initSettings() {
 
   $('#setting-block-cursor')?.addEventListener('change', (e) => {
     settings.blockCursor = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-color-text')?.addEventListener('input', (e) => {
+    settings.cursorColorText = e.target.value;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-color-space')?.addEventListener('input', (e) => {
+    settings.cursorColorSpace = e.target.value;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-color-normal')?.addEventListener('input', (e) => {
+    settings.cursorNormalColor = e.target.value;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-colors-reset')?.addEventListener('click', () => {
+    settings.cursorColorText = DEFAULT_CURSOR_COLOR;
+    settings.cursorColorSpace = DEFAULT_CURSOR_COLOR;
+    settings.cursorNormalColor = '';
     saveSettings();
     applySettings();
   });

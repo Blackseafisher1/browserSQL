@@ -25,6 +25,38 @@ Use \`table.column\` notation to avoid ambiguity when both tables have the same 
     check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;' },
   },
   {
+    id: '26-old-join',
+    module: 5,
+    title: 'Old-School Joins (Implicit)',
+    type: 'theory',
+    file: '26-old-join.md',
+    markdown: `# Old-school implicit joins
+
+Before the modern \`JOIN ... ON\` syntax, SQL used commas in \`FROM\` and matched rows with \`WHERE\`:
+
+\`\`\`sql
+SELECT customers.name, orders.item
+FROM customers, orders
+WHERE customers.id = orders.customer_id;
+\`\`\`
+
+This is an **implicit inner join** — same result as \`INNER JOIN ... ON\`.
+
+**Why not use it today:**
+- Easy to forget the \`WHERE\` clause, accidentally creating a cross join
+- Harder to see join conditions mixed with filter conditions
+- Modern \`JOIN\` makes intent clearer
+
+Still good to recognize — you will see this in older SQL code and scripts.`,
+    question: {
+      prompt: 'What happens if you omit WHERE in a comma-separated FROM?',
+      options: ['Syntax error', 'Cross join (every row paired)', 'Empty result', 'Only matching rows'],
+      answer: 1,
+      explanation: 'Without WHERE, commas create a CROSS JOIN — every row in table A paired with every row in table B.',
+    },
+    seed: SEED_SHOP,
+  },
+  {
     id: '26-left-join',
     module: 5,
     title: 'LEFT JOIN',

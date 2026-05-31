@@ -233,7 +233,7 @@ SELECT does not modify data — it only reads.
 
 **Goal:** Write \`SELECT * FROM users;\` to see all users.
 
-**Tip:** In the **Schema viewer** (bottom-left), click any table name to auto-generate \`SELECT * FROM table LIMIT 100;\`. Try it on \`users\`.`,
+**Tip:** The **Schema viewer** (bottom-left) lists all tables and their columns. After your query runs, explore \`users\` there to see its structure.`,
     check: { type: 'result', expectedSql: 'SELECT * FROM users;' },
   },
   {
@@ -252,6 +252,8 @@ SELECT 2 + 2;
 SELECT 10 * 5;
 SELECT 'Hello' || ' ' || 'World';
 \`\`\`
+
+No \`FROM\` needed here — \`SELECT\` works without a table when evaluating expressions.
 
 The \`||\` operator concatenates strings.
 

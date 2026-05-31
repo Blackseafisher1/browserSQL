@@ -53,6 +53,17 @@
     border-color: var(--color-accent-hover);
   }
 
+  .btn-verify {
+    background: var(--color-success, #2e7d32);
+    color: #fff;
+    border-color: var(--color-success, #2e7d32);
+  }
+
+  .btn-verify:hover {
+    background: var(--color-success-hover, #1b5e20);
+    border-color: var(--color-success-hover, #1b5e20);
+  }
+
   .btn-close {
     width: 28px;
     height: 28px;

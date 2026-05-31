@@ -14,7 +14,7 @@ import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
 import { showResults, showError, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
-import { evaluateTutorialQuery } from './tutorialView.js';
+import { verifyLesson } from './tutorialView.js';
 import { saveCurrentFile } from './filesView.js';
 import { getSettings } from './settings.js';
 import { $ } from '../utils.js';
@@ -62,12 +62,23 @@ let editors = {};
 let currentSchema = {};
 
 let saveTimer = null;
+function updateCursorTextState(view) {
+  if (!document.body.classList.contains('block-cursor')) return;
+  const pos = view.state.selection.main.head;
+  const char = view.state.doc.sliceString(pos, pos + 1);
+  const isSpace = !char || char === ' ' || char === '\t' || char === '\n' || char === '\r';
+  document.body.classList.toggle('cursor-on-space', isSpace);
+}
+
 function debounceUpdate(update) {
   if (update.docChanged) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveCurrentFile().catch(() => {});
     }, 500);
+  }
+  if (update.selectionSet || update.docChanged) {
+    updateCursorTextState(update.view);
   }
 }
 
@@ -135,6 +146,7 @@ export function initEditor() {
   editors[0] = makeEditor('', container0);
   view = editors[0];
   state.editorView = view;
+  updateCursorTextState(view);
   window.addEventListener('beforeunload', () => {
     saveCurrentFile().catch(() => {});
   });
@@ -143,6 +155,7 @@ export function initEditor() {
       view.dispatch({ effects: view._langComp.reconfigure(makeSql()) });
       view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
     }
+    updateCursorTextState(view);
   });
   new MutationObserver(() => updateSyntaxTheme()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   setupExecuteShortcut();
@@ -281,6 +294,10 @@ function setupExecuteShortcut() {
 function setupExecuteButton() {
   executeBtn.addEventListener('click', executeQuery);
   document.getElementById('btn-execute-all')?.addEventListener('click', executeAll);
+  document.getElementById('btn-verify')?.addEventListener('click', () => {
+    if (!view) return;
+    verifyLesson(view.state.doc.toString());
+  });
   document.getElementById('btn-csv-export')?.addEventListener('click', () => {
     import('./resultsView.js').then(r => r.csvFromLastResult());
   });
@@ -434,11 +451,9 @@ export async function executeQuery() {
     
     if (state.dbName !== 'untitled') saveCurrentToLocal();
     if (state.renderSchema) state.renderSchema();
-    evaluateTutorialQuery({ sql: code, rows, changes, error: null });
   } catch (err) {
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     showError(`${err.message || String(err)} (${elapsed}ms)`);
-    evaluateTutorialQuery({ sql: code, rows: [], changes: 0, error: err });
   }
 }
 
