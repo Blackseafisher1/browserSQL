@@ -8,7 +8,7 @@ import { tags } from '@lezer/highlight';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite, schemaCompletionSource, keywordCompletionSource } from '@codemirror/lang-sql';
-import { sqlAutoTriggerSource } from './sqlCompletion.js';
+import { sqlAutoTriggerSource, parseCTEs } from './sqlCompletion.js';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
@@ -75,6 +75,7 @@ function debounceUpdate(update) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveCurrentFile().catch(() => {});
+      if (view) view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
     }, 500);
   }
   if (update.selectionSet || update.docChanged) {
@@ -86,12 +87,17 @@ function makeSql(schema) {
   return sql({ dialect: SQLite, upperCaseKeywords: getSettings().keywordUpper, schema: schema || currentSchema });
 }
 function makeAutocomplete() {
+  const doc = view?.state.doc.toString() || '';
+  const cteNames = parseCTEs(doc);
+  const virtSchema = {};
+  for (const name of cteNames) virtSchema[name] = [];
+  const merged = { ...currentSchema, ...virtSchema };
   return autocompletion({
     tooltipClass: () => 'notranslate',
     override: [
       sqlAutoTriggerSource,
       keywordCompletionSource(SQLite, getSettings().keywordUpper),
-      schemaCompletionSource({ dialect: SQLite, schema: currentSchema }),
+      schemaCompletionSource({ dialect: SQLite, schema: merged }),
     ],
   });
 }

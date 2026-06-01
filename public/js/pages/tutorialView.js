@@ -260,7 +260,9 @@ function escId(name) {
 function rowsEqual(actual, expected) {
   if (!Array.isArray(actual) || !Array.isArray(expected)) return false;
   if (actual.length !== expected.length) return false;
-  return JSON.stringify(actual) === JSON.stringify(expected);
+  const actVals = actual.map(r => Object.values(r));
+  const expVals = expected.map(r => Object.values(r));
+  return JSON.stringify(actVals) === JSON.stringify(expVals);
 }
 
 function runCheck(check, rows, changes) {
