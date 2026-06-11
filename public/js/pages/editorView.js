@@ -8,7 +8,8 @@ import { tags } from '@lezer/highlight';
 import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite, schemaCompletionSource, keywordCompletionSource } from '@codemirror/lang-sql';
-import { sqlAutoTriggerSource, parseCTEs } from './sqlCompletion.js';
+import { sqlAutoTriggerSource } from './sqlCompletion.js';
+import { parseCTEs, parseAliases, mergeSchema } from './sqlSchemaParser.js';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
@@ -88,10 +89,9 @@ function makeSql(schema) {
 }
 function makeAutocomplete() {
   const doc = view?.state.doc.toString() || '';
-  const cteNames = parseCTEs(doc);
-  const virtSchema = {};
-  for (const name of cteNames) virtSchema[name] = [];
-  const merged = { ...currentSchema, ...virtSchema };
+  const ctes = parseCTEs(doc);
+  const aliases = parseAliases(doc);
+  const merged = mergeSchema(currentSchema, aliases, ctes);
   return autocompletion({
     tooltipClass: () => 'notranslate',
     override: [

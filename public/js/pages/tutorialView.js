@@ -395,7 +395,7 @@ export async function initTutorialMode() {
   });
 
   document.addEventListener('change', (e) => {
-    if (e.target.id === 'tutorial-module-select') {
+    if (e.target.id === 'tutorial-module-select' && state.tutorialActive) {
       const idx = getModuleIndices(Number(e.target.value))[0];
       if (idx !== undefined) goToLesson(idx);
     }

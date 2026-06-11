@@ -1,13 +1,5 @@
 import { state } from '../state.js';
 
-export function parseCTEs(text) {
-  const names = [];
-  const re = /WITH\s+(?:RECURSIVE\s+)?(\w+)\s*(?:\(([^)]*)\))?\s*AS\s*\(/gi;
-  let m;
-  while ((m = re.exec(text)) !== null) names.push(m[1]);
-  return names;
-}
-
 function tableByName(name) {
   return state.tables.find(t => t.name === name);
 }

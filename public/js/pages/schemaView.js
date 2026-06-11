@@ -248,7 +248,7 @@ async function renderSchema() {
       const columns = cols.map(c => ({
         name: c.name,
         type: c.type || 'TEXT',
-        pk: c.pk === 1 || c.pk === true,
+        pk: c.pk > 0 || c.pk === true,
         fk: tableFkSet.has(c.name),
         nn: c.notnull === 1,
         uq: uniqueCols.has(c.name),
