@@ -5,7 +5,7 @@ const STORAGE_KEY = 'browsersql-settings';
 
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
-function defaultSettings() {
+export function defaultSettings() {
   return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: '' };
 }
 
@@ -14,8 +14,11 @@ let settings = loadSettings();
 function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultSettings(), ...JSON.parse(raw) } : defaultSettings();
-  } catch {
+    if (!raw) return defaultSettings();
+    const parsed = JSON.parse(raw);
+    return { ...defaultSettings(), ...parsed };
+  } catch (e) {
+    console.warn('[settings] Failed to load, using defaults', e);
     return defaultSettings();
   }
 }

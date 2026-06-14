@@ -1,12 +1,17 @@
 {
   "scripts": {
-    "build": "esbuild public/js/app.js --bundle --format=esm --outdir=public/dist --splitting --chunk-names=chunks/[name]-[hash] --minify --external:@codemirror/* --external:@lezer/* --external:marked --external:crelt --external:style-mod --external:w3c-keyname --external:@marijn/find-cluster-break"
+    "build": "esbuild public/js/app.js --bundle --format=esm --outdir=public/dist --splitting --chunk-names=chunks/[name]-[hash] --minify --external:@codemirror/* --external:@lezer/* --external:marked --external:crelt --external:style-mod --external:w3c-keyname --external:@marijn/find-cluster-break",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.2",
     "elysia": "^1.4.28"
   },
   "devDependencies": {
-    "esbuild": "^0.25.3"
+    "esbuild": "^0.25.3",
+    "jsdom": "^29.1.1",
+    "marked": "^18.0.5",
+    "vitest": "^4.1.8"
   }
 }

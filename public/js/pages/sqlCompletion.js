@@ -1,5 +1,19 @@
 import { state } from '../state.js';
 
+function allColumnOptions(withEquals) {
+  const opts = [];
+  for (const t of state.tables) {
+    for (const c of t.columns) {
+      opts.push({
+        label: withEquals ? `${c.name} = ` : c.name,
+        type: 'property',
+        detail: `${t.name}.${c.type || ''}`,
+      });
+    }
+  }
+  return opts;
+}
+
 function tableByName(name) {
   return state.tables.find(t => t.name === name);
 }
@@ -46,6 +60,20 @@ function detectContext(text) {
   if (m) return { type: 'update-before-set', table: m[1] };
 
   if (/(?:WHERE|AND|OR|HAVING)\s+$/i.test(text)) return { type: 'condition' };
+
+  m = text.match(/ON\s+$/i);
+  if (m) return { type: 'condition' };
+
+  m = text.match(/SELECT\s$/i);
+  if (m) return { type: 'select-col' };
+
+  m = text.match(/,\s*$/);
+  if (m) {
+    const hasSelect = /\bSELECT\b/i.test(text);
+    const lastSelect = text.lastIndexOf('SELECT');
+    const lastFrom = text.lastIndexOf('FROM');
+    if (hasSelect && (lastFrom === -1 || lastSelect > lastFrom)) return { type: 'select-col' };
+  }
 
   return null;
 }
@@ -113,6 +141,13 @@ export function sqlAutoTriggerSource(context) {
         detail: c.type || '',
       }));
       return { from: pos, options: opts, validFor: /^[\w\s=]+$/ };
+    }
+
+    case 'select-col': {
+      const tables = referencedTables(textBefore);
+      const opts = tables.length ? columnOptsForTables(tables, false) : allColumnOptions(false);
+      if (!opts.length) return null;
+      return { from: pos, options: opts, validFor: /^[\w]+$/ };
     }
 
     case 'condition': {

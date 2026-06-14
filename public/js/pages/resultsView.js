@@ -8,7 +8,7 @@ let lastCols = null;
 
 export function getLastResults() { return { rows: lastRows, cols: lastCols }; }
 
-function getMultiplier(sql) {
+export function getMultiplier(sql) {
   const s = (sql || '').trim().toUpperCase()
     .replace(/--.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -45,19 +45,19 @@ function getMultiplier(sql) {
   return { mul: 10, label: 'other' };
 }
 
-function trimZeros(s) {
+export function trimZeros(s) {
   s = s.replace(/0+$/, '');
   if (s.endsWith('.')) s = s.slice(0, -1);
   return s || '0';
 }
 
-function formatTime(seconds) {
+export function formatTime(seconds) {
   const n = parseFloat(seconds);
   if (isNaN(n)) return seconds;
   return trimZeros(n.toFixed(8));
 }
 
-function formatEstimate(seconds, mul) {
+export function formatEstimate(seconds, mul) {
   const n = parseFloat(seconds);
   if (isNaN(n)) return '';
   const est = n * mul;

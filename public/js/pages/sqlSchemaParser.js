@@ -61,7 +61,7 @@ function extractSelectColumns(selectBody) {
 
 export function parseCTEs(text) {
   const ctes = {};
-  const cteRe = /(?:\bWITH\s+(?:RECURSIVE\s+)?)(\w+)\s*(?:\(([^)]*)\))?\s*AS\s*\(/gi;
+  const cteRe = /(?:\bWITH\s+(?:RECURSIVE\s+)?|,\s*)(\w+)\s*(?:\(([^)]*)\))?\s*AS\s*\(/gi;
   let m;
   while ((m = cteRe.exec(text)) !== null) {
     const name = m[1];
@@ -69,6 +69,14 @@ export function parseCTEs(text) {
 
     if (explicitCols) {
       ctes[name] = explicitCols.split(',').map(s => s.trim()).filter(Boolean);
+      let depth = 1;
+      let j = m.index + m[0].length;
+      while (j < text.length && depth > 0) {
+        if (text[j] === '(') depth++;
+        else if (text[j] === ')') depth--;
+        j++;
+      }
+      cteRe.lastIndex = j;
       continue;
     }
 
@@ -79,6 +87,7 @@ export function parseCTEs(text) {
       else if (text[j] === ')') depth--;
       j++;
     }
+    cteRe.lastIndex = j;
     let cteBody = stripComments(text.slice(m.index + m[0].length, j - 1));
 
     let fromIdx = -1;

@@ -1,15 +1,29 @@
-import { $ } from '../utils.js';
+import { $, isOffline, fetchWithOfflineFallback } from '../utils.js';
 import { state } from '../state.js';
+
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  ? 'http://localhost:8081'
+  : 'https://ideaboard.site';
 
 const overlay = $('#ai-modal-overlay');
 const promptInput = $('#ai-prompt-input');
 const generateBtn = $('#btn-ai-generate');
 const status = $('#ai-status');
+const statusText = document.createElement('span');
+statusText.className = 'ai-status-text';
+const spinner = document.createElement('span');
+spinner.className = 'ai-spinner';
+spinner.textContent = ' ⚙️';
+spinner.style.display = 'none';
+status.innerHTML = '';
+status.appendChild(statusText);
+status.appendChild(spinner);
 const selectedInfo = $('#ai-selected-info');
 const schemaCb = $('#ai-include-schema');
 const rateInfo = $('#ai-rate-info');
 
 let selRange = null;
+let currentAbortController = null;
 
 function updateRateDisplay() {
   const token = localStorage.getItem('browsersql-cloud-token');
@@ -48,6 +62,10 @@ function insertSQL(sql) {
 }
 
 export async function showAIGenerateModal() {
+  if (isOffline()) {
+    statusText.textContent = '❌ No internet connection. AI generation requires a network.';
+    return;
+  }
   const ed = state.editorView;
   if (ed) {
     const sel = ed.state.selection.main;
@@ -76,6 +94,7 @@ export async function showAIGenerateModal() {
 }
 
 function hideModal() {
+  if (currentAbortController) currentAbortController.abort();
   overlay.classList.add('hidden');
   selRange = null;
 }
@@ -94,7 +113,12 @@ async function handleGenerate() {
   }
 
   generateBtn.disabled = true;
-  status.textContent = 'Generating...';
+  statusText.textContent = 'Generating...';
+  spinner.style.display = 'inline';
+
+  if (currentAbortController) currentAbortController.abort();
+  currentAbortController = new AbortController();
+  const signal = currentAbortController.signal;
 
   try {
     const schema = schemaCb.checked ? buildSchemaString() : '';
@@ -103,11 +127,10 @@ async function handleGenerate() {
     const headers = { 'Content-Type': 'application/json' };
     const token = localStorage.getItem('browsersql-cloud-token');
     if (token) headers['Authorization'] = 'Bearer ' + token;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 60000);
-    const res = await fetch('https://ideaboard.site/api/ai/generate', {
+    const timer = setTimeout(() => currentAbortController.abort(), 60000);
+    const res = await fetchWithOfflineFallback(`${API_BASE}/api/ai/generate`, {
       method: 'POST', headers, body: JSON.stringify(body),
-      signal: controller.signal,
+      signal,
     });
     clearTimeout(timer);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -117,8 +140,9 @@ async function handleGenerate() {
     insertSQL(sql);
     hideModal();
   } catch (err) {
-    status.textContent = `Error: ${err.message || String(err)}`;
+    statusText.textContent = `Error: ${err.message || String(err)}`;
     generateBtn.disabled = false;
+    spinner.style.display = 'none';
   }
 }
 

@@ -39,7 +39,10 @@ async function saveToLocal(name, data) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readwrite');
   tx.objectStore('dbs').put({ name, data, savedAt: Date.now() });
-  await new Promise((r) => { tx.oncomplete = r; });
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
   idb.close();
 }
 
@@ -84,7 +87,10 @@ async function deleteFromLocal(name) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readwrite');
   tx.objectStore('dbs').delete(name);
-  await new Promise((r) => { tx.oncomplete = r; });
+  await new Promise((resolve, reject) => {
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
   idb.close();
 }
 

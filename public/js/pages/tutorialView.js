@@ -16,7 +16,7 @@ const TUTORIAL_DB_NAME = 'browsersql-tutorial';
 
 let currentModule = 1;
 
-function getModuleIndices(module) {
+export function getModuleIndices(module) {
   const indices = [];
   for (let i = 0; i < lessons.length; i++) {
     if (lessons[i].module === module) indices.push(i);
@@ -54,7 +54,7 @@ function markComplete(step) {
   saveCompletion();
 }
 
-function buildTutorialFiles(module) {
+export function buildTutorialFiles(module) {
   module = module || currentModule;
   const files = {
     'README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
@@ -215,7 +215,7 @@ function handleQuizAnswer(index, lesson, btn) {
       state.tutorialQuizIndex = 0;
       markComplete(state.tutorialStep);
       setStatus('Quiz passed. You can move to the next lesson.', 'success');
-      renderTutorialPanel();
+      setTimeout(() => renderTutorialPanel(), 100);
     }
   } else {
     setStatus('Incorrect answer. Pick another option.', 'error');
@@ -257,7 +257,7 @@ function escId(name) {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
-function rowsEqual(actual, expected) {
+export function rowsEqual(actual, expected) {
   if (!Array.isArray(actual) || !Array.isArray(expected)) return false;
   if (actual.length !== expected.length) return false;
   const actVals = actual.map(r => Object.values(r));

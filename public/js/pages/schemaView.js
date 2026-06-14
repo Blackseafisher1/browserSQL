@@ -1,15 +1,11 @@
-import { $, $$, esc } from '../utils.js';
+import { $, $$, esc, escId } from '../utils.js';
 import { state } from '../state.js';
 import { showDDLModal } from './ddlModal.js';
 
 const tree = $('#schema-tree');
 const contextMenu = $('#context-menu');
 
-function escId(name) {
-  return `"${name.replace(/"/g, '""')}"`;
-}
-
-function buildERD() {
+export function buildERD() {
   const tables = state.tables;
   const fks = state.foreignKeys || [];
   if (!tables || tables.length === 0) return '';
@@ -156,7 +152,8 @@ async function showERD() {
       resetBtn.addEventListener('click', () => { scale = 1; panX = 0; panY = 0; applyTransform(); });
     }
   } catch (e) {
-    body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">Diagram render failed. Copy the code and paste at <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
+    body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">⚠️ Diagram render failed.</div>
+      <div style="margin-bottom:var(--space-2)">Copy this code and paste at <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
       <pre style="background:var(--color-bg-surface);padding:1rem;border-radius:6px;overflow:auto;font-size:12px;margin:0">${esc(erdCode)}</pre>`;
   }
 }
@@ -414,17 +411,13 @@ function hideContextMenu() {
   contextMenu.classList.add('hidden');
 }
 
-function sqlesc(name) {
-  return `"${name.replace(/"/g, '""')}"`;
-}
-
 function handleContextMenuClick(e) {
   const item = e.target.closest('[data-action]');
   if (!item) return;
   const action = item.dataset.action;
   const tableName = contextMenu.dataset.contextTable;
   if (!tableName) return;
-  const safe = sqlesc(tableName);
+  const safe = escId(tableName);
   let sql = '';
   switch (action) {
     case 'select': sql = `SELECT * FROM ${safe} WHERE `; break;

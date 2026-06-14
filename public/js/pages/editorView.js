@@ -18,7 +18,7 @@ import { saveCurrentToLocal } from './dbManager.js';
 import { verifyLesson } from './tutorialView.js';
 import { saveCurrentFile } from './filesView.js';
 import { getSettings } from './settings.js';
-import { $ } from '../utils.js';
+import { $, escId } from '../utils.js';
 
 const darkHighlight = HighlightStyle.define([
   { tag: tags.keyword, color: '#7db1dc' },
@@ -327,7 +327,7 @@ function setupTemplateButtons() {
     if (!btn) return;
     const tpl = btn.dataset.template;
     const tableName = state.activeTable || 'table_name';
-    const safeTable = sqlesc(tableName);
+    const safeTable = escId(tableName);
     const texts = { select: `SELECT * FROM ${safeTable} WHERE `, insert: `INSERT INTO ${safeTable} (col1, col2) VALUES (val1, val2);`, update: `UPDATE ${safeTable} SET col1 = val1 WHERE `, delete: `DELETE FROM ${safeTable} WHERE ` };
     insertAtCursor(texts[tpl] || '');
   });
@@ -365,8 +365,6 @@ function setupEditorContextMenu() {
     import('./aiGenerateModal.js').then(m => m.showAIGenerateModal());
   });
 }
-
-function sqlesc(name) { return `"${name.replace(/"/g, '""')}"`; }
 
 export async function executeQuery() {
   // Early returns
@@ -455,7 +453,9 @@ export async function executeQuery() {
       showNoResults(message, code);
     }
     
-    if (state.dbName !== 'untitled') saveCurrentToLocal();
+    if (state.dbName !== 'untitled' && state.dbName !== 'browsersql-tutorial') {
+      saveCurrentToLocal().catch(e => console.warn('[save] Failed:', e));
+    }
     if (state.renderSchema) state.renderSchema();
   } catch (err) {
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
@@ -474,7 +474,9 @@ export async function executeAll() {
     state.db.exec(wrapped, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     showNoResults(`All statements executed successfully | ${elapsed}ms`, code);
-    if (state.dbName !== 'untitled') saveCurrentToLocal();
+    if (state.dbName !== 'untitled' && state.dbName !== 'browsersql-tutorial') {
+      saveCurrentToLocal().catch(e => console.warn('[save] Failed:', e));
+    }
     if (state.renderSchema) state.renderSchema();
   } catch (err) {
     try { state.db.exec('ROLLBACK;'); } catch (_) {}

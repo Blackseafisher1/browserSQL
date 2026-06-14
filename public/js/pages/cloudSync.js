@@ -1,4 +1,4 @@
-import { $ } from '../utils.js';
+import { $, isOffline } from '../utils.js';
 
 const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? 'http://localhost:8081'
@@ -33,10 +33,10 @@ function setStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-function arrayToHex(arr) {
+export function arrayToHex(arr) {
   return Array.from(new Uint8Array(arr)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-function hexToArray(hex) {
+export function hexToArray(hex) {
   const len = hex.length >> 1;
   const u8 = new Uint8Array(len);
   for (let i = 0; i < len; i++) u8[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
@@ -434,6 +434,7 @@ export function initCloudSync() {
   });
   document.getElementById('btn-cloud-sync').addEventListener('click', async (e) => {
     e.preventDefault();
+    if (isOffline()) { setStatus('❌ No internet connection.'); return; }
     const btn = document.getElementById('btn-cloud-sync');
     if (btn.disabled) return;
     btn.disabled = true;
@@ -442,6 +443,7 @@ export function initCloudSync() {
   });
   document.getElementById('btn-cloud-load').addEventListener('click', async (e) => {
     e.preventDefault();
+    if (isOffline()) { setStatus('❌ No internet connection.'); return; }
     const btn = document.getElementById('btn-cloud-load');
     if (btn.disabled) return;
     btn.disabled = true;
@@ -455,6 +457,7 @@ export function initCloudSync() {
 
   document.getElementById('btn-cloud-files')?.addEventListener('click', async (e) => {
     e.preventDefault();
+    if (isOffline()) { setStatus('❌ No internet connection.'); return; }
     if (!getToken()) { showAuthModal(); return; }
     const btn = document.getElementById('btn-cloud-files');
     btn.disabled = true;

@@ -353,6 +353,11 @@
     contain-intrinsic-size: 25px;
   }
 
+  .file-tree-item.drag-over {
+    outline: 2px dashed var(--color-accent);
+    outline-offset: -2px;
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
   .file-tree-item:hover {
     background: var(--color-bg-hover);
   }

@@ -56,3 +56,42 @@ export function debounce(fn, ms) {
     timer = setTimeout(() => fn(...args), ms);
   };
 }
+
+/**
+ * Escapes a string for use as a SQL identifier (table/column name).
+ * @param {string} name
+ * @returns {string}
+ */
+export function escId(name) {
+  return `"${name.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Checks whether the browser currently reports itself as offline.
+ * @returns {boolean}
+ */
+export function isOffline() {
+  return !navigator.onLine;
+}
+
+/**
+ * Fetches a URL. If the browser is offline, throws a clear message.
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<Response>}
+ */
+export async function fetchWithOfflineFallback(url, options) {
+  if (isOffline()) throw new Error('You are offline. This feature requires an internet connection.');
+  const res = await fetch(url, options);
+  if (!res.ok && res.status >= 500) throw new Error(`Server error (${res.status})`);
+  return res;
+}
+
+/**
+ * Returns true if the given path does not contain path-traversal sequences.
+ * @param {string} name
+ * @returns {boolean}
+ */
+export function isSafePath(name) {
+  return !name.includes('..') && !name.startsWith('/') && !name.startsWith('~') && !name.includes('\\');
+}

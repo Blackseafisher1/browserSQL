@@ -1,4 +1,4 @@
-import { $, esc } from '../utils.js';
+import { $, esc, isSafePath } from '../utils.js';
 import { state } from '../state.js';
 import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, ensureEditor, switchEditor, showEditors } from './editorView.js';
 
@@ -254,6 +254,7 @@ function startInlineRename(oldName) {
   const finish = async () => {
     const raw = input.value.trim();
     const newName = raw ? folder + raw : '';
+    if (!isSafePath(newName)) { alert('Invalid filename'); input.focus(); return; }
     if (newName && newName !== oldName) {
       const files = await getFiles();
       if (files[newName]) { alert('File already exists'); input.focus(); return; }
@@ -294,6 +295,7 @@ async function openInPane(name, pane) {
 }
 
 export async function createFile(name) {
+  if (!isSafePath(name)) { alert('Invalid filename'); return false; }
   const files = await getFiles();
   if (name in files) return false;
   files[name] = '';
@@ -326,7 +328,7 @@ export async function openSingleFile(name) {
   renderTabs();
 }
 
-function buildTree(paths) {
+export function buildTree(paths) {
   const root = {};
   for (const p of paths) {
     const parts = p.split('/'); let node = root;
@@ -339,6 +341,8 @@ function buildTree(paths) {
 }
 
 let expandedFolders = new Set();
+let selectedFiles = new Set();
+let lastClickedFile = null;
 
 export async function renderTree() {
   const el = $('#files-tree');
@@ -360,13 +364,14 @@ function renderNode(node, prefix, active, depth) {
     const fullPrefix = prefix ? prefix + '/' + folder : folder;
     const expanded = expandedFolders.has(fullPrefix);
     const sel = fullPrefix === selectedFolder ? ' selected' : '';
-    html += `<div class="file-tree-item${sel}" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${expanded ? '▾' : '▸'}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span><span class="file-del" data-delfolder="${fullPrefix}">✕</span></div>`;
+    html += `<div class="file-tree-item${sel}${selectedFiles.has(fullPrefix) ? ' selected' : ''}" draggable="true" data-folder="${fullPrefix}" style="padding-left:${12 + pad}px"><span class="folder-toggle">${expanded ? '▾' : '▸'}</span><span class="file-icon">📁</span><span class="file-name">${folder}</span><span class="file-del" data-delfolder="${fullPrefix}">✕</span></div>`;
     if (expanded) html += renderNode(node[folder], fullPrefix, active, depth + 1);
   }
   for (const fp of fileList) {
     if (fp.endsWith('/.gitkeep') || fp.startsWith('_')) continue;
     const label = prefix ? fp.split('/').pop() : fp;
-    html += `<div class="file-tree-item${fp === active ? ' active' : ''}" data-file="${fp}" style="padding-left:${12 + pad}px"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
+    const multiSel = selectedFiles.has(fp) ? ' selected' : '';
+    html += `<div class="file-tree-item${fp === active ? ' active' : ''}${multiSel}" draggable="true" data-file="${fp}" style="padding-left:${12 + pad}px"><span class="file-icon">📄</span><span class="file-name">${label}</span><span class="file-del" data-del="${fp}">✕</span></div>`;
   }
   return html;
 }
@@ -389,6 +394,7 @@ export async function initFilesView() {
 
   const tree = $('#files-tree');
   if (!tree) return;
+  tree.setAttribute('tabindex', '0');
 
   tree.addEventListener('click', async (e) => {
     if (e.target.closest('.file-rename-input')) return;
@@ -396,7 +402,23 @@ export async function initFilesView() {
     const delf = e.target.closest('[data-delfolder]');
     const item = e.target.closest('[data-file]');
     const folder = e.target.closest('[data-folder]');
-    if (del) { e.stopPropagation(); const n = del.dataset.del; if (confirm(`Delete "${n}"?`)) await deleteFile(n); return; }
+    if (del) {
+      e.stopPropagation();
+      const n = del.dataset.del;
+      if (selectedFiles.has(n)) {
+        if (!confirm(`Delete ${selectedFiles.size} selected files?`)) return;
+        const fls = await getFiles();
+        for (const k of selectedFiles) delete fls[k];
+        selectedFiles.clear();
+        if (Object.keys(fls).length === 0) fls['_default_browserSQL.sql'] = '';
+        await saveFiles(fls);
+        if (activeFile && !(activeFile in fls)) await switchFile(Object.keys(fls)[0], 0);
+        await renderTree();
+      } else {
+        if (confirm(`Delete "${n}"?`)) await deleteFile(n);
+      }
+      return;
+    }
     if (delf) {
       e.stopPropagation(); const f = delf.dataset.delfolder;
       if (confirm(`Delete folder "${f}" and all files inside?`)) {
@@ -415,8 +437,55 @@ export async function initFilesView() {
       else { selectedFolder = selectedFolder === f ? null : f; await renderTree(); }
       return;
     }
-    if (item) { selectedFolder = null; e.stopPropagation(); await switchFile(item.dataset.file, 0); return; }
-    selectedFolder = null; await renderTree();
+    if (item) {
+      e.stopPropagation();
+      const fp = item.dataset.file;
+      if (e.ctrlKey || e.metaKey) {
+        if (selectedFiles.has(fp)) selectedFiles.delete(fp); else selectedFiles.add(fp);
+        lastClickedFile = fp;
+      } else if (e.shiftKey && lastClickedFile) {
+        const allItems = [...tree.querySelectorAll('[data-file]')];
+        const idx1 = allItems.findIndex(el => el.dataset.file === lastClickedFile);
+        const idx2 = allItems.findIndex(el => el.dataset.file === fp);
+        if (idx1 !== -1 && idx2 !== -1) {
+          const [start, end] = idx1 < idx2 ? [idx1, idx2] : [idx2, idx1];
+          for (let i = start; i <= end; i++) selectedFiles.add(allItems[i].dataset.file);
+        }
+      } else {
+        selectedFiles.clear();
+        selectedFiles.add(fp);
+        lastClickedFile = fp;
+        selectedFolder = null;
+        await switchFile(fp, 0);
+      }
+      await renderTree();
+      return;
+    }
+    selectedFiles.clear();
+    selectedFolder = null;
+    await renderTree();
+  });
+
+  tree.addEventListener('keydown', async (e) => {
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+    if (selectedFiles.size === 0) return;
+    e.preventDefault();
+    if (selectedFiles.size === 1) {
+      const name = [...selectedFiles][0];
+      if (!confirm(`Delete "${name}"?`)) return;
+      await deleteFile(name);
+    } else {
+      if (!confirm(`Delete ${selectedFiles.size} selected files?`)) return;
+      const fls = await getFiles();
+      for (const k of selectedFiles) delete fls[k];
+      selectedFiles.clear();
+      if (Object.keys(fls).length === 0) fls['_default_browserSQL.sql'] = '';
+      await saveFiles(fls);
+      if (activeFile && !(activeFile in fls)) await switchFile(Object.keys(fls)[0], 0);
+      await renderTree();
+    }
+    selectedFiles.clear();
+    await renderTree();
   });
 
   tree.addEventListener('contextmenu', (e) => {
@@ -433,8 +502,94 @@ export async function initFilesView() {
     menu.dataset.contextFile = name;
   });
 
+  let dragSrc = null;
+  tree.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('[data-file], [data-folder]');
+    if (!item) { e.preventDefault(); return; }
+    const isFile = !!item.dataset.file;
+    const isFolder = !!item.dataset.folder;
+    const key = item.dataset.file || item.dataset.folder;
+    if (isFile && selectedFiles.has(key)) {
+      dragSrc = { files: [...selectedFiles], folders: [] };
+    } else if (isFile) {
+      dragSrc = { files: [key], folders: [] };
+    } else if (isFolder) {
+      dragSrc = { files: [], folders: [key] };
+    } else {
+      e.preventDefault(); return;
+    }
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', key);
+  });
+  tree.addEventListener('dragenter', (e) => {
+    const folder = e.target.closest('[data-folder]');
+    if (folder) folder.classList.add('drag-over');
+  });
+  tree.addEventListener('dragleave', (e) => {
+    const folder = e.target.closest('[data-folder]');
+    if (folder && !folder.contains(e.relatedTarget)) folder.classList.remove('drag-over');
+  });
+  tree.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+  tree.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    if (!dragSrc) return;
+    const targetFolder = e.target.closest('[data-folder]');
+    const targetFolderPath = targetFolder ? targetFolder.dataset.folder : '';
+    const files = await getFiles();
+
+    if (dragSrc.folders.length) {
+      for (const srcFolder of dragSrc.folders) {
+        const folderName = srcFolder.split('/').pop();
+        const destPrefix = targetFolderPath ? `${targetFolderPath}/${folderName}` : folderName;
+        if (destPrefix === srcFolder || destPrefix.startsWith(srcFolder + '/')) continue;
+        const toMove = Object.keys(files).filter(k => k === srcFolder || k.startsWith(srcFolder + '/'));
+        let conflict = false;
+        for (const k of toMove) {
+          const newKey = destPrefix + k.slice(srcFolder.length);
+          if (files[newKey] && k !== srcFolder) { conflict = true; break; }
+        }
+        if (conflict) continue;
+        for (const k of toMove) {
+          const newKey = destPrefix + k.slice(srcFolder.length);
+          files[newKey] = files[k];
+          delete files[k];
+          if (activeFile === k) activeFile = newKey;
+          for (let p = 0; p < 2; p++) {
+            const idx = paneTabs[p].indexOf(k);
+            if (idx !== -1) paneTabs[p][idx] = newKey;
+          }
+        }
+      }
+    } else {
+      for (const src of dragSrc.files) {
+        const name = src.split('/').pop();
+        const dest = targetFolderPath ? `${targetFolderPath}/${name}` : name;
+        if (dest === src) continue;
+        if (files[dest]) continue;
+        files[dest] = files[src];
+        delete files[src];
+        if (activeFile === src) { activeFile = dest; setActiveFileName(dest); }
+        for (let p = 0; p < 2; p++) {
+          const idx = paneTabs[p].indexOf(src);
+          if (idx !== -1) paneTabs[p][idx] = dest;
+        }
+      }
+    }
+    if (Object.keys(files).length === 0) files['_default_browserSQL.sql'] = '';
+    await saveFiles(files);
+    if (targetFolderPath) expandedFolders.add(targetFolderPath);
+    selectedFiles.clear();
+    await renderTree();
+    renderTabs();
+    dragSrc = null;
+  });
+
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#context-menu')) document.getElementById('context-menu')?.classList.add('hidden');
+    if (!e.target.closest('#files-tree') && !e.target.closest('.file-tree-item')) {
+      if (selectedFiles.size) { selectedFiles.clear(); renderTree(); }
+    }
   });
 
   document.getElementById('context-menu')?.addEventListener('click', (e) => {
