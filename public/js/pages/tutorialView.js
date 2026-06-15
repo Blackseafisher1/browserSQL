@@ -586,9 +586,38 @@ function showSolution() {
   }
 }
 
+/* ── Font Size Control ── */
+
+const FONT_SIZE_KEY = 'browsersql-tutorial-fontsize';
+const FONT_SIZE_MIN = 10;
+const FONT_SIZE_MAX = 20;
+const FONT_SIZE_DEFAULT = 13;
+
+function getTutorialFontSize() {
+  const raw = parseInt(localStorage.getItem(FONT_SIZE_KEY), 10);
+  return Number.isFinite(raw) ? Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, raw)) : FONT_SIZE_DEFAULT;
+}
+
+function setTutorialFontSize(size) {
+  const clamped = Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, size));
+  localStorage.setItem(FONT_SIZE_KEY, String(clamped));
+  document.documentElement.style.setProperty('--tutorial-font-size', clamped + 'px');
+}
+
+function initFontControls() {
+  setTutorialFontSize(getTutorialFontSize());
+  document.getElementById('btn-tutorial-font-up')?.addEventListener('click', () => {
+    setTutorialFontSize(getTutorialFontSize() + 1);
+  });
+  document.getElementById('btn-tutorial-font-down')?.addEventListener('click', () => {
+    setTutorialFontSize(getTutorialFontSize() - 1);
+  });
+}
+
 /* ── Init ── */
 
 export async function initTutorialMode() {
+  initFontControls();
   const panel = getPanel();
   panel.start?.addEventListener('click', (e) => {
     e.stopPropagation();

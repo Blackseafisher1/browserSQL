@@ -219,6 +219,32 @@
     min-width: 0;
   }
 
+  .tutorial-font-control {
+    margin-left: auto;
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .btn-tiny {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 4px;
+    height: 18px;
+    line-height: 1;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    background: var(--color-bg-hover);
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .btn-tiny:hover {
+    background: var(--color-accent);
+    color: var(--color-accent-text);
+    border-color: var(--color-accent);
+  }
+
   .tutorial-module-select {
     font-size: 11px;
     font-family: var(--font-ui);
@@ -283,8 +309,8 @@
     flex: 1;
     min-height: 80px;
     overflow-y: auto;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: var(--tutorial-font-size, 13px);
+    line-height: 1.55;
     padding-right: 4px;
   }
 

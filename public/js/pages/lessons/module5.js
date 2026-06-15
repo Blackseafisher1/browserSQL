@@ -18,7 +18,7 @@ SELECT a.col, b.col FROM table_a
 INNER JOIN table_b ON a.id = b.foreign_id;
 \`\`\`
 
-**Goal:** Show each customer name alongside their order item. Join on \`customers.id = orders.customer_id\`.`,
+**Goal:** Return \`customers.name\` and \`orders.item\` by joining on \`customers.id = orders.customer_id\`.`,
     sql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;' },
@@ -67,7 +67,7 @@ SELECT a.col, b.col FROM table_a
 LEFT JOIN table_b ON a.id = b.foreign_id;
 \`\`\`
 
-**Goal:** Show ALL customers and their order items. Customers without orders should still appear (item shows NULL).`,
+**Goal:** Return \`customers.name\` and \`orders.item\`. All customers must appear — those without orders show NULL for item.`,
     sql: 'SELECT customers.name, orders.item FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;' },
@@ -129,7 +129,7 @@ INNER JOIN table AS b ON a.id = b.ref_id;
 
 The \`employees\` table has \`manager_id\` referencing \`id\`.
 
-**Goal:** Show each employee name alongside their manager's name. Use LEFT JOIN so top-level employees (no manager) still appear.`,
+**Goal:** Return \`e.name AS employee\` and \`m.name AS manager\`. Use LEFT JOIN so employees without managers still appear.`,
     sql: 'SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;\n',
     seed: SEED_EMPLOYEES,
     check: { type: 'result', expectedSql: 'SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;' },
@@ -153,7 +153,7 @@ INNER JOIN table_b b ON a.id = b.a_id
 INNER JOIN table_c c ON b.id = c.b_id;
 \`\`\`
 
-**Goal:** Show customer name, product name, and order quantity by joining \`customers\`, \`orders\`, and \`products\`.`,
+**Goal:** Return \`customers.name\`, \`products.name\`, and \`orders.quantity\` by joining all three tables.`,
     sql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;\n',
     seed: SEED_SHOP_EXT,
     check: { type: 'result', expectedSql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },

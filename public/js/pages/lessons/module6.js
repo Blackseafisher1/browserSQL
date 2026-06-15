@@ -18,7 +18,7 @@ SELECT columns FROM table
 WHERE id IN (SELECT foreign_id FROM other_table WHERE condition);
 \`\`\`
 
-**Goal:** Return names of customers who placed orders worth more than 100. Use a subquery with \`WHERE id IN\`.`,
+**Goal:** Return \`name\` of customers who placed orders with \`price > 100\`. Use \`WHERE id IN (SELECT ...)\`.`,
     sql: 'SELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders WHERE price > 100);\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT name FROM customers WHERE id IN (SELECT customer_id FROM orders WHERE price > 100);' },
@@ -40,7 +40,7 @@ SELECT column, (SELECT COUNT(*) FROM other WHERE other.id = main.id) AS alias
 FROM table;
 \`\`\`
 
-**Goal:** Show each customer name alongside the number of orders they placed.`,
+**Goal:** Return \`name\` and \`(SELECT COUNT(*) ...) AS order_count\` — each customer's name with the count of orders they placed.`,
     sql: 'SELECT name, (SELECT COUNT(*) FROM orders WHERE customer_id = customers.id) AS order_count FROM customers;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT name, (SELECT COUNT(*) FROM orders WHERE customer_id = customers.id) AS order_count FROM customers;' },
@@ -59,7 +59,7 @@ A subquery in FROM acts like a temporary table. Must have an alias:
 SELECT columns FROM (SELECT ...) AS alias WHERE condition;
 \`\`\`
 
-**Goal:** Find all expensive items (price > 50) by querying from a subquery that selects all orders.`,
+**Goal:** Return \`item\` and \`price\` where \`price > 50\` by using \`FROM (SELECT * FROM orders) AS expensive\`.`,
     sql: 'SELECT item, price FROM (SELECT * FROM orders) AS expensive WHERE price > 50;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT item, price FROM (SELECT * FROM orders) AS expensive WHERE price > 50;' },
@@ -81,7 +81,7 @@ SELECT columns FROM table_a AS a
 WHERE column > (SELECT AVG(column) FROM table_b WHERE b.id = a.id);
 \`\`\`
 
-**Goal:** Return items from \`orders\` that cost more than the average price.`,
+**Goal:** Return \`item\` and \`price\` for orders costing more than the average price across all orders.`,
     sql: 'SELECT item, price FROM orders WHERE price > (SELECT AVG(price) FROM orders);\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT item, price FROM orders WHERE price > (SELECT AVG(price) FROM orders);' },
@@ -101,7 +101,7 @@ SELECT columns FROM table_a AS a
 WHERE EXISTS (SELECT 1 FROM table_b WHERE b.ref_id = a.id);
 \`\`\`
 
-**Goal:** Return names of customers who have placed at least one order. Use EXISTS.`,
+**Goal:** Return \`name\` of customers who have at least one order. Use \`WHERE EXISTS (SELECT 1 ...)\`.`,
     sql: 'SELECT name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE customer_id = customers.id);\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE customer_id = customers.id);' },
@@ -123,7 +123,7 @@ WITH name AS (
 SELECT columns FROM name WHERE condition;
 \`\`\`
 
-**Goal:** Use a CTE called \`avg_price\` to calculate the average price, then find all items above that average.`,
+**Goal:** Create a CTE \`avg_price\` that calculates the average price, then return \`item\` and \`price\` for items above that average.`,
     sql: 'WITH avg_price AS (SELECT AVG(price) AS avg FROM orders) SELECT item, price FROM orders, avg_price WHERE price > avg_price.avg;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'WITH avg_price AS (SELECT AVG(price) AS avg FROM orders) SELECT item, price FROM orders, avg_price WHERE price > avg_price.avg;' },
