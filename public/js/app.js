@@ -545,9 +545,6 @@ function initShortcutsHelp() {
 }
 
 function initOfflineDetection() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  }
   const toast = document.createElement('div');
   toast.id = 'offline-toast';
   toast.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;padding:8px 16px;border-radius:6px;font-size:13px;transition:opacity 0.3s;opacity:0;pointer-events:none;background:var(--color-bg-surface);border:1px solid var(--color-border);box-shadow:0 4px 12px rgba(0,0,0,0.15)';
