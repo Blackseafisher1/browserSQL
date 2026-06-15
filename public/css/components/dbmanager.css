@@ -1,20 +1,8 @@
 @layer components {
   .app-logo {
-    display: flex;
-    align-items: center;
-  }
-
-  .app-logo-img {
-    height: 22px;
-    width: auto;
-    display: block;
-  }
-
-  .ops-logo-img {
-    height: 16px;
-    width: auto;
-    display: block;
-    vertical-align: middle;
+    font-weight: 700;
+    font-size: var(--size-fluid-1);
+    color: var(--color-accent);
   }
 
   .db-name {
