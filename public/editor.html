@@ -128,10 +128,6 @@
             <div id="tutorial-progress" class="tutorial-progress">
               <select id="tutorial-module-select" class="tutorial-module-select"></select>
               <span id="tutorial-lesson-progress"></span>
-              <span class="tutorial-font-control">
-                <button id="btn-tutorial-font-down" class="btn btn-tiny" title="Smaller text">A−</button>
-                <button id="btn-tutorial-font-up" class="btn btn-tiny" title="Larger text">A+</button>
-              </span>
             </div>
             <div id="tutorial-progress-bar" class="tutorial-progress-bar">
               <div class="tutorial-progress-fill" style="width:0%"></div>
@@ -139,6 +135,11 @@
             <div id="tutorial-xp-bar" class="tutorial-xp-bar">
               <span id="tutorial-xp-display" class="tutorial-xp-text">0 XP</span>
               <span id="tutorial-streak-display" class="tutorial-streak-text"></span>
+              <span class="tutorial-font-slider-wrap">
+                <label for="tutorial-font-slider" class="tutorial-font-label">A</label>
+                <input type="range" id="tutorial-font-slider" class="tutorial-font-slider" min="10" max="20" step="1" value="13">
+                <label for="tutorial-font-slider" class="tutorial-font-label">A</label>
+              </span>
             </div>
             <div id="tutorial-status" class="tutorial-status"></div>
             <div class="tutorial-toolbar">

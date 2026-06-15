@@ -196,6 +196,57 @@
     padding: 2px 0;
   }
 
+  .tutorial-font-slider-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .tutorial-font-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    line-height: 1;
+  }
+
+  .tutorial-font-label:last-child {
+    font-size: 12px;
+  }
+
+  .tutorial-font-slider {
+    width: 48px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border-light);
+    border-radius: 2px;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+  }
+
+  .tutorial-font-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: none;
+    cursor: pointer;
+  }
+
+  .tutorial-font-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: none;
+    cursor: pointer;
+  }
+
   .tutorial-xp-text {
     color: #f59e0b;
     font-weight: 700;
@@ -217,32 +268,6 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     min-width: 0;
-  }
-
-  .tutorial-font-control {
-    margin-left: auto;
-    display: flex;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-
-  .btn-tiny {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 0 4px;
-    height: 18px;
-    line-height: 1;
-    border: 1px solid var(--color-border);
-    border-radius: 3px;
-    background: var(--color-bg-hover);
-    color: var(--color-text-muted);
-    cursor: pointer;
-  }
-
-  .btn-tiny:hover {
-    background: var(--color-accent);
-    color: var(--color-accent-text);
-    border-color: var(--color-accent);
   }
 
   .tutorial-module-select {

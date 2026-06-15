@@ -605,12 +605,12 @@ function setTutorialFontSize(size) {
 }
 
 function initFontControls() {
+  const slider = document.getElementById('tutorial-font-slider');
+  if (!slider) return;
+  slider.value = String(getTutorialFontSize());
   setTutorialFontSize(getTutorialFontSize());
-  document.getElementById('btn-tutorial-font-up')?.addEventListener('click', () => {
-    setTutorialFontSize(getTutorialFontSize() + 1);
-  });
-  document.getElementById('btn-tutorial-font-down')?.addEventListener('click', () => {
-    setTutorialFontSize(getTutorialFontSize() - 1);
+  slider.addEventListener('input', () => {
+    setTutorialFontSize(Number(slider.value));
   });
 }
 
