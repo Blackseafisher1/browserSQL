@@ -602,6 +602,8 @@ function setTutorialFontSize(size) {
   const clamped = Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, size));
   localStorage.setItem(FONT_SIZE_KEY, String(clamped));
   document.documentElement.style.setProperty('--tutorial-font-size', clamped + 'px');
+  const tableSize = Math.round((11 + (clamped - 13) / 2) * 10) / 10;
+  document.documentElement.style.setProperty('--tutorial-table-font-size', tableSize + 'px');
 }
 
 function initFontControls() {
