@@ -41,8 +41,10 @@ self.addEventListener('fetch', (e) => {
   if (url.hostname === 'cdn.jsdelivr.net') {
     e.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, clone));
+        if (res.ok && res.status !== 206) {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+        }
         return res;
       }))
     );
@@ -53,8 +55,10 @@ self.addEventListener('fetch', (e) => {
   if (url.origin === location.origin && (url.pathname.startsWith('/dist/') || url.pathname.startsWith('/css/') || url.pathname.match(/\/chunks\//))) {
     e.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, clone));
+        if (res.ok && res.status !== 206) {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+        }
         return res;
       }))
     );
@@ -65,8 +69,10 @@ self.addEventListener('fetch', (e) => {
   if (url.origin === location.origin) {
     e.respondWith(
       fetch(request).then((res) => {
-        const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, clone));
+        if (res.ok && res.status !== 206) {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+        }
         return res;
       }).catch(() => caches.match(request).then((cached) => cached || new Response('Offline', { status: 503 })))
     );
