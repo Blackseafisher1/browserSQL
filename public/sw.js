@@ -3,6 +3,10 @@ const CACHE = 'browsersql-v1';
 const PRECACHE = [
   '/editor.html',
   '/dist/app.js',
+  '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Regular.woff2',
+  '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Bold.woff2',
+  '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Italic.woff2',
+  '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-SemiBold.woff2',
   '/css/tokens.css',
   '/css/reset.css',
   '/css/base.css',

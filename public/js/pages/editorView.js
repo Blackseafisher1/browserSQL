@@ -131,9 +131,9 @@ function makeEditor(doc, parent) {
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
       EditorView.theme({
         '&': { height: '100%' },
-        '.cm-scroller': { overflow: 'auto', fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace" },
-        '.cm-content': { fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace", fontVariantLigatures: 'contextual' },
-        '.cm-gutters': { fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace", background: 'var(--color-bg)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
+        '.cm-scroller': { overflow: 'auto', fontFamily: "'JetBrains Mono', monospace" },
+        '.cm-content': { fontFamily: "'JetBrains Mono', monospace", fontVariantLigatures: 'contextual' },
+        '.cm-gutters': { fontFamily: "'JetBrains Mono', monospace", background: 'var(--color-bg)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
         '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
         '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' },
         '.cm-tooltip-autocomplete ul li[aria-selected]': { background: 'var(--color-accent)', color: 'var(--color-accent-text)' },

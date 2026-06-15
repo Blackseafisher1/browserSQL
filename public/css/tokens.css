@@ -1,3 +1,35 @@
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer tokens {
   :root {
     --space-0: 0;
@@ -13,7 +45,7 @@
     --size-fluid-2: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
     --size-fluid-3: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
 
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    --font-mono: 'JetBrains Mono', monospace;
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
     --radius-sm: 2px;

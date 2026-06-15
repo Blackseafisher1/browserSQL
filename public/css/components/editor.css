@@ -9,7 +9,7 @@
   }
 
   .cm-editor .cm-scroller {
-    font-family: var(--font-mono);
+    font-family: 'JetBrains Mono', monospace;
     line-height: 1.6;
   }
 
