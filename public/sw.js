@@ -7,6 +7,8 @@ const PRECACHE = [
   '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Bold.woff2',
   '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Italic.woff2',
   '/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-SemiBold.woff2',
+  '/browserSQL.jpg',
+  '/browserSQLwithText.jpg',
   '/css/tokens.css',
   '/css/reset.css',
   '/css/base.css',

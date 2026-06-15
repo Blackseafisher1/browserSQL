@@ -1,12 +1,12 @@
 {
-  "name": "browserSQL",
+  "name": "browserSQL - Learn SQL in Your Browser",
   "short_name": "browserSQL",
   "start_url": "/editor.html",
   "display": "standalone",
   "background_color": "#1a1b1e",
   "theme_color": "#4c9aff",
   "icons": [
-    { "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
-    { "src": "/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" }
+    { "src": "/browserSQL.jpg", "sizes": "512x512", "type": "image/jpeg" },
+    { "src": "/browserSQLwithText.jpg", "sizes": "512x512", "type": "image/jpeg" }
   ]
 }
