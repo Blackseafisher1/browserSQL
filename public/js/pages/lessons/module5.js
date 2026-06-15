@@ -3,36 +3,35 @@ import { SEED_SHOP, SEED_EMPLOYEES, SEED_SHOP_EXT } from './seeds.js';
 export const module5 = [
   {
     id: '25-inner-join',
-    module: 5,
+    module: 6,
     title: 'INNER JOIN',
     type: 'practice',
     file: '25-inner-join.sql',
     markdown: `# INNER JOIN
 
-\`INNER JOIN\` combines rows from two tables where a condition matches:
+CashPal needs to see which customers ordered what.
+
+\`INNER JOIN\` combines rows where a condition matches:
 
 \`\`\`sql
 SELECT a.col, b.col FROM table_a
 INNER JOIN table_b ON a.id = b.foreign_id;
 \`\`\`
 
-Use \`table.column\` notation to avoid ambiguity when both tables have the same column name.
-
-\`INNER JOIN\` is the most common join — you can write just \`JOIN\` and SQLite treats it the same. \`LEFT JOIN\` is second most common.
-
-**Goal:** Write a query that shows each customer name alongside their order item. Use \`INNER JOIN\` on \`customers.id = orders.customer_id\`.`,
+**Goal:** Show each customer name alongside their order item. Join on \`customers.id = orders.customer_id\`.`,
+    sql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers INNER JOIN orders ON customers.id = orders.customer_id;' },
   },
   {
     id: '26-old-join',
-    module: 5,
+    module: 6,
     title: 'Old-School Joins (Implicit)',
     type: 'theory',
     file: '26-old-join.md',
-    markdown: `# Old-school implicit joins
+    markdown: `# Old-School Implicit Joins
 
-Before the modern \`JOIN ... ON\` syntax, SQL used commas in \`FROM\` and matched rows with \`WHERE\`:
+Before \`JOIN ... ON\`, SQL used commas in FROM:
 
 \`\`\`sql
 SELECT customers.name, orders.item
@@ -40,109 +39,112 @@ FROM customers, orders
 WHERE customers.id = orders.customer_id;
 \`\`\`
 
-This is an **implicit inner join** — same result as \`INNER JOIN ... ON\`.
+**Why not use it:** Easy to forget WHERE and create a cross join. Modern JOIN makes intent clearer.
 
-**Why not use it today:**
-- Easy to forget the \`WHERE\` clause, accidentally creating a cross join
-- Harder to see join conditions mixed with filter conditions
-- Modern \`JOIN\` makes intent clearer
-
-Still good to recognize — you will see this in older SQL code and scripts.`,
+**Goal:** know the old syntax when you see it in legacy code.`,
     question: {
       prompt: 'What happens if you omit WHERE in a comma-separated FROM?',
       options: ['Syntax error', 'Cross join (every row paired)', 'Empty result', 'Only matching rows'],
       answer: 1,
-      explanation: 'Without WHERE, commas create a CROSS JOIN — every row in table A paired with every row in table B.',
+      explanation: 'Without WHERE, commas create a CROSS JOIN.',
     },
     seed: SEED_SHOP,
   },
   {
     id: '26-left-join',
-    module: 5,
+    module: 6,
     title: 'LEFT JOIN',
     type: 'practice',
     file: '26-left-join.sql',
     markdown: `# LEFT JOIN
 
-\`LEFT JOIN\` keeps ALL rows from the left table, even without matches. Unmatched right columns show \`NULL\`:
+CashPal wants ALL customers, even ones without orders.
+
+\`LEFT JOIN\` keeps all rows from the left table. Unmatched columns show NULL:
 
 \`\`\`sql
 SELECT a.col, b.col FROM table_a
 LEFT JOIN table_b ON a.id = b.foreign_id;
 \`\`\`
 
-**Goal:** Write a query that shows ALL customers and their order items. Customers without orders should still appear (item shows NULL).`,
+**Goal:** Show ALL customers and their order items. Customers without orders should still appear (item shows NULL).`,
+    sql: 'SELECT customers.name, orders.item FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;\n',
     seed: SEED_SHOP,
     check: { type: 'result', expectedSql: 'SELECT customers.name, orders.item FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;' },
   },
   {
     id: '27-right-join',
-    module: 5,
+    module: 6,
     title: 'RIGHT JOIN (Theory)',
     type: 'theory',
     file: '27-right-join.md',
     markdown: `# RIGHT JOIN
 
-\`RIGHT JOIN\` keeps ALL rows from the right table. SQLite does not support it — use \`LEFT JOIN\` and swap the tables.
+\`RIGHT JOIN\` keeps ALL rows from the right table. SQLite does not support it — swap tables and use \`LEFT JOIN\`.
 
 **Goal:** know how to simulate RIGHT JOIN.`,
     question: {
       prompt: 'How do you simulate RIGHT JOIN in SQLite?',
       options: ['Use RIGHT JOIN anyway', 'Swap tables and use LEFT JOIN', 'Use INNER JOIN', 'Use CROSS JOIN'],
       answer: 1,
-      explanation: 'Swap the table order and use LEFT JOIN to get the same effect.',
+      explanation: 'Swap the table order and use LEFT JOIN.',
     },
     seed: SEED_SHOP,
   },
   {
     id: '28-full-join',
-    module: 5,
+    module: 6,
     title: 'FULL OUTER JOIN (Theory)',
     type: 'theory',
     file: '28-full-join.md',
     markdown: `# FULL OUTER JOIN
 
-\`FULL OUTER JOIN\` keeps rows from both sides. Not supported in SQLite — combine LEFT JOIN and RIGHT JOIN with \`UNION\`.
+Keeps rows from both sides. Not supported in SQLite — combine LEFT JOIN and RIGHT JOIN with UNION.
 
-**Goal:** know the concept even if SQLite cannot run it.`,
+**Goal:** know the concept.`,
     question: {
-      prompt: 'Which SQL operation combines LEFT JOIN and RIGHT JOIN results?',
+      prompt: 'Which operation combines LEFT JOIN and RIGHT JOIN results?',
       options: ['UNION', 'INTERSECT', 'EXCEPT', 'CROSS JOIN'],
       answer: 0,
-      explanation: 'UNION combines the results of LEFT JOIN and RIGHT JOIN to simulate FULL OUTER JOIN.',
+      explanation: 'UNION combines LEFT JOIN and RIGHT JOIN to simulate FULL OUTER JOIN.',
     },
     seed: SEED_SHOP,
   },
   {
     id: '29-self-join',
-    module: 5,
+    module: 6,
     title: 'Self Joins',
     type: 'practice',
     file: '29-self-join.sql',
-    markdown: `# Self joins
+    markdown: `# Self Joins
 
-A self join joins a table to itself. Use different aliases to tell them apart:
+CashPal's org chart — show who reports to whom.
+
+A self join joins a table to itself. Use aliases to tell them apart:
 
 \`\`\`sql
 SELECT a.col, b.col FROM table AS a
 INNER JOIN table AS b ON a.id = b.ref_id;
 \`\`\`
 
-The \`employees\` table has \`manager_id\` referencing \`id\` in the same table.
+The \`employees\` table has \`manager_id\` referencing \`id\`.
 
-**Goal:** Write a query that shows each employee name alongside their manager name. Use \`LEFT JOIN\` so top-level employees (no manager) still appear.`,
+**Goal:** Show each employee name alongside their manager's name. Use LEFT JOIN so top-level employees (no manager) still appear.`,
+    sql: 'SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;\n',
     seed: SEED_EMPLOYEES,
     check: { type: 'result', expectedSql: 'SELECT e.name AS employee, m.name AS manager FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;' },
   },
   {
     id: '30-multi-join',
-    module: 5,
+    module: 6,
     title: 'Joining Multiple Tables',
     type: 'practice',
     file: '30-multi-join.sql',
-    markdown: `# Joining multiple tables
+    markdown: `# Joining Multiple Tables
 
-Chain multiple \`JOIN\` clauses to combine three or more tables:
+CashPal's full order pipeline — customers → orders → products.
+
+Chain multiple JOIN clauses:
 
 \`\`\`sql
 SELECT a.col, b.col, c.col
@@ -151,24 +153,32 @@ INNER JOIN table_b b ON a.id = b.a_id
 INNER JOIN table_c c ON b.id = c.b_id;
 \`\`\`
 
-**Goal:** Write a query showing each customer name, product name, and order quantity by joining \`customers\`, \`orders\`, and \`products\`.`,
+**Goal:** Show customer name, product name, and order quantity by joining \`customers\`, \`orders\`, and \`products\`.`,
+    sql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;\n',
     seed: SEED_SHOP_EXT,
     check: { type: 'result', expectedSql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },
   },
   {
     id: '31-join-mastery',
-    module: 5,
+    module: 6,
     title: 'Join Mastery',
     type: 'practice',
     file: '31-join-mastery.sql',
-    markdown: `# Join mastery
+    markdown: `# Join Mastery
 
-Combine joins, aggregation, and ordering across multiple tables.
+CashPal's analytics: customer order summary.
 
-The database has \`customers\`, \`orders\`, and \`products\` tables.
-
-**Goal:** Write a query that shows each customer name, the total quantity of products they ordered, and the number of distinct products they bought. Only show customers who ordered at least 2 total items. Sort by total quantity descending.`,
+**Your task:**
+- [ ] Show each customer's name, total quantity ordered, and distinct products bought
+- [ ] Only customers with at least 2 total items
+- [ ] Sort by total quantity descending`,
+    sql: 'SELECT customers.name, SUM(orders.quantity) AS total_qty, COUNT(DISTINCT orders.product_id) AS distinct_products FROM customers INNER JOIN orders ON customers.id = orders.customer_id GROUP BY customers.id HAVING total_qty >= 2 ORDER BY total_qty DESC;\n',
     seed: SEED_SHOP_EXT,
     check: { type: 'result', expectedSql: 'SELECT customers.name, SUM(orders.quantity) AS total_qty, COUNT(DISTINCT orders.product_id) AS distinct_products FROM customers INNER JOIN orders ON customers.id = orders.customer_id GROUP BY customers.id HAVING total_qty >= 2 ORDER BY total_qty DESC;' },
+    checklist: [
+      'Show customer name, total quantity, distinct products',
+      'Only customers with at least 2 items',
+      'Sort by quantity descending',
+    ],
   },
 ];

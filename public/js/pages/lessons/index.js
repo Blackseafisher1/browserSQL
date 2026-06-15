@@ -8,18 +8,20 @@ import { module7 } from './module7.js';
 import { module8 } from './module8.js';
 import { module9 } from './module9.js';
 import { module10 } from './module10.js';
+import { moduleTheory } from './moduleAddTheory.js';
 
 export const MODULE_NAMES = {
-  1: 'Database Fundamentals',
-  2: 'Schema & Constraints',
-  3: 'CRUD Operations',
-  4: 'Query Power Tools',
-  5: 'Joins',
-  6: 'Subqueries & CTEs',
-  7: 'Normalization',
-  8: 'Indexes & Performance',
-  9: 'Transactions',
-  10: 'Advanced Topics',
+  1: 'Relational Database Theory',
+  2: 'Database Fundamentals',
+  3: 'Schema & Constraints',
+  4: 'CRUD Operations',
+  5: 'Query Power Tools',
+  6: 'Joins',
+  7: 'Subqueries & CTEs',
+  8: 'Normalization',
+  9: 'Indexes & Performance',
+  10: 'Transactions',
+  11: 'Advanced Topics',
 };
 
 function sortModule(mod) {
@@ -29,6 +31,7 @@ function sortModule(mod) {
 }
 
 export const lessons = [
+  ...moduleTheory,
   ...sortModule(module1),
   ...sortModule(module2),
   ...sortModule(module3),

@@ -3,24 +3,22 @@ import { SEED_USERS, SEED_USERS_NULL, SEED_EMPTY } from './seeds.js';
 export const module3 = [
   {
     id: '12-attach',
-    module: 3,
+    module: 4,
     title: 'Your First Database',
     type: 'practice',
     file: '12-attach.sql',
-    sql: 'SELECT name FROM sqlite_master WHERE type = \'table\';\n',
-    markdown: `# Your first database
+    sql: "SELECT name FROM sqlite_master WHERE type = 'table';\n",
+    markdown: `# Your First Database
 
-Use \`SELECT\` to read data from a table:
+CashPal's system is live! Let's explore what's inside.
+
+SQLite stores metadata in a system table called \`sqlite_master\`. It has columns like \`name\`, \`type\`, and \`sql\`.
+
+Try querying it to discover what tables exist:
 
 \`\`\`sql
-SELECT column1, column2 FROM tablename;
+SELECT name FROM sqlite_master WHERE type = 'table';
 \`\`\`
-
-Use \`*\` to select all columns. Use \`WHERE\` to filter rows.
-
-SQLite stores metadata about all tables in a system table called \`sqlite_master\`. It has columns like \`name\`, \`type\`, and \`sql\`.
-
-Try querying \`sqlite_master\` to discover what tables exist in this database.
 
 **Goal:** a successful query shows at least one table.`,
     seed: SEED_USERS,
@@ -28,70 +26,59 @@ Try querying \`sqlite_master\` to discover what tables exist in this database.
   },
   {
     id: '13-select',
-    module: 3,
+    module: 4,
     title: 'Reading Data',
     type: 'practice',
     file: '13-select.sql',
     sql: 'SELECT * FROM users;\n',
-    markdown: `# Reading data
+    markdown: `# Reading Data
 
-Use \`SELECT\` to read data from a table:
+CashPal's \`users\` table is ready. Let's read from it.
 
 \`\`\`sql
 SELECT column1, column2 FROM tablename;
+SELECT * FROM tablename;  -- all columns
 \`\`\`
 
-Use \`*\` as shorthand for all columns.
-
-Tables have columns. Prefix with the table name to be explicit — important when working with multiple tables later:
-
-\`\`\`sql
-SELECT users.name, users.age FROM users;
-\`\`\`
-
-You can also rename tables or columns with \`AS\` (alias):
-
-\`\`\`sql
-SELECT u.name AS username FROM users AS u;
-\`\`\`
-
-The \`AS\` keyword is optional: \`SELECT u.name FROM users u\`.
-
-**Goal:** Write a query that returns all rows and all columns from the \`users\` table.`,
+**Goal:** Write a query that returns all rows and columns from the \`users\` table.`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: 'SELECT * FROM users;' },
   },
   {
     id: '14-where',
-    module: 3,
+    module: 4,
     title: 'Filtering',
     type: 'practice',
     file: '11-where.sql',
     sql: "SELECT name FROM users WHERE city = 'Berlin';\n",
     markdown: `# Filtering
 
-The \`WHERE\` clause filters rows based on a condition.
+CashPal's marketing team needs to find users in Berlin.
+
+The \`WHERE\` clause filters rows:
 
 \`\`\`sql
 SELECT columns FROM table WHERE condition;
 \`\`\`
 
-Use \`=\` to compare values. String literals go in single quotes.
+Use \`=\` for comparison. Strings go in single quotes.
 
-**Goal:** Write a query that returns the names of users who live in Berlin.`,
+**Goal:** Return the names of users who live in Berlin.`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE city = 'Berlin';" },
   },
   {
     id: '15-advanced-where',
-    module: 3,
+    module: 4,
     title: 'Advanced Filtering',
     type: 'practice',
     file: '12-advanced-where.sql',
     sql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;\n",
-    markdown: `# Advanced filtering
+    markdown: `# Advanced Filtering
 
-Combine multiple operators for precise filtering:
+CashPal's analytics team needs a precise user list.
+
+Combine multiple operators:
 
 \`\`\`sql
 SELECT columns FROM table
@@ -101,59 +88,55 @@ WHERE column IN (value1, value2)
 ORDER BY column;
 \`\`\`
 
-- \`IN (...)\` — match any value in a list
-- \`BETWEEN x AND y\` — match a range
-- \`NOT IN (...)\` — exclude values
-- \`AND\` — combine multiple conditions
-- \`ORDER BY\` — sort results
-
-**Goal:** Write a query that returns names of users who:
-- Live in Berlin or Munich
-- Are between 20 and 35 years old (inclusive)
-- Are NOT 22 years old
-- Sorted alphabetically by name`,
+**Your task:** Return names of users who:
+- [ ] Live in Berlin or Munich
+- [ ] Are between 20 and 35 years old (inclusive)
+- [ ] Are NOT 22 years old
+- [ ] Sorted alphabetically by name`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE city IN ('Berlin', 'Munich') AND age BETWEEN 20 AND 35 AND age NOT IN (22) ORDER BY name;" },
+    checklist: [
+      'Filter users in Berlin or Munich',
+      'Age between 20 and 35 inclusive',
+      'Exclude age 22',
+      'Sorted alphabetically by name',
+    ],
   },
   {
     id: '16-null',
-    module: 3,
+    module: 4,
     title: 'Working with NULL',
     type: 'practice',
     file: '13-null.sql',
     sql: 'SELECT name FROM users WHERE email IS NULL;\n',
     markdown: `# Working with NULL
 
-\`NULL\` represents missing or unknown data. You cannot use \`= NULL\` — instead use \`IS NULL\` or \`IS NOT NULL\`.
+Some CashPal users haven't provided an email. \`NULL\` represents missing data.
+
+You cannot use \`= NULL\` — use \`IS NULL\` or \`IS NOT NULL\`:
 
 \`\`\`sql
 SELECT columns FROM table WHERE column IS NULL;
-SELECT columns FROM table WHERE column IS NOT NULL;
 \`\`\`
 
-**Note:** \`NULL\` is different from an empty string (\`''\`) or \`0\`. Empty string and zero are real values. Only \`NULL\` means "no value".
-
-Use \`COALESCE(val, default)\` or \`IFNULL(val, default)\` to replace \`NULL\` with a fallback:
-
-\`\`\`sql
-SELECT name, COALESCE(email, 'no email') FROM users;
-\`\`\`
-
-**Goal:** Write a query that returns the names of users who do not have an email address.`,
+**Goal:** Return the names of users without an email address.`,
     seed: SEED_USERS_NULL,
     check: { type: 'result', expectedSql: 'SELECT name FROM users WHERE email IS NULL;' },
     hint: 'Use WHERE email IS NULL — not = NULL.',
   },
   {
     id: '17-like',
-    module: 3,
+    module: 4,
     title: 'Pattern Matching',
     type: 'practice',
     file: '14-like.sql',
     sql: "SELECT name FROM users WHERE name LIKE '%a%' ORDER BY name;\n",
-    markdown: `# Pattern matching
+    markdown: `# Pattern Matching
 
-\`LIKE\` enables pattern matching with wildcards:
+CashPal needs to find users whose names contain certain letters.
+
+\`LIKE\` enables pattern matching:
+
 - \`%\` — matches any sequence of characters
 - \`_\` — matches exactly one character
 
@@ -161,101 +144,102 @@ SELECT name, COALESCE(email, 'no email') FROM users;
 SELECT columns FROM table WHERE column LIKE pattern;
 \`\`\`
 
-**Goal:** Write a query that returns names containing the letter 'a', sorted alphabetically.`,
+**Goal:** Return names containing the letter 'a', sorted alphabetically.`,
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: "SELECT name FROM users WHERE name LIKE '%a%' ORDER BY name;" },
   },
   {
     id: '18-insert',
-    module: 3,
+    module: 4,
     title: 'Inserting Data',
     type: 'practice',
     file: '15-insert.sql',
     sql: "INSERT INTO users (name, city, age, email) VALUES ('Kai', 'Berlin', 27, 'kai@example.com');\n",
-    markdown: `# Inserting data
+    markdown: `# Inserting Data
 
-Use \`INSERT\` to add rows to a table.
+A new user joined CashPal. Add them to the database.
 
 \`\`\`sql
 INSERT INTO tablename (col1, col2, ...) VALUES (val1, val2, ...);
 \`\`\`
 
-The \`users\` table has columns: id, name, city, age, email. The \`id\` column is auto-incrementing — you can omit it.
+The \`id\` column is auto-incrementing — you can omit it.
 
-**Goal:** Insert a new user into the \`users\` table.`,
+**Goal:** Insert a new user into \`users\`.`,
     seed: SEED_USERS,
     check: { type: 'changes', min: 1 },
   },
   {
     id: '19-update',
-    module: 3,
+    module: 4,
     title: 'Updating Data',
     type: 'practice',
     file: '16-update.sql',
     sql: "UPDATE users SET city = 'Bremen' WHERE name = 'Mia';\n",
-    markdown: `# Updating data
+    markdown: `# Updating Data
 
-Use \`UPDATE\` to modify existing rows.
+A CashPal user moved cities. Time to update their record.
 
 \`\`\`sql
 UPDATE tablename SET column = value WHERE condition;
 \`\`\`
 
-Always include a \`WHERE\` clause — without it, every row gets updated!
+**⚠️ Always include WHERE** — without it, every row gets updated!
 
-**Goal:** Update the city of a specific user in the \`users\` table.`,
+**Goal:** Update the city of a specific user.`,
     seed: SEED_USERS,
     check: { type: 'changes', min: 1 },
   },
   {
     id: '20-update-multi',
-    module: 3,
+    module: 4,
     title: 'UPDATE Multiple Columns',
     type: 'practice',
     file: '20-update-multi.sql',
-    markdown: `# Update multiple columns
+    markdown: `# Update Multiple Columns
 
-Set multiple columns in one \`UPDATE\` by comma-separating them:
+A CashPal user changed both city and age. Update both at once:
 
 \`\`\`sql
 UPDATE users SET city = 'Berlin', age = 30 WHERE name = 'Mia';
 \`\`\`
 
-**Goal:** Update both the city and the age of a user in the \`users\` table.`,
+**Goal:** Update both the city and age of a user in \`users\`.`,
     seed: SEED_USERS,
     check: { type: 'changes', min: 1 },
     hint: 'UPDATE users SET city = \'X\', age = Y WHERE name = \'Z\';',
+    sql: "UPDATE users SET city = 'Berlin', age = 30 WHERE name = 'Mia';\n",
   },
   {
     id: '21-delete',
-    module: 3,
+    module: 4,
     title: 'Deleting Data',
     type: 'practice',
     file: '21-delete.sql',
     sql: "DELETE FROM users WHERE name = 'Liam';\n",
-    markdown: `# Deleting data
+    markdown: `# Deleting Data
 
-Use \`DELETE\` to remove rows.
+A CashPal user requested account removal.
 
 \`\`\`sql
 DELETE FROM tablename WHERE condition;
 \`\`\`
 
-Always include a \`WHERE\` clause — without it, all rows are deleted!
+**⚠️ Always include WHERE** — without it, all rows are deleted!
 
-**Goal:** Delete a specific user from the \`users\` table by their name.`,
+**Goal:** Delete a specific user by their name.`,
     seed: SEED_USERS,
     check: { type: 'changes', min: 1 },
   },
   {
     id: '22-delete-danger',
-    module: 3,
+    module: 4,
     title: 'Danger of DELETE',
     type: 'theory',
     file: '22-delete-danger.md',
     markdown: `# Danger of DELETE
 
-Always include WHERE unless you truly want to delete everything.
+Always include WHERE unless you truly want to delete everything. CashPal learned this the hard way in production.
 
 **Goal:** know what happens without WHERE.`,
     question: {
@@ -268,53 +252,68 @@ Always include WHERE unless you truly want to delete everything.
   },
   {
     id: '23-insert-select',
-    module: 3,
+    module: 4,
     title: 'INSERT INTO SELECT',
     type: 'practice',
     file: '23-insert-select.sql',
     markdown: `# INSERT INTO ... SELECT
 
-Copy rows from one table into another:
+CashPal needs to promote Berlin users to admin status. Copy data between tables:
 
 \`\`\`sql
 INSERT INTO target_table (columns)
 SELECT columns FROM source_table WHERE condition;
 \`\`\`
 
-Both tables must exist. The column types must match.
-
-**Goal:** Create a table \`admins\` with the same columns as \`users\`, then copy only users from Berlin into it.`,
+**Your task:**
+- [ ] Create table \`admins\` with same columns as \`users\`
+- [ ] Copy only users from Berlin into \`admins\``,
+    sql: 'CREATE TABLE admins (id INTEGER PRIMARY KEY, name TEXT, city TEXT, age INTEGER, email TEXT);\nINSERT INTO admins SELECT * FROM users WHERE city = \'Berlin\';\n',
     seed: SEED_USERS,
     check: { type: 'result', expectedSql: 'SELECT name, city FROM admins ORDER BY name;' },
+    checklist: [
+      'Table admins created with same columns as users',
+      'Only Berlin users copied into admins',
+    ],
   },
   {
     id: '24-crud-mastery',
-    module: 3,
+    module: 4,
     title: 'CRUD Mastery',
     type: 'practice',
     file: '24-crud-mastery.sql',
-    markdown: `# CRUD mastery
+    markdown: `# CRUD Mastery
 
-Combine everything you learned: create, insert, update, delete, and query.
+CashPal's inventory system needs a complete setup. Combine everything you've learned.
 
-**Goal:**
-1. Create a table \`inventory\` with columns \`id\` (INTEGER PRIMARY KEY), \`item\` (TEXT NOT NULL), \`quantity\` (INTEGER NOT NULL)
-2. Insert 3 items: 'Laptop' (5), 'Mouse' (20), 'Keyboard' (15)
-3. Update 'Mouse' quantity to 25
-4. Delete 'Keyboard'
-5. Write a SELECT to show remaining items sorted by item name`,
+**Your task:**
+- [ ] Create table \`inventory\` (id INTEGER PK, item TEXT NOT NULL, quantity INTEGER NOT NULL)
+- [ ] Insert 3 items: 'Laptop' (5), 'Mouse' (20), 'Keyboard' (15)
+- [ ] Update 'Mouse' quantity to 25
+- [ ] Delete 'Keyboard'
+- [ ] SELECT remaining items sorted by item name`,
+    sql: 'CREATE TABLE inventory (id INTEGER PRIMARY KEY, item TEXT NOT NULL, quantity INTEGER NOT NULL);\nINSERT INTO inventory (item, quantity) VALUES (\'Laptop\', 5), (\'Mouse\', 20), (\'Keyboard\', 15);\nUPDATE inventory SET quantity = 25 WHERE item = \'Mouse\';\nDELETE FROM inventory WHERE item = \'Keyboard\';\n',
     seed: SEED_EMPTY,
     check: { type: 'result', expectedSql: "SELECT item, quantity FROM inventory ORDER BY item;" },
+    checklist: [
+      'Create table inventory with id, item, quantity',
+      'Insert Laptop (5), Mouse (20), Keyboard (15)',
+      'Update Mouse quantity to 25',
+      'Delete Keyboard',
+      'SELECT remaining items sorted by name',
+    ],
   },
   {
     id: '25-insert-multi',
-    module: 3,
+    module: 4,
     title: 'INSERT Multiple Rows',
     type: 'practice',
     file: '25-insert-multi.sql',
-    markdown: `# INSERT multiple rows
+    markdown: `# INSERT Multiple Rows
 
-Insert several rows in one statement by comma-separating the value lists:
+CashPal is growing fast — add 3 new users at once.
+
+Insert several rows in one statement:
 
 \`\`\`sql
 INSERT INTO table (col1, col2) VALUES
@@ -323,11 +322,10 @@ INSERT INTO table (col1, col2) VALUES
   (val1c, val2c);
 \`\`\`
 
-The \`users\` table has columns: id, name, city, age, email. The \`id\` is auto-incrementing — omit it.
-
 **Goal:** Insert 3 new users at once into \`users\`.`,
     seed: SEED_USERS,
     check: { type: 'changes', min: 3 },
     hint: 'INSERT INTO users (name, city, age) VALUES (\'A\', \'B\', 20), (\'C\', \'D\', 30), (\'E\', \'F\', 40);',
+    sql: "INSERT INTO users (name, city, age) VALUES ('Kai', 'Berlin', 27), ('Luna', 'Hamburg', 24), ('Finn', 'Munich', 30);\n",
   },
 ];

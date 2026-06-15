@@ -6,13 +6,22 @@ import { SEED_EMPTY, SEED_EMPTY_FK, SEED_USERS, SEED_USERS_EXT, SEED_USERS_NULL,
 import { loadTutorialDatabase, openLastDB, saveCurrentToLocal } from './dbManager.js';
 import { ensureDefaultFiles, getActiveFileName, getFiles, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
 import { getSettings } from './settings.js';
+import { showToast } from './toast.js';
 
 const ACTIVE_KEY = 'browsersql-tutorial-active';
 const STEP_KEY = 'browsersql-tutorial-step';
 const COMPLETE_KEY = 'browsersql-tutorial-complete';
+const POINTS_KEY = 'browsersql-tutorial-points';
+const STREAK_KEY = 'browsersql-tutorial-streak';
+const SOLUTIONS_KEY = 'browsersql-tutorial-solutions';
+const FAILURES_KEY = 'browsersql-tutorial-failures';
 const TUTORIAL_DB_NAME = 'browsersql-tutorial';
 
-
+const POINTS_THEORY = 10;
+const POINTS_PRACTICE = 20;
+const POINTS_PRACTICE_RETRY = 10;
+const POINTS_MODULE_BONUS = 25;
+const XP_PER_LEVEL = 100;
 
 let currentModule = 1;
 
@@ -23,8 +32,6 @@ export function getModuleIndices(module) {
   }
   return indices;
 }
-
-
 
 let completion = loadCompletion();
 
@@ -49,23 +56,184 @@ function isComplete(step) {
   return !!completion[step];
 }
 
-function markComplete(step) {
+function markComplete(step, earnedXP) {
+  const wasComplete = completion[step];
   completion[step] = true;
   saveCompletion();
+
+  const lesson = lessons[step];
+  if (!lesson) return;
+
+  const hadSolution = hasViewedSolution(lesson.id);
+  const xpToAward = earnedXP || (hadSolution ? 0 : calculateLessonXP(lesson));
+  const isNewlyComplete = !wasComplete;
+
+  if (isNewlyComplete && !hadSolution) {
+    addPoints(xpToAward);
+    const level = calcLevel();
+    updateDisplay();
+    const xpMsg = `+${xpToAward} XP`;
+    showToast(xpMsg, 'xp', 2500);
+    showXPFloat(xpToAward);
+
+    updateStreak();
+
+    const bonusXP = checkModuleComplete(lesson.module);
+    if (bonusXP) {
+      showToast(`🏁 Module ${lesson.module} Complete! +${bonusXP} XP`, 'celebration', 4000);
+    }
+  } else if (isNewlyComplete && hadSolution) {
+    showToast('Lesson complete (0 XP — solution was viewed)', 'info', 3000);
+  }
 }
 
-export function buildTutorialFiles(module) {
-  module = module || currentModule;
-  const files = {
-    'README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
-  };
-  for (const lesson of lessons) {
-    if (lesson.type === 'practice' && lesson.module === module) {
-      files[lesson.file] = '-- Write your SQL here\n';
+function calculateLessonXP(lesson) {
+  if (lesson.type === 'theory') return POINTS_THEORY;
+  const failures = loadFailures();
+  const attemptCount = failures[lesson.id] || 0;
+  return attemptCount === 0 ? POINTS_PRACTICE : POINTS_PRACTICE_RETRY;
+}
+
+/* ── XP / Level System ── */
+
+function loadPoints() {
+  const raw = localStorage.getItem(POINTS_KEY);
+  const val = parseInt(raw, 10);
+  return Number.isFinite(val) && val >= 0 ? val : 0;
+}
+
+function savePoints(p) {
+  localStorage.setItem(POINTS_KEY, String(p));
+}
+
+function addPoints(amount) {
+  if (amount <= 0) return;
+  const current = loadPoints();
+  savePoints(current + amount);
+}
+
+function calcLevel() {
+  return Math.floor(loadPoints() / XP_PER_LEVEL) + 1;
+}
+
+/* ── Streak Tracking ── */
+
+function loadStreak() {
+  try { return JSON.parse(localStorage.getItem(STREAK_KEY)) || { count: 0, lastDate: null }; } catch { return { count: 0, lastDate: null }; }
+}
+
+function saveStreak(streak) {
+  localStorage.setItem(STREAK_KEY, JSON.stringify(streak));
+}
+
+function updateStreak() {
+  const streak = loadStreak();
+  const today = new Date().toISOString().slice(0, 10);
+  if (streak.lastDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (streak.lastDate === yesterday) {
+    streak.count += 1;
+  } else {
+    streak.count = 1;
+  }
+  streak.lastDate = today;
+  saveStreak(streak);
+}
+
+/* ── Solution View ── */
+
+function loadSolutionViewed() {
+  try { return JSON.parse(localStorage.getItem(SOLUTIONS_KEY)) || {}; } catch { return {}; }
+}
+
+function saveSolutionViewed(obj) {
+  localStorage.setItem(SOLUTIONS_KEY, JSON.stringify(obj));
+}
+
+function hasViewedSolution(lessonId) {
+  return !!loadSolutionViewed()[lessonId];
+}
+
+function markSolutionViewed(lessonId) {
+  const viewed = loadSolutionViewed();
+  viewed[lessonId] = true;
+  saveSolutionViewed(viewed);
+}
+
+/* ── Failure Tracking ── */
+
+function loadFailures() {
+  try { return JSON.parse(localStorage.getItem(FAILURES_KEY)) || {}; } catch { return {}; }
+}
+
+function saveFailures(obj) {
+  localStorage.setItem(FAILURES_KEY, JSON.stringify(obj));
+}
+
+function incrementFailures(lessonId) {
+  const failures = loadFailures();
+  failures[lessonId] = (failures[lessonId] || 0) + 1;
+  saveFailures(failures);
+  return failures[lessonId];
+}
+
+function resetFailures() {
+  localStorage.removeItem(FAILURES_KEY);
+}
+
+/* ── Display Updates ── */
+
+function updateDisplay() {
+  const xpEl = document.getElementById('tutorial-xp-display');
+  const streakEl = document.getElementById('tutorial-streak-display');
+  const barEl = document.getElementById('tutorial-xp-bar');
+  if (xpEl) {
+    const points = loadPoints();
+    const level = calcLevel();
+    xpEl.textContent = `Lv.${level} · ${points} XP`;
+  }
+  if (streakEl) {
+    const streak = loadStreak();
+    if (streak.count > 1) {
+      streakEl.textContent = `🔥 ${streak.count}-day streak`;
+      streakEl.style.display = '';
+    } else {
+      streakEl.style.display = 'none';
     }
   }
-  return files;
 }
+
+function showXPFloat(amount) {
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = `+${amount} XP`;
+  const editor = document.querySelector('.editor-pane-wrap');
+  if (editor) {
+    const rect = editor.getBoundingClientRect();
+    el.style.left = (rect.left + rect.width / 2 - 40) + 'px';
+    el.style.top = (rect.top + rect.height / 2 - 20) + 'px';
+  } else {
+    el.style.left = '50%';
+    el.style.top = '50%';
+  }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+/* ── Module Complete Check ── */
+
+function checkModuleComplete(mod) {
+  const indices = getModuleIndices(mod);
+  const allDone = indices.every(i => isComplete(i));
+  if (allDone) {
+    addPoints(POINTS_MODULE_BONUS);
+    updateDisplay();
+    return POINTS_MODULE_BONUS;
+  }
+  return 0;
+}
+
+/* ── Core Tutorial Functions ── */
 
 function getStep() {
   const raw = Number(localStorage.getItem(STEP_KEY));
@@ -105,6 +273,7 @@ function renderTutorialPanel() {
   const panel = getPanel();
   if (!panel.content || !panel.progress) return;
   const lesson = lessons[state.tutorialStep] || lessons[0];
+  panelContent = panel.content;
   const mod = lesson.module;
   const modIndices = getModuleIndices(mod);
   const posInMod = modIndices.indexOf(state.tutorialStep) + 1;
@@ -117,16 +286,38 @@ function renderTutorialPanel() {
   const prog = document.getElementById('tutorial-lesson-progress');
   if (prog) prog.textContent = `Lesson ${posInMod} of ${modIndices.length} · ${lesson.title}`;
   renderProgressBar();
-  panel.content.innerHTML = renderMarkdown(lesson.markdown);
-  if (panel.files) {
-    panel.files.innerHTML = '';
+  updateDisplay();
+
+  const rendered = renderMarkdown(lesson.markdown);
+  panel.content.innerHTML = rendered;
+
+  if (lesson.checklist && lesson.checklist.length > 0) {
+    let done = state.tutorialChecklistStatus || [];
+    if (done.length === 0 && isComplete(state.tutorialStep)) {
+      done = lesson.checklist.map(() => true);
+    }
+    const els = panel.content.querySelectorAll('.tutorial-checklist-item');
+    const count = done.filter(Boolean).length;
+    els.forEach((el, idx) => {
+      if (done[idx]) {
+        el.classList.add('is-done');
+        const box = el.querySelector('.check-box');
+        if (box) box.textContent = '✓';
+      }
+    });
+    const counter = document.createElement('div');
+    counter.className = 'tutorial-checklist-counter';
+    counter.textContent = `${count}/${lesson.checklist.length} conditions met`;
+    panel.content.appendChild(counter);
   }
+
+  if (panel.files) panel.files.innerHTML = '';
   if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
   if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
+
   const hintBtn = document.getElementById('btn-tutorial-hint');
-  if (hintBtn) {
-    hintBtn.style.display = state.tutorialActive && lesson.hint ? '' : 'none';
-  }
+  if (hintBtn) hintBtn.style.display = state.tutorialActive && lesson.hint ? '' : 'none';
+
   const completed = isComplete(state.tutorialStep);
   const verifyBtn = document.getElementById('btn-verify');
   if (verifyBtn) verifyBtn.style.display = state.tutorialActive ? '' : 'none';
@@ -137,7 +328,14 @@ function renderTutorialPanel() {
     panel.next.disabled = !state.tutorialActive || (!completed && !getSettings().skipEnabled);
   }
   if (!state.tutorialActive) setStatus('Start the tutorial to begin.', '');
+
+  const solBtn = document.getElementById('btn-view-solution');
+  if (solBtn) {
+    solBtn.style.display = state.tutorialActive && lesson.type !== 'theory' ? '' : 'none';
+  }
 }
+
+let panelContent = null;
 
 function renderProgressBar() {
   const total = lessons.filter(l => l.type === 'practice' || l.type === 'theory').length;
@@ -204,9 +402,7 @@ function handleQuizAnswer(index, lesson, btn) {
     el.classList.toggle('is-correct', idx === q.answer);
     if (idx === index && !isCorrect) el.classList.add('is-wrong');
   });
-  if (feedback) {
-    feedback.textContent = isCorrect ? q.explanation : 'Try again.';
-  }
+  if (feedback) feedback.textContent = isCorrect ? q.explanation : 'Try again.';
   if (isCorrect) {
     if (qi + 1 < questions.length) {
       state.tutorialQuizIndex = qi + 1;
@@ -215,6 +411,7 @@ function handleQuizAnswer(index, lesson, btn) {
       state.tutorialQuizIndex = 0;
       markComplete(state.tutorialStep);
       setStatus('Quiz passed. You can move to the next lesson.', 'success');
+      showToast('Quiz passed!', 'success', 2500);
       setTimeout(() => renderTutorialPanel(), 100);
     }
   } else {
@@ -229,10 +426,7 @@ function toggleEditorForLesson(lesson) {
   const executeBtn = document.getElementById('btn-execute');
   if (lesson.type === 'theory') {
     if (editor) editor.style.display = 'none';
-    if (quiz) {
-      quiz.classList.add('active');
-      renderQuiz(lesson);
-    }
+    if (quiz) { quiz.classList.add('active'); renderQuiz(lesson); }
     if (executeBtn) executeBtn.disabled = true;
     state.tutorialLessonType = 'theory';
   } else {
@@ -241,6 +435,19 @@ function toggleEditorForLesson(lesson) {
     if (executeBtn) executeBtn.disabled = false;
     state.tutorialLessonType = lesson.type;
   }
+}
+
+export function buildTutorialFiles(module) {
+  module = module || currentModule;
+  const files = {
+    'README.md': `# Module ${module}: ${MODULE_NAMES[module]}\n\nOpen a practice lesson file and write your SQL.`,
+  };
+  for (const lesson of lessons) {
+    if (lesson.type === 'practice' && lesson.module === module) {
+      files[lesson.file] = '-- Write your SQL here\n';
+    }
+  }
+  return files;
 }
 
 async function seedTutorialWorkspace(startFile, module) {
@@ -303,10 +510,6 @@ function runCheck(check, rows, changes) {
   }
 }
 
-/**
- * Evaluate a query against the active tutorial lesson check.
- * @param {{sql: string, rows: Array<Record<string, unknown>>, changes: number, error: Error | null}} result
- */
 export function evaluateTutorialQuery(result) {
   if (!state.tutorialActive) return;
   const lesson = lessons[state.tutorialStep];
@@ -317,11 +520,20 @@ export function evaluateTutorialQuery(result) {
   }
   const check = lesson.check || { type: 'success' };
   const passed = runCheck(check, result.rows, result.changes);
+
+  state.tutorialChecklistStatus = [];
+
   if (passed) {
-    markComplete(state.tutorialStep);
-    setStatus('Nice. This step is complete.', 'success');
+    if (lesson.checklist && lesson.checklist.length > 0) {
+      state.tutorialChecklistStatus = lesson.checklist.map(() => true);
+    }
+    const hadSolution = hasViewedSolution(lesson.id);
+    const xp = hadSolution ? 0 : calculateLessonXP(lesson);
+    markComplete(state.tutorialStep, xp);
+    setStatus(xp > 0 ? `Complete! +${xp} XP` : 'Complete (0 XP — solution viewed)', 'success');
     renderTutorialPanel();
   } else {
+    incrementFailures(lesson.id);
     const hint = lesson.hint ? ' 💡 ' + lesson.hint : '';
     setStatus('Not quite. Check the goal and try again.' + hint, 'error');
   }
@@ -347,10 +559,35 @@ export function verifyLesson(code) {
   }
 }
 
-/**
- * Starts or resumes tutorial mode.
- * @returns {Promise<boolean>} Whether tutorial mode is active after initialization.
- */
+/* ── Solution View ── */
+
+function showSolution() {
+  const lesson = lessons[state.tutorialStep];
+  if (!lesson || !lesson.sql) {
+    showToast('No solution available for this lesson.', 'info');
+    return;
+  }
+  if (confirm('Viewing the solution awards 0 XP for this lesson. Continue?')) {
+    markSolutionViewed(lesson.id);
+    const editor = state.editorView;
+    if (editor) {
+      const view = editor;
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: lesson.sql }
+      });
+      view.dom.classList.add('cm-readonly');
+    }
+    showToast('👁 Solution loaded — 0 XP for this lesson', 'warning', 4000);
+    const statusEl = document.getElementById('tutorial-status');
+    if (statusEl) {
+      statusEl.textContent = '📖 Solution shown — 0 XP awarded. Read and understand it.';
+      statusEl.classList.add('is-error');
+    }
+  }
+}
+
+/* ── Init ── */
+
 export async function initTutorialMode() {
   const panel = getPanel();
   panel.start?.addEventListener('click', (e) => {
@@ -394,6 +631,10 @@ export async function initTutorialMode() {
     if (lesson?.hint) setStatus('💡 ' + lesson.hint, '');
   });
 
+  document.getElementById('btn-view-solution')?.addEventListener('click', () => {
+    showSolution();
+  });
+
   document.addEventListener('change', (e) => {
     if (e.target.id === 'tutorial-module-select' && state.tutorialActive) {
       const idx = getModuleIndices(Number(e.target.value))[0];
@@ -409,6 +650,7 @@ export async function initTutorialMode() {
     return startTutorialMode(false);
   }
   renderTutorialPanel();
+  updateDisplay();
   return false;
 }
 
@@ -424,20 +666,22 @@ async function exitTutorialMode() {
   await ensureDefaultFiles();
   await renderTree();
   await switchFile(getActiveFileName(), 0, true);
-  setStatus('Tutorial finished. You are back in the normal workspace.', 'success');
+  const totalXP = loadPoints();
+  const level = calcLevel();
+  setStatus(`Tutorial finished. You reached Level ${level} with ${totalXP} XP! 🎉`, 'success');
+  showToast(`🏁 Tutorial complete! Level ${level} · ${totalXP} XP`, 'celebration', 5000);
   renderTutorialPanel();
+  updateDisplay();
   const quiz = ensureQuizPanel();
   if (quiz) quiz.classList.remove('active');
-  if (state.editorView?.dom) state.editorView.dom.style.display = '';
+  if (state.editorView?.dom) {
+    state.editorView.dom.style.display = '';
+    state.editorView.dom.classList.remove('cm-readonly');
+  }
   const executeBtn = document.getElementById('btn-execute');
   if (executeBtn) executeBtn.disabled = false;
 }
 
-/**
- * Begins a fresh tutorial session with a clean DB and lesson files.
- * @param {boolean} resetProgress Whether to reset to lesson 1.
- * @returns {Promise<boolean>}
- */
 export async function startTutorialMode(resetProgress = true) {
   if (!state.tutorialMode && state.db && state.dbName !== 'untitled') {
     await saveCurrentToLocal().catch(() => {});
@@ -459,6 +703,7 @@ export async function startTutorialMode(resetProgress = true) {
   const hasFiles = Object.keys(files).length > 0;
   if (resetProgress || !hasFiles) {
     resetCompletion();
+    resetFailures();
     await seedTutorialWorkspace(lesson.file, currentModule);
   } else {
     await renderTree();
@@ -470,7 +715,9 @@ export async function startTutorialMode(resetProgress = true) {
   } else {
     setStatus('Write your SQL, then click Verify to check.', '');
   }
+  state.tutorialChecklistStatus = [];
   renderTutorialPanel();
+  updateDisplay();
   return true;
 }
 
@@ -483,6 +730,7 @@ async function goToLesson(step) {
     currentModule = lesson.module;
     await seedTutorialWorkspace(lesson.file, currentModule);
   }
+  if (state.editorView?.dom) state.editorView.dom.classList.remove('cm-readonly');
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
     setStatus('Answer the quiz to unlock Next.', '');
@@ -490,5 +738,7 @@ async function goToLesson(step) {
     await openSingleFile(lesson.file);
     setStatus('Write your SQL, then click Verify to check.', '');
   }
+  state.tutorialChecklistStatus = [];
   renderTutorialPanel();
+  updateDisplay();
 }
