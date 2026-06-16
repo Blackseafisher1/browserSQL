@@ -302,6 +302,7 @@
     font-size: var(--size-fluid-1);
     color: var(--color-text-muted);
     border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-bg);
   }
 
   .results-output {

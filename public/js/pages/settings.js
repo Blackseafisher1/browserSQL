@@ -6,7 +6,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
 }
 
 let settings = loadSettings();
@@ -56,8 +56,11 @@ export function applySettings() {
   const hhCb = $('#setting-hideheader');
   if (hhCb) hhCb.checked = settings.hideHeader;
   applyTutorialVisibility();
+  applyChallengeVisibility();
   const stCb = $('#setting-showtutorial');
   if (stCb) stCb.checked = settings.showTutorial !== false;
+  const scCb = $('#setting-showchallenges');
+  if (scCb) scCb.checked = settings.showChallenges !== false;
   const skCb = $('#setting-skip');
   if (skCb) skCb.checked = settings.skipEnabled === true;
   const kwCb = $('#setting-keyword-case');
@@ -92,6 +95,15 @@ function applyTutorialVisibility() {
   const node = header?.closest('.section-node');
   const handle = document.getElementById('tutorial-resize-handle');
   const shouldShow = settings.showTutorial !== false;
+  if (node) node.style.display = shouldShow ? '' : 'none';
+  if (handle) handle.style.display = shouldShow ? '' : 'none';
+}
+
+function applyChallengeVisibility() {
+  const header = document.querySelector('.section-header[data-section="challenges"]');
+  const node = header?.closest('.section-node');
+  const handle = document.getElementById('challenges-resize-handle');
+  const shouldShow = settings.showChallenges !== false;
   if (node) node.style.display = shouldShow ? '' : 'none';
   if (handle) handle.style.display = shouldShow ? '' : 'none';
 }
@@ -146,6 +158,12 @@ export function initSettings() {
 
   $('#setting-showtutorial')?.addEventListener('change', (e) => {
     settings.showTutorial = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-showchallenges')?.addEventListener('change', (e) => {
+    settings.showChallenges = e.target.checked;
     saveSettings();
     applySettings();
   });

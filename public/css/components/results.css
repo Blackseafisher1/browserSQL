@@ -32,7 +32,8 @@
 
   .results-table th {
     position: sticky;
-    top: 0;
+    top: -1px;
+    z-index: 1;
     background: var(--color-bg-header);
     padding: var(--space-2) var(--space-3);
     text-align: left;

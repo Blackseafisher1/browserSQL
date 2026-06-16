@@ -93,8 +93,10 @@ describe('defaultSettings', () => {
     expect(s).toHaveProperty('fontSize');
     expect(s).toHaveProperty('keywordUpper');
     expect(s).toHaveProperty('blockCursor');
+    expect(s).toHaveProperty('showChallenges');
     expect(s.fontSize).toBe(14);
     expect(s.keywordUpper).toBe(false);
+    expect(s.showChallenges).toBe(true);
   });
 });
 
