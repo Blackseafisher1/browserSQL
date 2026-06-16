@@ -3,14 +3,16 @@
     font-weight: 700;
     font-size: var(--size-fluid-1);
     color: var(--color-accent);
-    display: flex;
-    align-items: center;
+    text-decoration: underline;
+    text-decoration-color: #3b82f6;
   }
 
-  .app-logo svg {
-    height: 24px;
-    width: auto;
-    display: block;
+  .logo-brow {
+    color: var(--color-text);
+  }
+
+  .logo-sql {
+    color: #3b82f6;
   }
 
   .db-name {
