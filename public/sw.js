@@ -20,6 +20,7 @@ const PRECACHE = [
   '/css/utilities.css',
   '/manifest.json',
   '/icon-192.svg',
+  '/favicon.svg',
   '/icon-512.svg',
 ];
 

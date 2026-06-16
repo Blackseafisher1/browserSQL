@@ -127,6 +127,15 @@
     font-weight: 700;
     color: var(--color-accent);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .ops-logo svg {
+    height: 22px;
+    width: auto;
+    display: block;
   }
 
   .ops-logo:hover {

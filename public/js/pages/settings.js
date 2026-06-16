@@ -215,4 +215,22 @@ export function initSettings() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') overlay?.classList.add('hidden');
   });
+
+  $('#btn-reset-settings')?.addEventListener('click', () => {
+    if (!confirm('Reset all settings to defaults?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    settings = defaultSettings();
+    saveSettings();
+    applySettings();
+  });
+
+  $('#btn-reset-all')?.addEventListener('click', () => {
+    if (!confirm('This will delete ALL local data:\n- All databases\n- All files\n- Tutorial progress & XP\n- All settings\n\nThis cannot be undone. Continue?')) return;
+    if (!confirm('Are you absolutely sure? All your work will be lost.')) return;
+    localStorage.clear();
+    if ('caches' in window) {
+      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});
+    }
+    location.reload();
+  });
 }

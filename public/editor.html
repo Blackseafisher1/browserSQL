@@ -49,8 +49,8 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="browserSQL">
-  <link rel="icon" type="image/svg+xml" href="/icon-192.svg">
-  <link rel="apple-touch-icon" href="/icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/favicon.svg">
   <link rel="icon" href="/browserSQL.jpg" sizes="any">
   <link rel="preload" href="/JetBrainsMono-2.304/fonts/webfonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 </head>
@@ -62,7 +62,45 @@
     <header id="header" class="app-header">
       <div class="header-left">
         <button id="btn-schema-toggle" class="btn btn-sm schema-toggle" title="Toggle schema panel">&#9776;</button>
-        <span class="app-logo">browserSQL</span>
+        <span class="app-logo">
+
+              <?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="230" viewBox="0 0 320 230" fill="none">
+  <!-- browserSQL Logo - Clean simple vector database icon -->
+
+  <!-- === TOP DISK (light cyan) === -->
+  <!-- Top ellipse -->
+  <ellipse cx="160" cy="42" rx="50" ry="14" fill="#bae6fd" stroke="#1e3a8a" stroke-width="3.5"/>
+  <!-- Body of top disk (rounded bottom) -->
+  <path d="M110 42 L110 68 Q110 74 116 74 L204 74 Q210 74 210 68 L210 42" fill="#3b82f6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- === MIDDLE DISK (blue/teal) === -->
+  <!-- Top ellipse of middle disk -->
+  <ellipse cx="160" cy="68" rx="50" ry="7" fill="#67e8f9" stroke="#1e3a8a" stroke-width="2.5"/>
+  <!-- Body of middle disk -->
+  <path d="M110 68 L110 96 Q110 102 116 102 L204 102 Q210 102 210 96 L210 68" fill="#14b8a6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- === BOTTOM DISK (teal) === -->
+  <!-- Top ellipse of bottom disk -->
+  <ellipse cx="160" cy="96" rx="50" ry="7" fill="#5eead4" stroke="#1e3a8a" stroke-width="2.5"/>
+  <!-- Body of bottom disk -->
+  <path d="M110 96 L110 124 Q110 130 116 130 L204 130 Q210 130 210 124 L210 96" fill="#0d9488" stroke="#1e3a8a" stroke-width="3.5"/>
+  <!-- Bottom ellipse -->
+  <ellipse cx="160" cy="124" rx="50" ry="14" fill="#14b8a6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- Wordmark -->
+  <text 
+    x="160" 
+    y="175" 
+    text-anchor="middle" 
+    font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+    font-size="36" 
+    font-weight="600" 
+    fill="#1e3a8a" 
+    letter-spacing="-0.5"
+  >browser<tspan font-weight="700" fill="#0f766e">SQL</tspan></text>
+</svg>
+        </span>
         <input id="db-name-input" class="db-name" value="untitled" spellcheck="false">
       </div>
       <div class="header-right">
@@ -110,7 +148,44 @@
             <span id="cloud-status" style="font-size:10px;color:var(--color-text-muted);width:100%;text-align:center"></span>
           </div>
           <div class="ops-footer">
-            <span class="ops-logo" id="ops-about-trigger">browserSQL</span>
+            <span class="ops-logo" id="ops-about-trigger">
+                    <?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="230" viewBox="0 0 320 230" fill="none">
+  <!-- browserSQL Logo - Clean simple vector database icon -->
+
+  <!-- === TOP DISK (light cyan) === -->
+  <!-- Top ellipse -->
+  <ellipse cx="160" cy="42" rx="50" ry="14" fill="#bae6fd" stroke="#1e3a8a" stroke-width="3.5"/>
+  <!-- Body of top disk (rounded bottom) -->
+  <path d="M110 42 L110 68 Q110 74 116 74 L204 74 Q210 74 210 68 L210 42" fill="#3b82f6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- === MIDDLE DISK (blue/teal) === -->
+  <!-- Top ellipse of middle disk -->
+  <ellipse cx="160" cy="68" rx="50" ry="7" fill="#67e8f9" stroke="#1e3a8a" stroke-width="2.5"/>
+  <!-- Body of middle disk -->
+  <path d="M110 68 L110 96 Q110 102 116 102 L204 102 Q210 102 210 96 L210 68" fill="#14b8a6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- === BOTTOM DISK (teal) === -->
+  <!-- Top ellipse of bottom disk -->
+  <ellipse cx="160" cy="96" rx="50" ry="7" fill="#5eead4" stroke="#1e3a8a" stroke-width="2.5"/>
+  <!-- Body of bottom disk -->
+  <path d="M110 96 L110 124 Q110 130 116 130 L204 130 Q210 130 210 124 L210 96" fill="#0d9488" stroke="#1e3a8a" stroke-width="3.5"/>
+  <!-- Bottom ellipse -->
+  <ellipse cx="160" cy="124" rx="50" ry="14" fill="#14b8a6" stroke="#1e3a8a" stroke-width="3.5"/>
+
+  <!-- Wordmark -->
+  <text 
+    x="160" 
+    y="175" 
+    text-anchor="middle" 
+    font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+    font-size="36" 
+    font-weight="600" 
+    fill="#1e3a8a" 
+    letter-spacing="-0.5"
+  >browser<tspan font-weight="700" fill="#0f766e">SQL</tspan></text>
+</svg>
+            </span>
             <a href="https://github.com/Blackseafisher1/browserSQL" target="_blank" rel="noopener" class="ops-link">GitHub</a>
           </div>
         </div>
@@ -437,6 +512,15 @@
           <input type="range" id="setting-kbdoffset" min="0" max="500" step="5">
           <span id="setting-kbdoffset-value" class="settings-value">0</span>
         </label>
+        <hr class="settings-divider">
+        <div class="settings-row">
+          <span></span>
+          <button id="btn-reset-settings" class="btn-sm" style="color:var(--color-error)">Reset settings to defaults</button>
+        </div>
+        <div class="settings-row">
+          <span></span>
+          <button id="btn-reset-all" class="btn-sm btn-danger" style="font-weight:700">Reset everything (delete all data)</button>
+        </div>
       </div>
     </div>
   </div>
@@ -448,7 +532,17 @@
         <button id="about-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body" style="text-align:center">
-        <div style="font-size:2rem;margin-bottom:var(--space-2)">🗄️</div>
+        <div style="margin-bottom:var(--space-2);display:flex;justify-content:center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 100 100" fill="none">
+            <ellipse cx="50" cy="12" rx="22" ry="6" fill="#bae6fd" stroke="#1e3a8a" stroke-width="2"/>
+            <path d="M28 12 L28 26 Q28 30 32 30 L68 30 Q72 30 72 26 L72 12" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2"/>
+            <ellipse cx="50" cy="26" rx="22" ry="4" fill="#67e8f9" stroke="#1e3a8a" stroke-width="1.5"/>
+            <path d="M28 26 L28 40 Q28 44 32 44 L68 44 Q72 44 72 40 L72 26" fill="#14b8a6" stroke="#1e3a8a" stroke-width="2"/>
+            <ellipse cx="50" cy="40" rx="22" ry="4" fill="#5eead4" stroke="#1e3a8a" stroke-width="1.5"/>
+            <path d="M28 40 L28 54 Q28 58 32 58 L68 58 Q72 58 72 54 L72 40" fill="#0d9488" stroke="#1e3a8a" stroke-width="2"/>
+            <ellipse cx="50" cy="54" rx="22" ry="6" fill="#14b8a6" stroke="#1e3a8a" stroke-width="2"/>
+          </svg>
+        </div>
         <div style="font-weight:700;font-size:var(--size-fluid-3)">browserSQL</div>
         <div style="color:var(--color-text-muted)">v1.0.0</div>
         <div style="margin-top:var(--space-4)">

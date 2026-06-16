@@ -3,6 +3,14 @@
     font-weight: 700;
     font-size: var(--size-fluid-1);
     color: var(--color-accent);
+    display: flex;
+    align-items: center;
+  }
+
+  .app-logo svg {
+    height: 24px;
+    width: auto;
+    display: block;
   }
 
   .db-name {
