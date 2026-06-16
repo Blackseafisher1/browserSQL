@@ -20,7 +20,6 @@ const PRECACHE = [
   '/css/utilities.css',
   '/manifest.json',
   '/icon-512.svg',
-  '/icon-512.svg',
 ];
 
 self.addEventListener('install', (e) => {
@@ -55,16 +54,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Same-origin app assets (JS chunks, CSS, chunk files) — cache-first
+  // Same-origin app assets (JS chunks, CSS, chunk files) — network-first, fallback to cache
   if (url.origin === location.origin && (url.pathname.startsWith('/dist/') || url.pathname.startsWith('/css/') || url.pathname.match(/\/chunks\//))) {
     e.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request).then((res) => {
+      fetch(request).then((res) => {
         if (res.ok && res.status !== 206) {
           const clone = res.clone();
           caches.open(CACHE).then((cache) => cache.put(request, clone));
         }
         return res;
-      }))
+      }).catch(() => caches.match(request).then((cached) => cached || new Response('Offline', { status: 503 })))
     );
     return;
   }
