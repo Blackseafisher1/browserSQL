@@ -1,0 +1,75 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "title": "SQL Zoo — Beginner Challenge",
+  "difficulty": "easy",
+  "tags": ["SELECT", "WHERE", "ORDER BY", "JOIN"],
+  "description": "A beginner-friendly challenge to practice basic SQL queries on a zoo database.",
+  "tasks": [
+    {
+      "id": "task-all-animals",
+      "title": "List All Animals",
+      "markdown": "Write a query to return **all columns** from the `animals` table.",
+      "seed": "CREATE TABLE animals (id INTEGER PRIMARY KEY, name TEXT, species TEXT, age INTEGER, enclosure_id INTEGER);\nINSERT INTO animals VALUES (1, 'Leo', 'Lion', 5, 1);\nINSERT INTO animals VALUES (2, 'Stripe', 'Tiger', 3, 1);\nINSERT INTO animals VALUES (3, 'Ella', 'Elephant', 8, 2);\nINSERT INTO animals VALUES (4, 'Nibbles', 'Rabbit', 1, 3);\nINSERT INTO animals VALUES (5, 'Hiss', 'Snake', 2, 4);",
+      "check": {
+        "type": "result",
+        "expectedSql": "SELECT * FROM animals"
+      },
+      "sql": "SELECT * FROM animals;",
+      "hint": "Use `SELECT * FROM animals`",
+      "checklist": ["Returns all 5 animals", "Includes id, name, species, age, enclosure_id"]
+    },
+    {
+      "id": "task-filter-species",
+      "title": "Filter by Species",
+      "markdown": "Return the **name and age** of all animals that are **mammals** (species = 'Lion', 'Tiger', 'Elephant', or 'Rabbit').",
+      "seed": "CREATE TABLE animals (id INTEGER PRIMARY KEY, name TEXT, species TEXT, age INTEGER, enclosure_id INTEGER);\nINSERT INTO animals VALUES (1, 'Leo', 'Lion', 5, 1);\nINSERT INTO animals VALUES (2, 'Stripe', 'Tiger', 3, 1);\nINSERT INTO animals VALUES (3, 'Ella', 'Elephant', 8, 2);\nINSERT INTO animals VALUES (4, 'Nibbles', 'Rabbit', 1, 3);\nINSERT INTO animals VALUES (5, 'Hiss', 'Snake', 2, 4);",
+      "check": {
+        "type": "contains",
+        "tokens": ["SELECT", "FROM animals", "WHERE", "species IN"]
+      },
+      "sql": "SELECT name, age FROM animals WHERE species IN ('Lion', 'Tiger', 'Elephant', 'Rabbit');",
+      "hint": "Use `WHERE species IN (...)` with a list of the mammal species",
+      "checklist": ["Only name and age columns", "Uses WHERE with IN clause", "Excludes the snake"]
+    },
+    {
+      "id": "task-enclosure-count",
+      "title": "Count Animals Per Enclosure",
+      "markdown": "Count how many animals live in **each enclosure**. Show the `enclosure_id` and the `count`.\n\nReturn results ordered by count descending.",
+      "seed": "CREATE TABLE animals (id INTEGER PRIMARY KEY, name TEXT, species TEXT, age INTEGER, enclosure_id INTEGER);\nINSERT INTO animals VALUES (1, 'Leo', 'Lion', 5, 1);\nINSERT INTO animals VALUES (2, 'Stripe', 'Tiger', 3, 1);\nINSERT INTO animals VALUES (3, 'Ella', 'Elephant', 8, 2);\nINSERT INTO animals VALUES (4, 'Nibbles', 'Rabbit', 1, 3);\nINSERT INTO animals VALUES (5, 'Hiss', 'Snake', 2, 4);\nINSERT INTO animals VALUES (6, 'Bolt', 'Cheetah', 4, 1);",
+      "check": {
+        "type": "result",
+        "expectedSql": "SELECT enclosure_id, COUNT(*) AS count FROM animals GROUP BY enclosure_id ORDER BY count DESC"
+      },
+      "sql": "SELECT enclosure_id, COUNT(*) AS count FROM animals GROUP BY enclosure_id ORDER BY count DESC;",
+      "hint": "Use `GROUP BY enclosure_id` and `COUNT(*)`",
+      "checklist": ["Has enclosure_id and count columns", "Grouped by enclosure_id", "Ordered by count descending"]
+    },
+    {
+      "id": "task-create-table",
+      "title": "Create an Enclosures Table",
+      "markdown": "Create a table called `enclosures` with:\n- `id` (INTEGER, PRIMARY KEY)\n- `name` (TEXT, NOT NULL)\n- `capacity` (INTEGER)",
+      "seed": "",
+      "check": {
+        "type": "schema",
+        "table": "enclosures",
+        "columns": ["id", "name", "capacity"]
+      },
+      "sql": "CREATE TABLE enclosures (id INTEGER PRIMARY KEY, name TEXT NOT NULL, capacity INTEGER);",
+      "hint": "Use `CREATE TABLE enclosures (...)` with the three columns",
+      "checklist": ["Table named enclosures", "Has id, name, capacity columns", "id is primary key", "name is NOT NULL"]
+    },
+    {
+      "id": "task-join-query",
+      "title": "Join Animals with Enclosures",
+      "markdown": "Write a query that **JOINs** animals with enclosures. Show:\n- Animal name\n- Species\n- Enclosure name\n\nSort by animal name alphabetically.\n\nFirst you'll need to create the enclosures table and insert some data.",
+      "seed": "CREATE TABLE animals (id INTEGER PRIMARY KEY, name TEXT, species TEXT, age INTEGER, enclosure_id INTEGER);\nINSERT INTO animals VALUES (1, 'Leo', 'Lion', 5, 1);\nINSERT INTO animals VALUES (2, 'Stripe', 'Tiger', 3, 1);\nINSERT INTO animals VALUES (3, 'Ella', 'Elephant', 8, 2);\nINSERT INTO animals VALUES (4, 'Nibbles', 'Rabbit', 1, 3);\nINSERT INTO animals VALUES (5, 'Hiss', 'Snake', 2, 4);\nCREATE TABLE enclosures (id INTEGER PRIMARY KEY, name TEXT NOT NULL, capacity INTEGER);\nINSERT INTO enclosures VALUES (1, 'Big Cat House', 4);\nINSERT INTO enclosures VALUES (2, 'Savanna', 2);\nINSERT INTO enclosures VALUES (3, 'Petting Zoo', 10);\nINSERT INTO enclosures VALUES (4, 'Reptile House', 8);",
+      "check": {
+        "type": "result",
+        "expectedSql": "SELECT a.name, a.species, e.name AS enclosure FROM animals a JOIN enclosures e ON a.enclosure_id = e.id ORDER BY a.name"
+      },
+      "sql": "SELECT a.name, a.species, e.name AS enclosure FROM animals a JOIN enclosures e ON a.enclosure_id = e.id ORDER BY a.name;",
+      "hint": "Use `JOIN enclosures ON animals.enclosure_id = enclosures.id`",
+      "checklist": ["JOIN between animals and enclosures", "Shows animal name, species, enclosure", "Sorted by animal name"]
+    }
+  ]
+}

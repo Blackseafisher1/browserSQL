@@ -34,14 +34,14 @@ beforeEach(() => {
 });
 
 describe('sqlAutoTriggerSource - UPDATE before SET', () => {
-  it('shows SET column = for each column', () => {
+  it('shows column names for each column', () => {
     const ctx = mockContext('UPDATE users ');
     const result = sqlAutoTriggerSource(ctx);
     expect(result).not.toBeNull();
     expect(result.options).toHaveLength(3);
-    expect(result.options[0].label).toBe('SET id = ');
-    expect(result.options[1].label).toBe('SET name = ');
-    expect(result.options[2].label).toBe('SET email = ');
+    expect(result.options[0].label).toBe('id');
+    expect(result.options[1].label).toBe('name');
+    expect(result.options[2].label).toBe('email');
   });
 
   it('returns null for unknown table', () => {
@@ -51,14 +51,14 @@ describe('sqlAutoTriggerSource - UPDATE before SET', () => {
 });
 
 describe('sqlAutoTriggerSource - UPDATE SET', () => {
-  it('shows column = for each column', () => {
+  it('shows column names for each column', () => {
     const ctx = mockContext('UPDATE users SET ');
     const result = sqlAutoTriggerSource(ctx);
     expect(result).not.toBeNull();
     expect(result.options).toHaveLength(3);
-    expect(result.options[0].label).toBe('id = ');
-    expect(result.options[1].label).toBe('name = ');
-    expect(result.options[2].label).toBe('email = ');
+    expect(result.options[0].label).toBe('id');
+    expect(result.options[1].label).toBe('name');
+    expect(result.options[2].label).toBe('email');
   });
 });
 
@@ -92,9 +92,9 @@ describe('sqlAutoTriggerSource - WHERE condition with referenced tables', () => 
     const result = sqlAutoTriggerSource(ctx);
     expect(result).not.toBeNull();
     expect(result.options).toHaveLength(3);
-    expect(result.options[0].label).toBe('id = ');
-    expect(result.options[1].label).toBe('name = ');
-    expect(result.options[2].label).toBe('email = ');
+    expect(result.options[0].label).toBe('id');
+    expect(result.options[1].label).toBe('name');
+    expect(result.options[2].label).toBe('email');
   });
 
   it('shows columns from referenced tables only', () => {

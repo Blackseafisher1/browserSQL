@@ -5,6 +5,7 @@ import { initSettings } from './pages/settings.js';
 import { initFilesView } from './pages/filesView.js';
 import { showReady } from './pages/resultsView.js';
 import { initTutorialMode } from './pages/tutorialView.js';
+import { initChallengeMode } from './pages/challengeView.js';
 import { initCloudSync } from './pages/cloudSync.js';
 import { state } from './state.js';
 
@@ -103,6 +104,7 @@ async function main() {
   advanceLoad();
   state.refreshEditorSchema = updateEditorSchema;
 
+  initChallengeMode();
   const tutorialStarted = await initTutorialMode();
   if (!tutorialStarted) {
     showReady();

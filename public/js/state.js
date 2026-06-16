@@ -16,6 +16,10 @@
  *   tutorialStep: number,
  *   tutorialActive: boolean,
  *   tutorialLessonType: null | 'theory' | 'practice' | 'hands-on',
+ *   challengeMode: boolean,
+ *   challengeActive: boolean,
+ *   challengeData: null | object,
+ *   challengeTaskIndex: number,
  * }}
  */
 export const state = {
@@ -34,6 +38,10 @@ export const state = {
   tutorialStep: 0,
   tutorialActive: false,
   tutorialLessonType: null,
+  challengeMode: false,
+  challengeActive: false,
+  challengeData: null,
+  challengeTaskIndex: 0,
 };
 
 /**

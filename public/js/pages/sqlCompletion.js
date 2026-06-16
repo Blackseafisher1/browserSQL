@@ -1,11 +1,11 @@
 import { state } from '../state.js';
 
-function allColumnOptions(withEquals) {
+function allColumnOptions() {
   const opts = [];
   for (const t of state.tables) {
     for (const c of t.columns) {
       opts.push({
-        label: withEquals ? `${c.name} = ` : c.name,
+        label: c.name,
         type: 'property',
         detail: `${t.name}.${c.type || ''}`,
       });
@@ -28,14 +28,14 @@ function referencedTables(text) {
   return [...names];
 }
 
-function columnOptsForTables(tableNames, withEquals) {
+function columnOptsForTables(tableNames) {
   const opts = [];
   for (const name of tableNames) {
     const t = tableByName(name);
     if (!t) continue;
     for (const c of t.columns) {
       opts.push({
-        label: withEquals ? `${c.name} = ` : c.name,
+        label: c.name,
         type: 'property',
         detail: `${t.name}.${c.type || ''}`,
       });
@@ -125,27 +125,27 @@ export function sqlAutoTriggerSource(context) {
       const t = tableByName(ctx.table);
       if (!t) return null;
       const opts = t.columns.map(c => ({
-        label: `SET ${c.name} = `,
-        type: 'keyword',
+        label: c.name,
+        type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^[\w\s=]+$/ };
+      return { from: pos, options: opts, validFor: /^[\w]+$/ };
     }
 
     case 'update-set': {
       const t = tableByName(ctx.table);
       if (!t) return null;
       const opts = t.columns.map(c => ({
-        label: `${c.name} = `,
+        label: c.name,
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^[\w\s=]+$/ };
+      return { from: pos, options: opts, validFor: /^[\w]+$/ };
     }
 
     case 'select-col': {
       const tables = referencedTables(textBefore);
-      const opts = tables.length ? columnOptsForTables(tables, false) : allColumnOptions(false);
+      const opts = tables.length ? columnOptsForTables(tables) : allColumnOptions();
       if (!opts.length) return null;
       return { from: pos, options: opts, validFor: /^[\w]+$/ };
     }
@@ -153,9 +153,9 @@ export function sqlAutoTriggerSource(context) {
     case 'condition': {
       const tables = referencedTables(textBefore);
       if (!tables.length) return null;
-      const opts = columnOptsForTables(tables, true);
+      const opts = columnOptsForTables(tables);
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^[\w\s=]+$/ };
+      return { from: pos, options: opts, validFor: /^[\w]+$/ };
     }
 
     default:

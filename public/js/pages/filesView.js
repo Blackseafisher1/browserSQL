@@ -5,8 +5,8 @@ import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, e
 const ACTIVE_KEY = 'browsersql-active-file';
 const TUTORIAL_ACTIVE_KEY = 'browsersql-tutorial-active-file';
 const VFS_DB = 'browsersql-vfs';
-const VFS_STORE = 'files';
-const VFS_TUTORIAL_STORE = 'tutorial_files';
+export const VFS_STORE = 'files';
+export const VFS_TUTORIAL_STORE = 'tutorial_files';
 const VFS_MIGRATED_KEY = 'browsersql-vfs-migrated';
 const DEFAULT_FILE = 'query.sql';
 const DEFAULT_CONTENT = 'SELECT * FROM sqlite_master;';

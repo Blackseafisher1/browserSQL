@@ -16,6 +16,7 @@ import { state } from '../state.js';
 import { showResults, showError, showNoResults } from './resultsView.js';
 import { saveCurrentToLocal } from './dbManager.js';
 import { verifyLesson } from './tutorialView.js';
+import { verifyChallenge } from './challengeView.js';
 import { saveCurrentFile } from './filesView.js';
 import { getSettings } from './settings.js';
 import { $, escId } from '../utils.js';
@@ -303,7 +304,11 @@ function setupExecuteButton() {
   document.getElementById('btn-execute-all')?.addEventListener('click', executeAll);
   document.getElementById('btn-verify')?.addEventListener('click', () => {
     if (!view) return;
-    verifyLesson(view.state.doc.toString());
+    if (state.challengeActive) {
+      verifyChallenge(view.state.doc.toString());
+    } else {
+      verifyLesson(view.state.doc.toString());
+    }
   });
   document.getElementById('btn-csv-export')?.addEventListener('click', () => {
     import('./resultsView.js').then(r => r.csvFromLastResult());

@@ -152,6 +152,20 @@
       </div>
       <div id="tutorial-resize-handle" class="sidebar-resize-handle"></div>
       <div class="section-node">
+        <div class="section-header" data-section="challenges">
+          <span class="section-arrow">▾</span><span class="section-label">Challenges</span>
+          <button class="btn btn-sm section-add-btn" id="btn-challenge-import" title="Import challenge file">⬇</button>
+          <button class="btn btn-sm section-add-btn" id="btn-challenge-new" title="Create new challenge">+</button>
+          <button class="btn btn-sm section-add-btn" id="btn-challenge-refresh" title="Refresh list" style="font-size:14px">↻</button>
+        </div>
+        <div class="section-body" id="section-challenges">
+          <div id="challenge-list" class="challenge-list">
+            <div class="panel-empty">No challenges yet.<br>Import or create one.</div>
+          </div>
+        </div>
+      </div>
+      <div id="challenges-resize-handle" class="sidebar-resize-handle"></div>
+      <div class="section-node">
         <div class="section-header" data-section="files">
           <span class="section-arrow">▾</span><span class="section-label">Files</span>
           <button class="btn btn-sm section-add-btn" id="btn-file-new" title="New file">+</button>
@@ -489,7 +503,65 @@
     </div>
   </div>
 
+  <div id="challenge-editor-overlay" class="modal-overlay hidden">
+    <div id="challenge-editor-modal" class="modal" style="min-width:500px;max-width:750px">
+      <div class="modal-header">
+        <span class="modal-title" id="challenge-editor-title">Create Challenge</span>
+        <button id="challenge-editor-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body challenge-editor-body">
+        <div class="challenge-editor-section">
+          <div class="challenge-field">
+            <label>Challenge ID <span style="font-weight:400;color:var(--color-text-muted)">(auto-generated)</span></label>
+            <div style="display:flex;align-items:center;gap:var(--space-1)">
+              <code id="ce-id-display" style="font-size:11px;color:var(--color-text-muted);padding:4px 6px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm)"></code>
+              <input type="hidden" id="ce-id" value="">
+            </div>
+          </div>
+          <div class="challenge-field">
+            <label>Title</label>
+            <input type="text" id="ce-title" class="ce-input" placeholder="My Challenge">
+          </div>
+          <div class="challenge-field-row">
+            <div class="challenge-field" style="flex:1">
+              <label>Difficulty</label>
+              <select id="ce-difficulty" class="ce-input">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+            <div class="challenge-field" style="flex:2">
+              <label>Tags (comma-separated)</label>
+              <input type="text" id="ce-tags" class="ce-input" placeholder="SELECT, JOIN, WHERE">
+            </div>
+          </div>
+        </div>
+        <div class="challenge-editor-section">
+          <div class="challenge-field">
+            <label>Description (markdown)</label>
+            <textarea id="ce-desc" class="ce-textarea" rows="3" placeholder="Describe the challenge..."></textarea>
+          </div>
+        </div>
+        <div class="challenge-editor-section">
+          <div class="challenge-field-header">
+            <label>Tasks</label>
+            <button id="ce-add-task" class="btn btn-sm">+ Add Task</button>
+          </div>
+          <div id="ce-tasks-container"></div>
+        </div>
+      </div>
+      <div class="modal-footer challenge-editor-footer">
+        <button id="ce-test" class="btn btn-sm">Test</button>
+        <button id="ce-save" class="btn btn-primary btn-sm">Save Challenge</button>
+        <button id="ce-download" class="btn btn-sm">Download</button>
+        <button id="ce-cancel" class="btn btn-sm">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <input type="file" id="file-input" accept=".sqlite,.db" class="hidden">
+  <input type="file" id="challenge-file-input" accept=".json" class="hidden">
  <!--   normal imports ( we will use minifed single file)
     <!-- previously individual module scripts (bundled into dist/app.js)
   <script type="module" src="js/utils.js"></script>

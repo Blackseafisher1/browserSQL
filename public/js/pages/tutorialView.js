@@ -96,23 +96,23 @@ function calculateLessonXP(lesson) {
 
 /* ── XP / Level System ── */
 
-function loadPoints() {
+export function loadPoints() {
   const raw = localStorage.getItem(POINTS_KEY);
   const val = parseInt(raw, 10);
   return Number.isFinite(val) && val >= 0 ? val : 0;
 }
 
-function savePoints(p) {
+export function savePoints(p) {
   localStorage.setItem(POINTS_KEY, String(p));
 }
 
-function addPoints(amount) {
+export function addPoints(amount) {
   if (amount <= 0) return;
   const current = loadPoints();
   savePoints(current + amount);
 }
 
-function calcLevel() {
+export function calcLevel() {
   return Math.floor(loadPoints() / XP_PER_LEVEL) + 1;
 }
 
@@ -183,7 +183,7 @@ function resetFailures() {
 
 /* ── Display Updates ── */
 
-function updateDisplay() {
+export function updateDisplay() {
   const xpEl = document.getElementById('tutorial-xp-display');
   const streakEl = document.getElementById('tutorial-streak-display');
   const barEl = document.getElementById('tutorial-xp-bar');
@@ -472,7 +472,7 @@ export function rowsEqual(actual, expected) {
   return JSON.stringify(actVals) === JSON.stringify(expVals);
 }
 
-function runCheck(check, rows, changes) {
+export function runCheck(check, rows, changes) {
   switch (check.type) {
     case 'success':
       return true;
@@ -505,6 +505,11 @@ function runCheck(check, rows, changes) {
     }
     case 'changes':
       return typeof changes === 'number' && changes >= (check.min || 1);
+    case 'contains': {
+      const code = state.editorView?.state.doc.toString() || '';
+      const lower = code.toLowerCase();
+      return (check.tokens || []).every(t => lower.includes(t.toLowerCase()));
+    }
     default:
       return false;
   }
