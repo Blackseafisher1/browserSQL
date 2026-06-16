@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 const mockRunCheck = vi.hoisted(() => vi.fn((check) => check.type === 'success'));
 let xpTotal = vi.hoisted(() => 0);
 const mockAddPoints = vi.hoisted(() => vi.fn((amt) => { xpTotal += amt; }));
-
+//
 vi.mock('marked', () => ({
   marked: {
     setOptions: vi.fn(),
