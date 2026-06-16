@@ -604,6 +604,7 @@ function setTutorialFontSize(size) {
   document.documentElement.style.setProperty('--tutorial-font-size', clamped + 'px');
   const tableSize = Math.round((11 + (clamped - 13) / 2) * 10) / 10;
   document.documentElement.style.setProperty('--tutorial-table-font-size', tableSize + 'px');
+  document.documentElement.style.setProperty('--tutorial-code-font-size', (clamped - 1) + 'px');
 }
 
 function initFontControls() {
@@ -613,6 +614,10 @@ function initFontControls() {
   setTutorialFontSize(getTutorialFontSize());
   slider.addEventListener('input', () => {
     setTutorialFontSize(Number(slider.value));
+  });
+
+  document.getElementById('btn-tutorial-fullscreen')?.addEventListener('click', () => {
+    document.body.classList.toggle('tutorial-fullscreen');
   });
 }
 

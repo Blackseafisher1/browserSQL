@@ -4,6 +4,8 @@ In-browser SQLite editor with persistent cloud sync, AI SQL generation, schema v
 
 **https://blackseafisher1.github.io/browserSQL/public**
 
+**https://browsersql.vercel.app**
+
 ---
 
 ## What makes this different
