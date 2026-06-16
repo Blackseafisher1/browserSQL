@@ -6,7 +6,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: '' };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
 }
 
 let settings = loadSettings();
@@ -67,11 +67,7 @@ export function applySettings() {
   if (bcCb) bcCb.checked = settings.blockCursor === true;
   document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
-  if (settings.cursorNormalColor) {
-    document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor);
-  } else {
-    document.documentElement.style.removeProperty('--cursor-normal-color');
-  }
+  document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor || DEFAULT_CURSOR_COLOR);
   const cct = $('#setting-cursor-color-text');
   if (cct) cct.value = settings.cursorColorText || DEFAULT_CURSOR_COLOR;
   const ccs = $('#setting-cursor-color-space');
@@ -201,7 +197,7 @@ export function initSettings() {
   $('#setting-cursor-colors-reset')?.addEventListener('click', () => {
     settings.cursorColorText = DEFAULT_CURSOR_COLOR;
     settings.cursorColorSpace = DEFAULT_CURSOR_COLOR;
-    settings.cursorNormalColor = '';
+    settings.cursorNormalColor = DEFAULT_CURSOR_COLOR;
     saveSettings();
     applySettings();
   });
