@@ -282,8 +282,10 @@ export function setLanguage(lang) {
 export function insertAtCursor(text) {
   if (!view) return;
   const sel = view.state.selection.main;
+  const pos = sel.from + text.length;
   view.dispatch({
     changes: { from: sel.from, to: sel.to, insert: text },
+    selection: { anchor: pos, head: pos },
     userEvent: 'input.type',
   });
   view.focus();

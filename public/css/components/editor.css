@@ -115,6 +115,10 @@
     color: var(--color-text);
     cursor: pointer;
     touch-action: manipulation;
+    height: var(--kbd-height, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-kbd:hover {
