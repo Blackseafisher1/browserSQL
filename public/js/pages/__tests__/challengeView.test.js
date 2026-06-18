@@ -14,14 +14,14 @@ vi.mock('marked', () => ({
           ? `<li class="tutorial-checklist-item ${checked ? 'is-done' : ''}"><span class="check-box">${checked ? '✓' : ''}</span><span>${text}</span></li>`
           : `<li>${text}</li>`),
       list: vi.fn(({ items, ordered }) => {
-        const cls = items.some((i) => i.task) ? 'tutorial-checklist' : '';
+        const cls = items.some((i) => i.task) ? 'tutorial-checklist' : ''; 
         const tag = ordered ? 'ol' : 'ul';
         return `<${tag} class="${cls}">${items.map((i) => (i.task ? `<li>${i.text}</li>` : `<li>${i.text}</li>`)).join('')}</${tag}>`;
       }),
     })),
-  },
+  },   
 }));
-
+ 
 vi.mock('../marker.js', () => ({ renderMarkdown: vi.fn((s) => s || '') }));
 
 let dbWasLoaded = false;
@@ -29,7 +29,7 @@ vi.mock('../dbManager.js', () => ({
   loadTutorialDatabase: vi.fn(async () => { dbWasLoaded = true; return true; }),
   saveCurrentToLocal: vi.fn(async () => {}),
   openLastDB: vi.fn(async () => {}),
-}));
+})); 
 
 vi.mock('../filesView.js', () => ({
   replaceFiles: vi.fn(async () => {}),
@@ -65,28 +65,31 @@ import {
 /* ── Helpers ── */
 
 function fakeIndexedDB(fileMap) {
-  // vfsGet gets { key: 'data', value: fileMap } from the store
-  // The stored record is { value: fileMap }
   const stored = { value: { ...fileMap } };
+  const txObj = {
+    objectStore: vi.fn(() => {
+      const getReq = {
+        result: stored,
+        set onsuccess(fn) { setTimeout(fn, 0); },
+        get onsuccess() { return null; },
+        set onerror(fn) {},
+        get onerror() { return null; },
+      };
+      return {
+        get: vi.fn(() => getReq),
+        put: vi.fn((val) => {
+          if (val.key === 'data') stored.value = { ...(stored.value || {}), ...val.value };
+          setTimeout(() => {
+            if (txObj.oncomplete) txObj.oncomplete();
+          }, 0);
+        }),
+      };
+    }),
+    set oncomplete(fn) { this._oncomplete = fn; },
+    get oncomplete() { return this._oncomplete; },
+  };
   const fakeDB = {
-    transaction: vi.fn(() => ({
-      objectStore: vi.fn(() => {
-        const getReq = {
-          result: stored,
-          set onsuccess(fn) { setTimeout(fn, 0); },
-          get onsuccess() { return null; },
-          set onerror(fn) {},
-          get onerror() { return null; },
-        };
-        return {
-          get: vi.fn(() => getReq),
-          put: vi.fn((val) => {
-            if (val.key === 'data') stored.value = { ...(stored.value || {}), ...val.value };
-          }),
-        };
-      }),
-      oncomplete: null,
-    })),
+    transaction: vi.fn(() => txObj),
     close: vi.fn(),
   };
   const openReq = {

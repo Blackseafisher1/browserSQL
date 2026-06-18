@@ -153,10 +153,10 @@ INNER JOIN table_b b ON a.id = b.a_id
 INNER JOIN table_c c ON b.id = c.b_id;
 \`\`\`
 
-**Goal:** Return \`customers.name\`, \`products.name\`, and \`orders.quantity\` by joining all three tables.`,
-    sql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;\n',
+**Goal:** Return \`customers.name AS customer\`, \`products.name AS product\`, and \`orders.quantity\` by joining all three tables.`,
+    sql: 'SELECT customers.name AS customer, products.name AS product, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;\n',
     seed: SEED_SHOP_EXT,
-    check: { type: 'result', expectedSql: 'SELECT customers.name, products.name, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },
+    check: { type: 'result', expectedSql: 'SELECT customers.name AS customer, products.name AS product, orders.quantity FROM customers INNER JOIN orders ON customers.id = orders.customer_id INNER JOIN products ON orders.product_id = products.id;' },
   },
   {
     id: '31-join-mastery',

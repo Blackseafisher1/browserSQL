@@ -1,9 +1,10 @@
 import { state } from '../state.js';
 import { renderMarkdown } from './marker.js';
 import { loadTutorialDatabase, saveCurrentToLocal, openLastDB } from './dbManager.js';
-import { replaceFiles, openSingleFile, renderTree, ensureDefaultFiles, VFS_STORE } from './filesView.js';
+import { openSingleFile, renderTree, ensureDefaultFiles, VFS_STORE } from './filesView.js';
 import { runCheck, loadPoints, addPoints, updateDisplay } from './tutorialView.js';
 import { showToast } from './toast.js';
+import { DEFAULT_CHALLENGES } from './lessons/defaultChallenges.js';
 
 const CHALLENGE_COMPLETE_KEY = 'browsersql-challenge-complete';
 const CHALLENGE_FAILURES_KEY = 'browsersql-challenge-failures';
@@ -13,6 +14,26 @@ const CHALLENGE_DB_NAME = 'browsersql-tutorial';
 const XP_TASK_FIRST = 15;
 const XP_TASK_RETRY = 5;
 const XP_CHALLENGE_BONUS = 25;
+
+/* ── Font Size ── */
+
+const CHALLENGE_FONT_KEY = 'browsersql-challenge-fontsize';
+const CHALLENGE_FONT_MIN = 10;
+const CHALLENGE_FONT_MAX = 20;
+const CHALLENGE_FONT_DEFAULT = 13;
+
+export function getChallengeFontSize() {
+  const raw = parseInt(localStorage.getItem(CHALLENGE_FONT_KEY), 10);
+  return Number.isFinite(raw) ? Math.max(CHALLENGE_FONT_MIN, Math.min(CHALLENGE_FONT_MAX, raw)) : CHALLENGE_FONT_DEFAULT;
+}
+
+export function setChallengeFontSize(size) {
+  const clamped = Math.max(CHALLENGE_FONT_MIN, Math.min(CHALLENGE_FONT_MAX, size));
+  localStorage.setItem(CHALLENGE_FONT_KEY, String(clamped));
+  document.documentElement.style.setProperty('--challenge-font-size', clamped + 'px');
+  const codeSize = Math.round((11 + (clamped - 13) / 2) * 10) / 10;
+  document.documentElement.style.setProperty('--challenge-code-font-size', codeSize + 'px');
+}
 
 /* ── VFS helpers (always use normal store) ── */
 
@@ -273,17 +294,17 @@ export async function startChallenge(challengeId, startTaskIndex) {
 async function loadChallengeTask(challenge) {
   const task = challenge.tasks[state.challengeTaskIndex];
   if (!task) return;
-  const seed = task.seed || '';
+  const seed = task.seed || challenge.defaultSeed || '';
   const dbOk = await loadTutorialDatabase(seed);
   if (!dbOk) {
     showToast('Failed to load challenge database.', 'error');
     return;
   }
-  const workspaceFiles = {};
+  const workspaceFiles = await vfsGet();
   const taskFile = 'challenge.sql';
   workspaceFiles['README.md'] = `# ${challenge.title}\n\nTask ${state.challengeTaskIndex + 1} of ${challenge.tasks.length}: ${task.title}`;
   workspaceFiles[taskFile] = '-- Write your SQL here\n';
-  await replaceFiles(workspaceFiles, taskFile);
+  await vfsPut(workspaceFiles);
   await renderTree();
   await openSingleFile(taskFile);
 
@@ -318,11 +339,19 @@ function renderChallengePanel() {
 
   const rendered = renderMarkdown(task.markdown || '');
 
+  setChallengeFontSize(getChallengeFontSize());
+  const fontSize = getChallengeFontSize();
+
   el.innerHTML = `<div class="ch-panel">
     <div class="ch-panel-top">
       <button id="ch-panel-back" class="btn btn-sm">← Back</button>
       <span class="ch-panel-position">Task ${currentIdx + 1} of ${total}</span>
       <span class="ch-panel-progress">${doneCount}/${total} tasks</span>
+      <span class="ch-panel-font">
+        <label class="ch-font-label">A</label>
+        <input type="range" id="challenge-font-slider" class="ch-font-slider" min="10" max="20" step="1" value="${fontSize}">
+        <label class="ch-font-label ch-font-label-lg">A</label>
+      </span>
     </div>
     <div class="ch-item-bar"><div class="ch-item-fill" style="width:${total ? Math.round(doneCount/total*100) : 0}%"></div></div>
     <div class="ch-panel-nav">
@@ -333,7 +362,6 @@ function renderChallengePanel() {
     <div class="ch-panel-content">${rendered}</div>
     <div class="ch-panel-status" id="challenge-status">${thisDone ? '✅ Task completed!' : 'Write your SQL, then click Verify.'}</div>
     <div class="ch-panel-toolbar">
-      <button id="ch-panel-verify" class="btn btn-sm btn-verify" style="display:${state.challengeActive ? '' : 'none'}">✓ Verify</button>
       <button id="ch-panel-hint" class="btn btn-sm" style="display:${task.hint ? '' : 'none'}">💡 Hint</button>
       <button id="ch-panel-solution" class="btn btn-sm" style="display:${task.sql ? '' : 'none'}">👁 Solution</button>
     </div>
@@ -345,10 +373,6 @@ function renderChallengePanel() {
   });
   el.querySelector('#ch-panel-prev')?.addEventListener('click', () => navigateChallengeTask(-1));
   el.querySelector('#ch-panel-next')?.addEventListener('click', () => navigateChallengeTask(1));
-  el.querySelector('#ch-panel-verify')?.addEventListener('click', () => {
-    const code = state.editorView?.state.doc.toString() || '';
-    verifyChallenge(code);
-  });
   el.querySelector('#ch-panel-hint')?.addEventListener('click', () => {
     const status = document.getElementById('challenge-status');
     if (status && task.hint) status.textContent = '💡 ' + task.hint;
@@ -357,9 +381,16 @@ function renderChallengePanel() {
     showChallengeSolution(challenge, task);
   });
 
+  const slider = document.getElementById('challenge-font-slider');
+  if (slider) {
+    slider.addEventListener('input', () => {
+      setChallengeFontSize(Number(slider.value));
+    });
+  }
+
   if (thisDone && state.challengeActive) {
-    const verifyBtn2 = el.querySelector('#ch-panel-verify');
-    if (verifyBtn2) verifyBtn2.style.display = 'none';
+    const mainVerify = document.getElementById('btn-verify');
+    if (mainVerify) mainVerify.style.display = 'none';
   }
 }
 
@@ -449,8 +480,8 @@ function evaluateChallengeQuery(result) {
     }
     renderChallengePanel();
     if (isTaskComplete(challenge.id, task.id)) {
-      const verifyBtn = document.getElementById('ch-panel-verify');
-      if (verifyBtn) verifyBtn.style.display = 'none';
+      const mainVerify = document.getElementById('btn-verify');
+      if (mainVerify) mainVerify.style.display = 'none';
     }
   } else {
     incrementFailures(challenge.id, task.id);
@@ -559,7 +590,7 @@ export function openChallengeEditor() {
   document.getElementById('ce-tags').value = '';
   document.getElementById('ce-desc').value = '';
   document.getElementById('ce-tasks-container').innerHTML = renderTaskEditorFields({ tasks: [{}] }, 0);
-  wireTaskRemoveButtons();
+  refreshRemoveButtons();
 }
 
 function uuid() {
@@ -580,7 +611,7 @@ function renderTaskEditorFields(challenge, taskIdx) {
   return `<div class="ce-task" data-task-idx="${taskIdx}">
     <div class="ce-task-header">
       <strong>Task ${taskIdx + 1}</strong>
-      <button class="btn btn-sm ce-task-remove" ${tasks.length <= 1 ? 'disabled style="opacity:0.4"' : ''}>✕ Remove</button>
+      <button class="btn btn-sm ce-task-remove">✕ Remove</button>
     </div>
     <div class="ce-task-fields">
       <div class="challenge-field">
@@ -794,7 +825,7 @@ function wireChallengeEditor() {
     const div = document.createElement('div');
     div.innerHTML = html;
     container.appendChild(div.firstElementChild);
-    wireTaskRemoveButtons();
+    refreshRemoveButtons();
   });
 
   document.getElementById('ce-save')?.addEventListener('click', async () => {
@@ -855,10 +886,20 @@ function wireChallengeEditor() {
   });
 }
 
-function wireTaskRemoveButtons() {
-  document.querySelectorAll('.ce-task-remove').forEach(btn => {
+function refreshRemoveButtons() {
+  const container = document.getElementById('ce-tasks-container');
+  if (!container) return;
+  const count = container.querySelectorAll('.ce-task').length;
+  container.querySelectorAll('.ce-task-remove').forEach(btn => {
     btn.removeEventListener('click', handleRemoveTask);
     btn.addEventListener('click', handleRemoveTask);
+    if (count <= 1) {
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+    } else {
+      btn.disabled = false;
+      btn.style.opacity = '';
+    }
   });
 }
 
@@ -866,8 +907,10 @@ function handleRemoveTask(e) {
   const taskEl = e.target.closest('.ce-task');
   if (!taskEl) return;
   const container = document.getElementById('ce-tasks-container');
-  if (container.querySelectorAll('.ce-task').length <= 1) {
+  const count = container.querySelectorAll('.ce-task').length;
+  if (count <= 1) {
     showToast('Need at least one task.', 'info');
+    e.preventDefault();
     return;
   }
   taskEl.remove();
@@ -876,11 +919,13 @@ function handleRemoveTask(e) {
     const hdr = el.querySelector('.ce-task-header strong');
     if (hdr) hdr.textContent = `Task ${i + 1}`;
   });
+  refreshRemoveButtons();
 }
 
 /* ── Init ── */
 
 export function initChallengeMode() {
+  setChallengeFontSize(getChallengeFontSize());
   wireChallengeEditor();
   renderChallengeList();
 
@@ -909,5 +954,21 @@ export function initChallengeMode() {
     });
   }
 
+  seedDefaultChallenges();
+}
 
+async function seedDefaultChallenges() {
+  const files = await vfsGet();
+  let changed = false;
+  for (const challenge of DEFAULT_CHALLENGES) {
+    const path = `challenges/${challenge.id}/challenge.json`;
+    if (!files[path]) {
+      files[path] = JSON.stringify(challenge, null, 2);
+      changed = true;
+    }
+  }
+  if (changed) {
+    await vfsPut(files);
+    renderChallengeList();
+  }
 }

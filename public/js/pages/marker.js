@@ -5,15 +5,16 @@ marked.setOptions({ breaks: true, gfm: true });
 const renderer = new marked.Renderer();
 
 renderer.listitem = function ({ text, raw, task, checked }) {
+  const parsed = marked.parseInline(text);
   if (task) {
     const cls = checked ? 'is-done' : '';
     const mark = checked ? '✓' : '';
     return `<li class="tutorial-checklist-item ${cls}" data-checked="${checked}">
       <span class="check-box">${mark}</span>
-      <span>${text}</span>
+      <span>${parsed}</span>
     </li>`;
   }
-  return `<li>${text}</li>`;
+  return `<li>${parsed}</li>`;
 };
 
 renderer.list = function ({ items, ordered, start }) {
