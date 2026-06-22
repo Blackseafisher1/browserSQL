@@ -56,6 +56,7 @@
     --color-bg-surface: light-dark(#ffffff, #25262b);
     --color-bg-hover: light-dark(#f1f3f5, #2c2e33);
     --color-bg-active: light-dark(#e9ecef, #373a40);
+    --color-bg-editor: light-dark(#f8f9fa, #101011);
     --color-bg-header: light-dark(#f1f3f5, #1e1f23);
     --color-text: light-dark(#212529, #c1c2c5);
     --color-text-muted: light-dark(#868e96, #909296);

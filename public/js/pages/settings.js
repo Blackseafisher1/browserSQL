@@ -6,7 +6,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, skipEnabled: false, keywordUpper: false, blockCursor: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
 }
 
 let settings = loadSettings();
@@ -68,6 +68,12 @@ export function applySettings() {
   document.body.classList.toggle('block-cursor', settings.blockCursor === true);
   const bcCb = $('#setting-block-cursor');
   if (bcCb) bcCb.checked = settings.blockCursor === true;
+  document.body.classList.toggle('floating-tabs', settings.floatingTabs === true);
+  const ftCb = $('#setting-floating-tabs');
+  if (ftCb) ftCb.checked = settings.floatingTabs === true;
+  document.body.classList.toggle('floating-bottom', settings.floatingBottom === true);
+  const fbCb = $('#setting-floating-bottom');
+  if (fbCb) fbCb.checked = settings.floatingBottom === true;
   document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor || DEFAULT_CURSOR_COLOR);
@@ -190,6 +196,18 @@ export function initSettings() {
 
   $('#setting-block-cursor')?.addEventListener('change', (e) => {
     settings.blockCursor = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-floating-tabs')?.addEventListener('change', (e) => {
+    settings.floatingTabs = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-floating-bottom')?.addEventListener('change', (e) => {
+    settings.floatingBottom = e.target.checked;
     saveSettings();
     applySettings();
   });

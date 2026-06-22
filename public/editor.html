@@ -8,7 +8,7 @@
   {
     "imports": {
       "codemirror": "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js",
-      "@codemirror/lang-sql": "https://cdn.jsdelivr.net/npm/@codemirror/lang-sql@6.8.0/dist/index.js",
+      "@codemirror/lang-sql": "/public/js/lib/lang-sql.js",
       "@codemirror/lang-javascript": "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/dist/index.js",
       "@codemirror/lang-markdown": "https://cdn.jsdelivr.net/npm/@codemirror/lang-markdown@6.3.1/dist/index.js",
       "@codemirror/lang-html": "https://cdn.jsdelivr.net/npm/@codemirror/lang-html@6.4.9/dist/index.js",
@@ -432,6 +432,14 @@
         <label class="settings-row">
           <span>Block cursor (overtype)</span>
           <input type="checkbox" id="setting-block-cursor">
+        </label>
+        <label class="settings-row">
+          <span>Floating tab bar (glass effect)</span>
+          <input type="checkbox" id="setting-floating-tabs">
+        </label>
+        <label class="settings-row">
+          <span>Floating bottom bar (glass effect)</span>
+          <input type="checkbox" id="setting-floating-bottom">
         </label>
         <label class="settings-row">
           <span>Cursor color over text</span>

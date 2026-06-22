@@ -94,7 +94,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^[\w]+$/ };
+      return { from: pos, options: opts, validFor: /^\w+$/ };
     }
 
     case 'insert': {
@@ -129,7 +129,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^[\w]+$/ };
+      return { from: pos, options: opts, validFor: /^\w+$/ };
     }
 
     case 'update-set': {
@@ -140,14 +140,14 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^[\w]+$/ };
+      return { from: pos, options: opts, validFor: /^\w+$/ };
     }
 
     case 'select-col': {
       const tables = referencedTables(textBefore);
       const opts = tables.length ? columnOptsForTables(tables) : allColumnOptions();
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^[\w]+$/ };
+      return { from: pos, options: opts, validFor: /^\w+$/ };
     }
 
     case 'condition': {
@@ -155,7 +155,7 @@ export function sqlAutoTriggerSource(context) {
       if (!tables.length) return null;
       const opts = columnOptsForTables(tables);
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^[\w]+$/ };
+      return { from: pos, options: opts, validFor: /^\w+$/ };
     }
 
     default:

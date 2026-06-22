@@ -4,8 +4,8 @@
     font-size: var(--editor-font-size, 14px);
   }
 
-  [data-theme="dark"] .cm-editor {
-    background: #101011;
+  .cm-editor {
+    background: var(--color-bg-editor);
   }
 
   .cm-editor .cm-scroller {
@@ -18,8 +18,7 @@
   }
 
   .cm-editor .cm-gutters {
-    background: var(--color-bg);
-    border-right: 1px solid var(--color-border-light);
+    background: var(--color-bg-editor);
     color: var(--color-text-muted);
   }
 

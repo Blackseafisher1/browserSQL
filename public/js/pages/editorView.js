@@ -94,6 +94,7 @@ function makeAutocomplete() {
   const aliases = parseAliases(doc);
   const merged = mergeSchema(currentSchema, aliases, ctes);
   return autocompletion({
+    activateOnTyping: (state) => /[\w\u00C0-\u024f]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
     tooltipClass: () => 'notranslate',
     override: [
       sqlAutoTriggerSource,
@@ -134,7 +135,7 @@ function makeEditor(doc, parent) {
         '&': { height: '100%' },
         '.cm-scroller': { overflow: 'auto', fontFamily: "'JetBrains Mono', monospace" },
         '.cm-content': { fontFamily: "'JetBrains Mono', monospace", fontVariantLigatures: 'contextual' },
-        '.cm-gutters': { fontFamily: "'JetBrains Mono', monospace", background: 'var(--color-bg)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
+        '.cm-gutters': { fontFamily: "'JetBrains Mono', monospace", background: 'var(--color-bg-editor)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
         '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
         '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' },
         '.cm-tooltip-autocomplete ul li[aria-selected]': { background: 'var(--color-accent)', color: 'var(--color-accent-text)' },
