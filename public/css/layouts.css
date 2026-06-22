@@ -227,8 +227,8 @@
     padding-top: calc(var(--space-2) + 30px) !important;
   }
 
-  body.floating-bottom.has-tabs .cm-content {
-    padding-bottom: calc(var(--space-2) + 52px) !important;
+  body.floating-bottom.has-tabs .cm-editor {
+    padding-bottom: 52px;
   }
 
   body.floating-bottom .execute-bar {
