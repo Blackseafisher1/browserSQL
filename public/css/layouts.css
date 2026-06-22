@@ -163,6 +163,7 @@
   .tab-item.active {
     background: var(--color-bg-editor);
     color: var(--color-text);
+    border-top: 2px solid var(--color-accent);
   }
 
   .tab-item .tab-close {
