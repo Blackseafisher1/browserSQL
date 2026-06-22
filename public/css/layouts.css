@@ -227,9 +227,7 @@
     padding-top: calc(var(--space-2) + 30px) !important;
   }
 
-  body.floating-bottom #editor-resize-handle {
-    display: none;
-  }
+
 
   body.floating-bottom .execute-bar {
     position: relative;
