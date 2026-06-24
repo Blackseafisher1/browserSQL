@@ -724,7 +724,7 @@ async function exitTutorialMode() {
 }
 
 export async function startTutorialMode(resetProgress = true) {
-  if (!state.tutorialMode && state.db && state.dbName !== 'untitled') {
+  if (!state.tutorialMode && state.db) {
     await saveCurrentToLocal().catch(() => {});
   }
   state.tutorialMode = true;

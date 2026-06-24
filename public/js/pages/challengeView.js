@@ -277,7 +277,7 @@ export async function startChallenge(challengeId, startTaskIndex) {
     return;
   }
 
-  if (state.db && state.dbName !== 'untitled' && state.dbName !== 'browsersql-tutorial') {
+  if (state.db && state.dbName !== 'browsersql-tutorial') {
     await saveCurrentToLocal().catch(() => {});
   }
 

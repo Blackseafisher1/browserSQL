@@ -21,9 +21,9 @@ function tableByName(name) {
 function referencedTables(text) {
   const names = new Set();
   let m;
-  const re = /(?:FROM|JOIN)\s+(\w+)/gi;
+  const re = /(?:FROM|JOIN)\s+([\w\u00C0-\u024f]+)/gi;
   while ((m = re.exec(text)) !== null) names.add(m[1]);
-  m = text.match(/UPDATE\s+(\w+)/i);
+  m = text.match(/UPDATE\s+([\w\u00C0-\u024f]+)/i);
   if (m) names.add(m[1]);
   return [...names];
 }
@@ -47,16 +47,16 @@ function columnOptsForTables(tableNames) {
 function detectContext(text) {
   let m;
 
-  m = text.match(/INSERT\s+INTO\s+(\w+)\s*\(\s*$/i);
+  m = text.match(/INSERT\s+INTO\s+([\w\u00C0-\u024f]+)\s*\(\s*$/i);
   if (m) return { type: 'insert-paren', table: m[1] };
 
-  m = text.match(/INSERT\s+INTO\s+(\w+)\s*$/i);
+  m = text.match(/INSERT\s+INTO\s+([\w\u00C0-\u024f]+)\s*$/i);
   if (m) return { type: 'insert', table: m[1] };
 
-  m = text.match(/UPDATE\s+(\w+)\s+SET\s+$/i);
+  m = text.match(/UPDATE\s+([\w\u00C0-\u024f]+)\s+SET\s+$/i);
   if (m) return { type: 'update-set', table: m[1] };
 
-  m = text.match(/UPDATE\s+(\w+)\s+$/i);
+  m = text.match(/UPDATE\s+([\w\u00C0-\u024f]+)\s+$/i);
   if (m) return { type: 'update-before-set', table: m[1] };
 
   if (/(?:WHERE|AND|OR|HAVING)\s+$/i.test(text)) return { type: 'condition' };
@@ -94,7 +94,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^\w+$/ };
+      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'insert': {
@@ -129,7 +129,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^\w+$/ };
+      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'update-set': {
@@ -140,14 +140,14 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: c.type || '',
       }));
-      return { from: pos, options: opts, validFor: /^\w+$/ };
+      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'select-col': {
       const tables = referencedTables(textBefore);
       const opts = tables.length ? columnOptsForTables(tables) : allColumnOptions();
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^\w+$/ };
+      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'condition': {
@@ -155,7 +155,7 @@ export function sqlAutoTriggerSource(context) {
       if (!tables.length) return null;
       const opts = columnOptsForTables(tables);
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^\w+$/ };
+      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     default:

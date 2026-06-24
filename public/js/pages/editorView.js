@@ -127,7 +127,7 @@ function makeEditor(doc, parent) {
       keymap.of([
         { key: 'Ctrl-Enter', run: () => { executeQuery(); return true; } },
         { key: 'Shift-Ctrl-Enter', run: () => { executeAll(); return true; } },
-        ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, ...closeBracketsKeymap
+        ...completionKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...closeBracketsKeymap
       ]),
       lc.of(makeSql()),
       EditorView.contentAttributes.of({ class: 'cm-lineWrapping' }),
@@ -462,7 +462,7 @@ export async function executeQuery() {
       showNoResults(message, code);
     }
     
-    if (state.dbName !== 'untitled' && state.dbName !== 'browsersql-tutorial') {
+    if (state.dbName !== 'browsersql-tutorial') {
       saveCurrentToLocal().catch(e => console.warn('[save] Failed:', e));
     }
     if (state.renderSchema) state.renderSchema();
@@ -483,7 +483,7 @@ export async function executeAll() {
     state.db.exec(wrapped, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     showNoResults(`All statements executed successfully | ${elapsed}ms`, code);
-    if (state.dbName !== 'untitled' && state.dbName !== 'browsersql-tutorial') {
+    if (state.dbName !== 'browsersql-tutorial') {
       saveCurrentToLocal().catch(e => console.warn('[save] Failed:', e));
     }
     if (state.renderSchema) state.renderSchema();

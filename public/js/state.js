@@ -25,7 +25,7 @@
 export const state = {
   db: null,
   sqlite3: null,
-  dbName: 'untitled',
+  dbName: 'default',
   editorView: null,
   tables: [],
   refreshEditorSchema: null,
@@ -51,5 +51,5 @@ export function resetState() {
   state.tables = [];
   state.tableExpanded = new Set();
   state.activeTable = null;
-  state.dbName = 'untitled';
+  state.dbName = 'default';
 }

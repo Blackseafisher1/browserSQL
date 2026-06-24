@@ -142,7 +142,7 @@ export function initDBManager() {
     }
   });
   dbNameInput.addEventListener('change', () => {
-    state.dbName = dbNameInput.value || 'untitled';
+    state.dbName = dbNameInput.value || 'default';
   });
 }
 
@@ -222,7 +222,7 @@ async function sqlite3Init() {
  */
 async function newDatabase() {
   if (!state.sqlite3) return;
-  const name = prompt('Database name:', 'untitled');
+  const name = prompt('Database name:', 'default');
   if (!name) return;
   try { state.db?.close(); } catch (_) {}
   state.db = new state.sqlite3.oo1.DB();
@@ -427,6 +427,7 @@ export async function refreshRecentDBsList() {
         item.dataset.name = db.name;
         const date = new Date(db.savedAt);
         const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
         item.innerHTML = `<span class="item-name">${esc(db.name)}</span><span class="item-date">${dateStr}</span>`;
         item.addEventListener('contextmenu', (e) => {
           e.preventDefault();
@@ -481,7 +482,7 @@ async function handleRecentClick(e) {
  */
 async function deleteCurrentFromLocal() {
   const name = state.dbName;
-  if (!name || name === 'untitled') {
+  if (!name) {
     showErrorInResults('No saved database to delete.');
     return;
   }
