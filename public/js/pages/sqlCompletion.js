@@ -96,6 +96,9 @@ export function sqlAutoTriggerSource(context) {
   const ctx = detectContext(textBefore);
 
   if (!ctx) {
+    const dotPos = textBefore.lastIndexOf('.');
+    const afterDot = textBefore.slice(dotPos + 1).trim();
+    if (dotPos > 0 && /^\w*$/.test(afterDot)) return null;
     const tables = referencedTables(textBefore);
     const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
     if (!opts.length) return null;
