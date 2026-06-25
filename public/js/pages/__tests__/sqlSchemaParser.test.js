@@ -119,3 +119,64 @@ describe('mergeSchema', () => {
       .toEqual({ users: ['id'] });
   });
 });
+
+describe('hash-based change detection', () => {
+  function hash(schema, aliases, ctes) {
+    return JSON.stringify(mergeSchema(schema, aliases, ctes));
+  }
+
+  it('same input produces identical hash', () => {
+    const schema = { users: ['id', 'name'] };
+    expect(hash(schema, {}, {})).toBe(hash(schema, {}, {}));
+  });
+
+  it('different CTE produces different hash', () => {
+    const schema = { users: ['id', 'name'] };
+    expect(hash(schema, {}, {})).not.toBe(hash(schema, {}, { my_cte: ['x'] }));
+  });
+
+  it('CTE column change produces different hash', () => {
+    const schema = { users: ['id', 'name'] };
+    expect(hash(schema, {}, { c: ['a'] }))
+      .not.toBe(hash(schema, {}, { c: ['a', 'b'] }));
+  });
+
+  it('different alias produces different hash', () => {
+    const schema = { users: ['id', 'name'] };
+    expect(hash(schema, {}, {})).not.toBe(hash(schema, { u: 'users' }, {}));
+  });
+
+  it('alias removal changes hash', () => {
+    const schema = { users: ['id'] };
+    const h1 = hash(schema, { u: 'users' }, {});
+    const h2 = hash(schema, {}, {});
+    expect(h1).not.toBe(h2);
+  });
+
+  it('full parse+merge produces stable hash for unchanged SQL', () => {
+    const sql = 'SELECT * FROM users';
+    const ctes = parseCTEs(sql);
+    const aliases = parseAliases(sql);
+    const h1 = JSON.stringify(mergeSchema({ users: ['id'] }, aliases, ctes));
+    const h2 = JSON.stringify(mergeSchema({ users: ['id'] }, aliases, ctes));
+    expect(h1).toBe(h2);
+  });
+
+  it('adding CTE to SQL changes merged hash', () => {
+    const sql1 = 'SELECT * FROM users';
+    const sql2 = 'WITH c AS (SELECT id FROM users) SELECT * FROM c';
+    const schema = { users: ['id'] };
+    const h1 = JSON.stringify(mergeSchema(schema, parseAliases(sql1), parseCTEs(sql1)));
+    const h2 = JSON.stringify(mergeSchema(schema, parseAliases(sql2), parseCTEs(sql2)));
+    expect(h1).not.toBe(h2);
+  });
+
+  it('adding alias to SQL changes merged hash', () => {
+    const sql1 = 'SELECT * FROM users';
+    const sql2 = 'SELECT * FROM users u';
+    const schema = { users: ['id'] };
+    const h1 = JSON.stringify(mergeSchema(schema, parseAliases(sql1), parseCTEs(sql1)));
+    const h2 = JSON.stringify(mergeSchema(schema, parseAliases(sql2), parseCTEs(sql2)));
+    expect(h1).not.toBe(h2);
+  });
+});

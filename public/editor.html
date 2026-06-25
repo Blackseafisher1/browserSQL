@@ -73,7 +73,7 @@
           <div id="recent-dbs-dropdown" class="dropdown-menu hidden"></div>
         </div>
         <button id="btn-gensql" class="btn btn-sm" title="Generate SQL from natural language">GenSQL</button>
-        <button id="btn-test-schema" class="btn btn-sm" title="Load test schema with sample data">Test</button>
+        <button id="btn-test-schema" class="btn btn-sm" title="Load a seed data template">Templates</button>
         <button id="btn-theme-toggle" class="btn btn-sm" title="Toggle theme">&#9790;</button>
         <button id="btn-cloud-login" class="btn btn-sm" title="Login to cloud"> Sign in/up 🔑</button>
         <button id="btn-cloud-user" class="btn btn-sm" title="Log out" style="display:none"></button>
@@ -94,7 +94,7 @@
             <button class="btn btn-sm" id="btn-schema-open" title="Open">Open</button>
             <button class="btn btn-sm" id="btn-schema-export" title="Export">Export</button>
             <button class="btn btn-sm" id="btn-schema-gensql" title="Generate SQL" style="font-size:10px">GenSQL</button>
-            <button class="btn btn-sm" id="btn-schema-test" title="Test Data">Test</button>
+            <button class="btn btn-sm" id="btn-schema-test" title="Templates">Templates</button>
             <button class="btn btn-sm" id="btn-schema-login" title="Login to cloud" style="font-size:11px">Sign in/up 🔑<in>
            
             <button class="btn btn-sm" id="btn-schema-cloud-user" title="Log out" style="display:none;font-size:11px"></button>
@@ -186,6 +186,7 @@
           <span class="section-arrow">▾</span><span class="section-label">Schema</span>
           <button id="btn-copy-ddl-all" class="btn btn-sm section-add-btn" title="Copy all DDL to clipboard" style="font-size:10px">📋</button>
           <button id="btn-erd" class="btn btn-sm section-add-btn" title="Show ER diagram" style="font-size:10px">🔗</button>
+          <button id="btn-import-csv" class="btn btn-sm section-add-btn" title="Import CSV" style="font-size:10px">CSV</button>
         </div>
         <div class="section-body" id="section-schema">
           <div id="schema-tree" class="schema-tree">
@@ -193,9 +194,9 @@
           </div>
         </div>
       </div>
-      <div id="schema-resize-handle" class="schema-resize-handle"></div>
       </div>
     </aside>
+    <div id="schema-resize-handle" class="schema-resize-handle"></div>
     <div id="mobile-menu-panel" class="mobile-menu-panel hidden">
       <div class="mobile-menu-header">
         <span>Menu</span>
@@ -206,7 +207,7 @@
         <button class="btn" data-action="open-db">Open</button>
         <button id="btn-mobile-export" class="btn">Export</button>
         <button id="btn-mobile-delete" class="btn btn-danger">Delete</button>
-        <button id="btn-mobile-test" class="btn">Test Data</button>
+        <button id="btn-mobile-test" class="btn">Templates</button>
         <button id="btn-mobile-recent" class="btn">Recent</button>
       </div>
     </div>
@@ -225,6 +226,7 @@
       <div class="execute-bar">
         <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
         <button id="btn-execute-all" class="btn btn-sm" data-action="execute-all" title="Run all (Ctrl+Shift+Enter)">Run All</button>
+        <button id="btn-format-sql" class="btn btn-sm" title="Format SQL (Ctrl+Alt+F)">Format</button>
         <button id="btn-verify" class="btn btn-sm btn-verify" data-action="verify" title="Check your solution" style="display:none">Verify</button>
         <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>
           <span class="execute-hint">Ctrl+Enter</span>
@@ -422,6 +424,14 @@
           <input type="checkbox" id="setting-showchallenges">
         </label>
         <label class="settings-row">
+          <span>Show files</span>
+          <input type="checkbox" id="setting-showfiles">
+        </label>
+        <label class="settings-row">
+          <span>Show schema</span>
+          <input type="checkbox" id="setting-showschema">
+        </label>
+        <label class="settings-row">
           <span>Skip tutorial lessons (testing only)</span>
           <input type="checkbox" id="setting-skip">
         </label>
@@ -459,6 +469,18 @@
           <button id="setting-cursor-colors-reset" class="btn-sm">Reset cursor colors</button>
         </div>
         <label class="settings-row">
+          <span>Format columns on new lines</span>
+          <input type="checkbox" id="setting-format-cols">
+        </label>
+        <label class="settings-row">
+          <span>Newline after ON</span>
+          <input type="checkbox" id="setting-format-on">
+        </label>
+        <label class="settings-row">
+          <span>Show Format button</span>
+          <input type="checkbox" id="setting-show-format-btn">
+        </label>
+        <label class="settings-row">
           <span>Kbd bar offset</span>
           <input type="range" id="setting-kbdoffset" min="-200" max="200" step="5">
           <span id="setting-kbdoffset-value" class="settings-value">0</span>
@@ -491,6 +513,19 @@
         <div style="margin-top:var(--space-4)">
           <a href="https://github.com/Blackseafisher1/browserSQL" target="_blank" rel="noopener">github.com/Blackseafisher1/browserSQL</a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="template-modal-overlay" class="modal-overlay hidden">
+    <div id="template-modal" class="modal" style="width:95vw;max-width:960px;max-height:90vh">
+      <div class="modal-header">
+        <span class="modal-title">Seed Data Templates</span>
+        <button id="template-modal-close" class="btn btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:var(--space-3)">Choose a template to load seed data into a new database.</p>
+        <div id="template-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--space-3)"></div>
       </div>
     </div>
   </div>
@@ -574,6 +609,7 @@
 
   <input type="file" id="file-input" accept=".sqlite,.db" class="hidden">
   <input type="file" id="challenge-file-input" accept=".json" class="hidden">
+  <input type="file" id="csv-file-input" accept=".csv" class="hidden">
  <!--   normal imports ( we will use minifed single file)
     <!-- previously individual module scripts (bundled into dist/app.js)
   <script type="module" src="js/utils.js"></script>

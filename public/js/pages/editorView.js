@@ -5,11 +5,11 @@ import { Compartment, EditorState } from '@codemirror/state';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, acceptCompletion } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite, schemaCompletionSource, keywordCompletionSource } from '@codemirror/lang-sql';
 import { sqlAutoTriggerSource } from './sqlCompletion.js';
-import { parseCTEs, parseAliases, mergeSchema } from './sqlSchemaParser.js';
+import { parseCTEs, parseAliases, parseColumnAliases, mergeSchema } from './sqlSchemaParser.js';
 import { markdown } from '@codemirror/lang-markdown';
 import { renderMarkdown } from './marker.js';
 import { state } from '../state.js';
@@ -18,7 +18,7 @@ import { saveCurrentToLocal } from './dbManager.js';
 import { verifyLesson } from './tutorialView.js';
 import { verifyChallenge } from './challengeView.js';
 import { saveCurrentFile } from './filesView.js';
-import { getSettings } from './settings.js';
+import { getSettings, defaultSettings } from './settings.js';
 import { $, escId } from '../utils.js';
 
 const darkHighlight = HighlightStyle.define([
@@ -62,6 +62,7 @@ const executeBtn = $('#btn-execute');
 let view = null;
 let editors = {};
 let currentSchema = {};
+let cachedMergedKey = null;
 
 let saveTimer = null;
 function updateCursorTextState(view) {
@@ -77,7 +78,18 @@ function debounceUpdate(update) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveCurrentFile().catch(() => {});
-      if (view) view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
+      if (!view) return;
+      const doc = view.state.doc.toString();
+      const ctes = parseCTEs(doc);
+      const aliases = parseAliases(doc);
+      const colAliases = parseColumnAliases(doc);
+      state._columnAliases = colAliases;
+      const merged = mergeSchema(currentSchema, aliases, ctes);
+      const key = JSON.stringify(merged);
+      if (key !== cachedMergedKey) {
+        cachedMergedKey = key;
+        view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete(merged)) });
+      }
     }, 500);
   }
   if (update.selectionSet || update.docChanged) {
@@ -88,11 +100,13 @@ function debounceUpdate(update) {
 function makeSql(schema) {
   return sql({ dialect: SQLite, upperCaseKeywords: getSettings().keywordUpper, schema: schema || currentSchema });
 }
-function makeAutocomplete() {
-  const doc = view?.state.doc.toString() || '';
-  const ctes = parseCTEs(doc);
-  const aliases = parseAliases(doc);
-  const merged = mergeSchema(currentSchema, aliases, ctes);
+function makeAutocomplete(merged) {
+  if (!merged) {
+    const doc = view?.state.doc.toString() || '';
+    const ctes = parseCTEs(doc);
+    const aliases = parseAliases(doc);
+    merged = mergeSchema(currentSchema, aliases, ctes);
+  }
   return autocompletion({
     activateOnTyping: (state) => /[\w\u00C0-\u024f]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
     tooltipClass: () => 'notranslate',
@@ -127,6 +141,7 @@ function makeEditor(doc, parent) {
       keymap.of([
         { key: 'Ctrl-Enter', run: () => { executeQuery(); return true; } },
         { key: 'Shift-Ctrl-Enter', run: () => { executeAll(); return true; } },
+        { key: 'Enter', run: acceptCompletion },
         ...completionKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...closeBracketsKeymap
       ]),
       lc.of(makeSql()),
@@ -257,6 +272,7 @@ export function updateEditorSchema(tables) {
   const schema = {};
   for (const t of tables) schema[t.name] = t.columns.map(c => c.name);
   currentSchema = schema;
+  cachedMergedKey = null;
   if (!view || !view._langComp) return;
   view.dispatch({ effects: view._langComp.reconfigure(makeSql(schema)) });
   view.dispatch({ effects: autocompleteComp.reconfigure(makeAutocomplete()) });
@@ -316,6 +332,14 @@ function setupExecuteButton() {
   document.getElementById('btn-csv-export')?.addEventListener('click', () => {
     import('./resultsView.js').then(r => r.csvFromLastResult());
   });
+  document.getElementById('btn-format-sql')?.addEventListener('click', formatCurrentQuery);
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === 'f') {
+      e.preventDefault();
+      formatCurrentQuery();
+    }
+  });
 }
 
 function setupPreviewButton() {
@@ -372,6 +396,41 @@ function setupEditorContextMenu() {
     if (!item) return;
     document.getElementById('context-menu')?.classList.add('hidden');
     import('./aiGenerateModal.js').then(m => m.showAIGenerateModal());
+  });
+}
+
+function formatSql(sql) {
+  const settings = getSettings();
+  const colsNewline = settings.formatCols;
+  let result = sql
+    .replace(/\s+/g, ' ')
+    .replace(/\bSELECT\s+/gi, '\nSELECT\n  ')
+    .replace(/\bFROM\s+/gi, '\nFROM ')
+    .replace(/\b(INNER|LEFT|RIGHT|FULL|CROSS)?\s*JOIN\s+/gi, '\n$&')
+    .replace(/\bWHERE\s+/gi, '\nWHERE ')
+    .replace(/\bGROUP\s+BY\s+/gi, '\nGROUP BY ')
+    .replace(/\bORDER\s+BY\s+/gi, '\nORDER BY ')
+    .replace(/\bHAVING\s+/gi, '\nHAVING ')
+    .replace(/\bLIMIT\s+/gi, '\nLIMIT ')
+    .replace(/\bON\s+/gi, settings.formatOnNewline ? '\n  ON ' : ' ON ')
+    .replace(/\bAND\s+(?=\w)/gi, '\n  AND ')
+    .replace(/\bOR\s+(?=\w)/gi, '\n  OR ')
+    .replace(/\bUNION(?:\s+ALL)?\s+/gi, '\n$&\n')
+    .replace(/\n\s*\n\s*/g, '\n')
+    .trim();
+  if (colsNewline) {
+    result = result.replace(/,\s*/g, ',\n  ');
+  }
+  return result;
+}
+
+function formatCurrentQuery() {
+  if (!view) return;
+  const doc = view.state.doc.toString().trim();
+  if (!doc) return;
+  const formatted = formatSql(doc);
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: formatted },
   });
 }
 

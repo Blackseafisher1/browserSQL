@@ -1,6 +1,6 @@
 import { initEditor, updateEditorSchema } from './pages/editorView.js';
 import { initSchemaView } from './pages/schemaView.js';
-import { initDBManager, initDatabase, loadTestSchema, openLastDB } from './pages/dbManager.js';
+import { initDBManager, initDatabase, openLastDB } from './pages/dbManager.js';
 import { initSettings } from './pages/settings.js';
 import { initFilesView } from './pages/filesView.js';
 import { showReady } from './pages/resultsView.js';
@@ -80,11 +80,21 @@ async function main() {
   });
   document.getElementById('btn-test-schema').addEventListener('click', () => {
     if (!state.sqlite3) return;
-    loadTestSchema();
+    import('./pages/templateModal.js').then(m => m.showTemplateModal()).catch(() => {});
   });
   document.querySelector('.app-logo')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
   document.getElementById('ops-about-trigger')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.remove('hidden'));
   document.getElementById('about-modal-close')?.addEventListener('click', () => document.getElementById('about-overlay')?.classList.add('hidden'));
+
+  const csvInput = document.getElementById('csv-file-input');
+  document.getElementById('btn-import-csv')?.addEventListener('click', () => csvInput?.click());
+  csvInput?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const { importCSV } = await import('./pages/csvImport.js');
+    await importCSV(file);
+    csvInput.value = '';
+  });
 
 
   // Init SQLite in background — UI stays responsive
@@ -117,16 +127,25 @@ async function main() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
+function updateHandlePos() {
+  const handle = document.getElementById('schema-resize-handle');
+  if (!handle) return;
+  const w = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width')) || 0;
+  handle.style.left = Math.max(0, w) + 'px';
+}
+
 function initSidebarResize() {
   const handle = document.getElementById('schema-resize-handle');
   if (!handle) return;
   const panel = document.getElementById('schema-panel');
   let startX, startWidth;
   function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+  updateHandlePos();
 
   function move(e) {
-    const newWidth = Math.max(180, Math.min(500, startWidth + (getX(e) - startX)));
+    const newWidth = Math.max(0, startWidth + (getX(e) - startX));
     document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+    handle.style.left = newWidth + 'px';
   }
 
   function end() {
@@ -154,6 +173,7 @@ function initSidebarResize() {
 
   handle.addEventListener('mousedown', start);
   handle.addEventListener('touchstart', start, { passive: false });
+  window.addEventListener('resize', updateHandlePos);
 }
 
 let savedSidebarWidth = 260;
@@ -177,8 +197,7 @@ function initSidebarCollapse() {
       document.documentElement.style.setProperty('--sidebar-width', savedSidebarWidth + 'px');
       btn.textContent = '◀';
     }
-    const handle = panel.querySelector('.schema-resize-handle');
-    if (handle) handle.style.display = collapsed ? 'none' : '';
+    updateHandlePos();
   });
 }
 

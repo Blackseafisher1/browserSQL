@@ -769,7 +769,8 @@ const SQLite = /*@__PURE__*/SQLDialect.define({
     builtin: "auth backup bail changes clone databases dbinfo dump echo eqp explain fullschema headers help import imposter indexes iotrace lint load log mode nullvalue once print prompt quit restore save scanstats separator shell show stats system tables testcase timeout timer trace vfsinfo vfslist vfsname width",
     operatorChars: "*+-%<>!=&|/~",
     identifierQuotes: "`\"",
-    specialVar: "@:?$"
+    specialVar: "@:?$",
+    caseInsensitiveIdentifiers: true
 });
 /**
 Dialect for [Cassandra](https://cassandra.apache.org/)'s SQL-ish query language.

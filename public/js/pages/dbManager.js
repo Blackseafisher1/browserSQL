@@ -51,7 +51,7 @@ async function saveToLocal(name, data) {
  * @param {string} name Database name.
  * @returns {Promise<Uint8Array | undefined>}
  */
-async function loadFromLocal(name) {
+export async function loadFromLocal(name) {
   const idb = await openLocalDB();
   const tx = idb.transaction('dbs', 'readonly');
   const req = tx.objectStore('dbs').get(name);

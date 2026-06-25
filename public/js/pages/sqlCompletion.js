@@ -1,6 +1,16 @@
 import { state } from '../state.js';
+import { parseColumnAliases } from './sqlSchemaParser.js';
 
-function allColumnOptions() {
+function docAliases(context) {
+  const fullDoc = context.state.sliceDoc(0);
+  return parseColumnAliases(fullDoc).map(a => ({
+    label: a,
+    type: 'property',
+    detail: 'alias',
+  }));
+}
+
+function allColumnOptions(context) {
   const opts = [];
   for (const t of state.tables) {
     for (const c of t.columns) {
@@ -11,6 +21,7 @@ function allColumnOptions() {
       });
     }
   }
+  opts.push(...docAliases(context));
   return opts;
 }
 
@@ -28,7 +39,7 @@ function referencedTables(text) {
   return [...names];
 }
 
-function columnOptsForTables(tableNames) {
+function columnOptsForTables(context, tableNames) {
   const opts = [];
   for (const name of tableNames) {
     const t = tableByName(name);
@@ -41,6 +52,7 @@ function columnOptsForTables(tableNames) {
       });
     }
   }
+  opts.push(...docAliases(context));
   return opts;
 }
 
@@ -83,7 +95,12 @@ export function sqlAutoTriggerSource(context) {
   const textBefore = edState.sliceDoc(0, pos);
   const ctx = detectContext(textBefore);
 
-  if (!ctx) return null;
+  if (!ctx) {
+    const tables = referencedTables(textBefore);
+    const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
+    if (!opts.length) return null;
+    return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+  }
 
   switch (ctx.type) {
     case 'insert-paren': {
@@ -145,7 +162,7 @@ export function sqlAutoTriggerSource(context) {
 
     case 'select-col': {
       const tables = referencedTables(textBefore);
-      const opts = tables.length ? columnOptsForTables(tables) : allColumnOptions();
+      const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
       if (!opts.length) return null;
       return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
@@ -153,7 +170,7 @@ export function sqlAutoTriggerSource(context) {
     case 'condition': {
       const tables = referencedTables(textBefore);
       if (!tables.length) return null;
-      const opts = columnOptsForTables(tables);
+      const opts = columnOptsForTables(context, tables);
       if (!opts.length) return null;
       return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }

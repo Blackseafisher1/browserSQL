@@ -5,6 +5,7 @@ import { openSingleFile, renderTree, ensureDefaultFiles, VFS_STORE } from './fil
 import { runCheck, loadPoints, addPoints, updateDisplay } from './tutorialView.js';
 import { showToast } from './toast.js';
 import { DEFAULT_CHALLENGES } from './lessons/defaultChallenges.js';
+import { showEditors, ensureEditor, setEditorContentFor, switchEditor } from './editorView.js';
 
 const CHALLENGE_COMPLETE_KEY = 'browsersql-challenge-complete';
 const CHALLENGE_FAILURES_KEY = 'browsersql-challenge-failures';
@@ -219,6 +220,35 @@ function esc(s) {
   return d.innerHTML;
 }
 
+/* ── Reset / Delete ── */
+
+function resetChallengeProgress(challengeId) {
+  if (!confirm(`Reset all progress for this challenge?`)) return;
+  for (const key of [CHALLENGE_COMPLETE_KEY, CHALLENGE_FAILURES_KEY, CHALLENGE_SOLUTIONS_KEY]) {
+    const obj = JSON.parse(localStorage.getItem(key)) || {};
+    for (const k of Object.keys(obj)) {
+      if (k.startsWith(challengeId + '/')) delete obj[k];
+    }
+    localStorage.setItem(key, JSON.stringify(obj));
+  }
+  showChallengeDetail(challengeId);
+}
+
+async function deleteChallenge(challengeId) {
+  if (!confirm(`Delete this challenge permanently?`)) return;
+  const files = await vfsGet();
+  delete files[`challenges/${challengeId}/challenge.json`];
+  await vfsPut(files);
+  for (const key of [CHALLENGE_COMPLETE_KEY, CHALLENGE_FAILURES_KEY, CHALLENGE_SOLUTIONS_KEY]) {
+    const obj = JSON.parse(localStorage.getItem(key)) || {};
+    for (const k of Object.keys(obj)) {
+      if (k.startsWith(challengeId + '/')) delete obj[k];
+    }
+    localStorage.setItem(key, JSON.stringify(obj));
+  }
+  renderChallengeList();
+}
+
 /* ── UI: Challenge detail view ── */
 
 function showChallengeDetail(challengeId) {
@@ -252,10 +282,14 @@ function showChallengeDetail(challengeId) {
     <div class="ch-item-bar"><div class="ch-item-fill" style="width:${total ? Math.round(done/total*100) : 0}%"></div></div>
     <div class="ch-detail-tasks">${tasksHtml}</div>
     <button id="ch-start" class="btn btn-sm btn-primary">${done > 0 ? 'Continue' : 'Start Challenge'}</button>
+    <button id="ch-reset">Reset Progress</button>
+    <button id="ch-delete" class="btn btn-sm btn-danger">Delete Challenge</button>
   </div>`;
 
   el.querySelector('#ch-back').addEventListener('click', () => renderChallengeList());
   el.querySelector('#ch-start').addEventListener('click', () => startChallenge(challengeId));
+  el.querySelector('#ch-reset').addEventListener('click', () => resetChallengeProgress(challengeId));
+  el.querySelector('#ch-delete').addEventListener('click', () => deleteChallenge(challengeId));
   el.querySelectorAll('.ch-detail-task').forEach(taskEl => {
     taskEl.addEventListener('click', () => {
       const idx = parseInt(taskEl.dataset.taskIndex, 10);
@@ -405,21 +439,42 @@ function navigateChallengeTask(delta) {
 
 /* ── Challenge solution ── */
 
+function formatSql(sql) {
+  const settings = JSON.parse(localStorage.getItem('browsersql-settings')) || {};
+  return sql
+    .replace(/\s+/g, ' ')
+    .replace(/\bSELECT\s+/gi, '\nSELECT\n  ')
+    .replace(/\bFROM\s+/gi, '\nFROM ')
+    .replace(/\b(INNER|LEFT|RIGHT|FULL|CROSS)?\s*JOIN\s+/gi, '\n$&')
+    .replace(/\bWHERE\s+/gi, '\nWHERE ')
+    .replace(/\bGROUP\s+BY\s+/gi, '\nGROUP BY ')
+    .replace(/\bORDER\s+BY\s+/gi, '\nORDER BY ')
+    .replace(/\bHAVING\s+/gi, '\nHAVING ')
+    .replace(/\bLIMIT\s+/gi, '\nLIMIT ')
+    .replace(/\bON\s+/gi, settings.formatOnNewline ? '\n  ON ' : ' ON ')
+    .replace(/\bAND\s+(?=\w)/gi, '\n  AND ')
+    .replace(/\bOR\s+(?=\w)/gi, '\n  OR ')
+    .replace(/\bUNION(?:\s+ALL)?\s+/gi, '\n$&\n')
+    .replace(/\n\s*\n\s*/g, '\n')
+    .trim();
+}
+
 function showChallengeSolution(challenge, task) {
   if (!task.sql) { showToast('No solution available.', 'info'); return; }
   if (confirm('Viewing the solution awards 0 XP for this task. Continue?')) {
     markSolutionViewed(challenge.id, task.id);
-    const editor = state.editorView;
-    if (editor) {
-      editor.dispatch({
-        changes: { from: 0, to: editor.state.doc.length, insert: task.sql }
-      });
-      editor.dom.classList.add('cm-readonly');
-    }
-    showToast('👁 Solution loaded — 0 XP for this task', 'warning', 4000);
+    const formatted = '-- SOLUTION:\n' + formatSql(task.sql);
+    showEditors(2);
+    ensureEditor(1);
+    setEditorContentFor(1, formatted);
+    const ed1 = ensureEditor(1);
+    ed1.dom.classList.add('cm-readonly');
+    const tab1 = document.getElementById('tab-bar-1');
+    if (tab1) tab1.textContent = 'SOLUTION';
+    showToast('👁 Solution in right editor — 0 XP for this task', 'warning', 4000);
     const status = document.getElementById('challenge-status');
     if (status) {
-      status.textContent = '📖 Solution shown — 0 XP awarded.';
+      status.textContent = '📖 Solution shown (right pane) — 0 XP awarded.';
       status.classList.add('is-error');
     }
   }
@@ -518,6 +573,11 @@ export async function exitChallengeMode() {
     state.editorView.dom.classList.remove('cm-readonly');
     state.editorView.dom.style.display = '';
   }
+  const ed1 = ensureEditor(1);
+  ed1.dom.classList.remove('cm-readonly');
+  const tab1 = document.getElementById('tab-bar-1');
+  if (tab1) tab1.textContent = '';
+  showEditors(1);
   const verifyBtn = document.getElementById('btn-verify');
   if (verifyBtn) verifyBtn.style.display = 'none';
   const executeBtn = document.getElementById('btn-execute');
@@ -959,16 +1019,10 @@ export function initChallengeMode() {
 
 async function seedDefaultChallenges() {
   const files = await vfsGet();
-  let changed = false;
   for (const challenge of DEFAULT_CHALLENGES) {
     const path = `challenges/${challenge.id}/challenge.json`;
-    if (!files[path]) {
-      files[path] = JSON.stringify(challenge, null, 2);
-      changed = true;
-    }
+    files[path] = JSON.stringify(challenge, null, 2);
   }
-  if (changed) {
-    await vfsPut(files);
-    renderChallengeList();
-  }
+  await vfsPut(files);
+  renderChallengeList();
 }

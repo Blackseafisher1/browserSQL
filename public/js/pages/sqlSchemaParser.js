@@ -6,6 +6,25 @@ const SQL_KEYWORDS = new Set([
   'WHEN', 'THEN', 'CASE', 'END', 'ASC', 'DESC', 'FOR',
 ]);
 
+export function parseColumnAliases(text) {
+  text = stripComments(text);
+  const aliases = new Set();
+  const selectBlockRe = /SELECT\s+([\s\S]*?)(?:FROM|INTO|;)/gi;
+  let m;
+  while ((m = selectBlockRe.exec(text)) !== null) {
+    const selectBody = m[1];
+    const asRe = /\bAS\s+(\w+)\b/gi;
+    let am;
+    while ((am = asRe.exec(selectBody)) !== null) {
+      const alias = am[1];
+      if (!SQL_KEYWORDS.has(alias.toUpperCase())) {
+        aliases.add(alias);
+      }
+    }
+  }
+  return [...aliases];
+}
+
 export function parseAliases(text) {
   text = stripComments(text);
   const map = {};

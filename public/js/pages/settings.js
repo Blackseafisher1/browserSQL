@@ -6,7 +6,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false };
 }
 
 let settings = loadSettings();
@@ -57,10 +57,16 @@ export function applySettings() {
   if (hhCb) hhCb.checked = settings.hideHeader;
   applyTutorialVisibility();
   applyChallengeVisibility();
+  applyFilesVisibility();
+  applySchemaVisibility();
   const stCb = $('#setting-showtutorial');
   if (stCb) stCb.checked = settings.showTutorial !== false;
   const scCb = $('#setting-showchallenges');
   if (scCb) scCb.checked = settings.showChallenges !== false;
+  const sfCb = $('#setting-showfiles');
+  if (sfCb) sfCb.checked = settings.showFiles !== false;
+  const ssCb = $('#setting-showschema');
+  if (ssCb) ssCb.checked = settings.showSchema !== false;
   const skCb = $('#setting-skip');
   if (skCb) skCb.checked = settings.skipEnabled === true;
   const kwCb = $('#setting-keyword-case');
@@ -74,6 +80,14 @@ export function applySettings() {
   document.body.classList.toggle('floating-bottom', settings.floatingBottom === true);
   const fbCb = $('#setting-floating-bottom');
   if (fbCb) fbCb.checked = settings.floatingBottom === true;
+  const fcCb = $('#setting-format-cols');
+  if (fcCb) fcCb.checked = settings.formatCols === true;
+  const onCb = $('#setting-format-on');
+  if (onCb) onCb.checked = settings.formatOnNewline === true;
+  const sfbCb = $('#setting-show-format-btn');
+  if (sfbCb) sfbCb.checked = settings.showFormatBtn !== false;
+  const fb = $('#btn-format-sql');
+  if (fb) fb.style.display = settings.showFormatBtn !== false ? '' : 'none';
   document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor || DEFAULT_CURSOR_COLOR);
@@ -103,6 +117,23 @@ function applyTutorialVisibility() {
   const shouldShow = settings.showTutorial !== false;
   if (node) node.style.display = shouldShow ? '' : 'none';
   if (handle) handle.style.display = shouldShow ? '' : 'none';
+}
+
+function applyFilesVisibility() {
+  const header = document.querySelector('.section-header[data-section="files"]');
+  const node = header?.closest('.section-node');
+  const handle = document.getElementById('files-resize-handle');
+  const shouldShow = settings.showFiles !== false;
+  if (node) node.style.display = shouldShow ? '' : 'none';
+  if (handle) handle.style.display = shouldShow ? '' : 'none';
+}
+
+function applySchemaVisibility() {
+  const header = document.querySelector('.section-header[data-section="schema"]');
+  const node = header?.closest('.section-node');
+  const handle = document.getElementById('schema-resize-handle');
+  const shouldShow = settings.showSchema !== false;
+  if (node) node.style.display = shouldShow ? '' : 'none';
 }
 
 function applyChallengeVisibility() {
@@ -174,6 +205,18 @@ export function initSettings() {
     applySettings();
   });
 
+  $('#setting-showfiles')?.addEventListener('change', (e) => {
+    settings.showFiles = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-showschema')?.addEventListener('change', (e) => {
+    settings.showSchema = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
   $('#setting-skip')?.addEventListener('change', (e) => {
     if (e.target.checked && !settings.skipEnabled) {
       if (!confirm('Only enable skip to view all lessons for testing.\nIf you really want to learn, keep it disabled.\nEnable anyway?')) {
@@ -208,6 +251,22 @@ export function initSettings() {
 
   $('#setting-floating-bottom')?.addEventListener('change', (e) => {
     settings.floatingBottom = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-format-cols')?.addEventListener('change', (e) => {
+    settings.formatCols = e.target.checked;
+    saveSettings();
+  });
+
+  $('#setting-format-on')?.addEventListener('change', (e) => {
+    settings.formatOnNewline = e.target.checked;
+    saveSettings();
+  });
+
+  $('#setting-show-format-btn')?.addEventListener('change', (e) => {
+    settings.showFormatBtn = e.target.checked;
     saveSettings();
     applySettings();
   });

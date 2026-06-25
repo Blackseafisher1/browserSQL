@@ -77,21 +77,46 @@
   }
 
   .schema-resize-handle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 100vh;
+    cursor: col-resize;
+    z-index: 100;
+    background: transparent;
+  }
+  .schema-resize-handle::after {
+    content: '';
     position: absolute;
     top: 0;
-    right: 0;
+    left: 2px;
     width: 4px;
     height: 100%;
-    cursor: col-resize;
-    z-index: 10;
     background: transparent;
+    transition: background .15s;
+  }
+  .schema-resize-handle:hover::after,
+  .schema-resize-handle:active::after {
+    background: var(--color-accent);
+  }
+
+  .schema-resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 3px;
+    width: 4px;
+    height: 100%;
+    background: transparent;
+    transition: background .15s;
   }
 
 
 
 
-  .schema-resize-handle:hover,
-  .schema-resize-handle:active {
+  .schema-resize-handle:hover::after,
+  .schema-resize-handle:active::after {
     background: var(--color-accent);
   }
 
