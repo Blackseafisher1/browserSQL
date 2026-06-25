@@ -120,6 +120,9 @@ async function main() {
     showReady();
     if (state.renderSchema) state.renderSchema();
     openLastDB();
+    setTimeout(() => {
+      import('./pages/featureTour.js').then(m => m.startTour()).catch(() => {});
+    }, 1000);
   }
 
   if (loadingBar) loadingBar.style.width = '100%';

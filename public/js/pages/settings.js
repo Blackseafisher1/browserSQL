@@ -315,6 +315,12 @@ export function initSettings() {
     applySettings();
   });
 
+  $('#btn-start-tour')?.addEventListener('click', () => {
+    localStorage.removeItem('browsersql-tour-done');
+    import('./featureTour.js').then(m => m.startTour()).catch(() => {});
+    $('#settings-modal-overlay')?.classList.add('hidden');
+  });
+
   $('#btn-reset-all')?.addEventListener('click', () => {
     if (!confirm('This will delete ALL local data:\n- All databases\n- All files\n- Tutorial progress & XP\n- All settings\n\nThis cannot be undone. Continue?')) return;
     if (!confirm('Are you absolutely sure? All your work will be lost.')) return;

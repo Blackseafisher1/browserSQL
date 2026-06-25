@@ -43,6 +43,7 @@
   <link rel="stylesheet" href="css/components/schema.css">
   <link rel="stylesheet" href="css/components/results.css">
   <link rel="stylesheet" href="css/components/modal.css">
+  <link rel="stylesheet" href="css/components/tour.css">
   <link rel="stylesheet" href="css/components/dbmanager.css">
   <link rel="stylesheet" href="css/states.css">
   <link rel="stylesheet" href="css/utilities.css">
@@ -392,29 +393,7 @@
         <button id="settings-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body settings-body">
-        <label class="settings-row">
-          <span>Font size</span>
-          <input type="range" id="setting-fontsize" min="10" max="24" step="1">
-          <span id="setting-fontsize-value" class="settings-value">14</span>
-        </label>
-        <label class="settings-row">
-          <span>SQL keyboard</span>
-          <input type="checkbox" id="setting-kbd">
-        </label>
-        <label class="settings-row">
-          <span>Key height</span>
-          <input type="range" id="setting-kbdheight" min="12" max="100" step="2">
-          <span id="setting-kbdheight-value" class="settings-value">40</span>
-        </label>
-        <label class="settings-row">
-          <span>Top margin</span>
-          <input type="range" id="setting-topmargin" min="0" max="100" step="1">
-          <span id="setting-topmargin-value" class="settings-value">0</span>
-        </label>
-        <label class="settings-row">
-          <span>Hide header</span>
-          <input type="checkbox" id="setting-hideheader">
-        </label>
+        <div class="settings-category">Sidebar</div>
         <label class="settings-row">
           <span>Show tutorial</span>
           <input type="checkbox" id="setting-showtutorial">
@@ -432,8 +411,15 @@
           <input type="checkbox" id="setting-showschema">
         </label>
         <label class="settings-row">
-          <span>Skip tutorial lessons (testing only)</span>
-          <input type="checkbox" id="setting-skip">
+          <span>Hide header</span>
+          <input type="checkbox" id="setting-hideheader">
+        </label>
+
+        <div class="settings-category">Editor</div>
+        <label class="settings-row">
+          <span>Font size</span>
+          <input type="range" id="setting-fontsize" min="10" max="24" step="1">
+          <span id="setting-fontsize-value" class="settings-value">14</span>
         </label>
         <label class="settings-row">
           <span>SQL keywords UPPERCASE</span>
@@ -452,22 +438,12 @@
           <input type="checkbox" id="setting-floating-bottom">
         </label>
         <label class="settings-row">
-          <span>Cursor color over text</span>
-          <input type="color" id="setting-cursor-color-text">
+          <span>Top margin</span>
+          <input type="range" id="setting-topmargin" min="0" max="100" step="1">
+          <span id="setting-topmargin-value" class="settings-value">0</span>
         </label>
-        <label class="settings-row">
-          <span>Cursor color over space</span>
-          <input type="color" id="setting-cursor-color-space">
-        </label>
-        <label class="settings-row">
-          <span>Normal cursor color</span>
-          <input type="color" id="setting-cursor-color-normal">
-          <span class="settings-value" style="font-size:11px;min-width:auto">(theme)</span>
-        </label>
-        <div class="settings-row">
-          <span></span>
-          <button id="setting-cursor-colors-reset" class="btn-sm">Reset cursor colors</button>
-        </div>
+
+        <div class="settings-category">SQL Formatting</div>
         <label class="settings-row">
           <span>Format columns on new lines</span>
           <input type="checkbox" id="setting-format-cols">
@@ -480,11 +456,51 @@
           <span>Show Format button</span>
           <input type="checkbox" id="setting-show-format-btn">
         </label>
+
+        <div class="settings-category">Mobile & Keyboard</div>
+        <label class="settings-row">
+          <span>SQL keyboard</span>
+          <input type="checkbox" id="setting-kbd">
+        </label>
+        <label class="settings-row">
+          <span>Key height</span>
+          <input type="range" id="setting-kbdheight" min="12" max="100" step="2">
+          <span id="setting-kbdheight-value" class="settings-value">40</span>
+        </label>
         <label class="settings-row">
           <span>Kbd bar offset</span>
           <input type="range" id="setting-kbdoffset" min="-200" max="200" step="5">
           <span id="setting-kbdoffset-value" class="settings-value">0</span>
         </label>
+
+        <div class="settings-category">Cursor Colors</div>
+        <label class="settings-row">
+          <span>Over text</span>
+          <input type="color" id="setting-cursor-color-text">
+        </label>
+        <label class="settings-row">
+          <span>Over space</span>
+          <input type="color" id="setting-cursor-color-space">
+        </label>
+        <label class="settings-row">
+          <span>Normal</span>
+          <input type="color" id="setting-cursor-color-normal">
+          <span class="settings-value" style="font-size:11px;min-width:auto">(theme)</span>
+        </label>
+        <div class="settings-row">
+          <span></span>
+          <button id="setting-cursor-colors-reset" class="btn-sm">Reset cursor colors</button>
+        </div>
+
+        <div class="settings-category">Advanced</div>
+        <label class="settings-row">
+          <span>Skip tutorial lessons (testing only)</span>
+          <input type="checkbox" id="setting-skip">
+        </label>
+        <div class="settings-row">
+          <span></span>
+          <button id="btn-start-tour" class="btn-sm">Start feature tour again</button>
+        </div>
         <hr class="settings-divider">
         <div class="settings-row">
           <span></span>
