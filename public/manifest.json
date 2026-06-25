@@ -1,5 +1,5 @@
 {
-  "name": "browSQL — Learn SQL in Your Browser",
+  "name": "browSQL",
   "short_name": "browSQL",
   "start_url": "/editor.html",
   "display": "standalone",

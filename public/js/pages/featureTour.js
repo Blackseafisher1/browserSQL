@@ -1,9 +1,9 @@
-const TOUR_KEY = 'browsersql-tour-done';
+const TOUR_KEY = 'browSQL-tour-done';
 
 const STEPS = [
   {
     id: 'welcome',
-    title: 'Willkommen bei browserSQL',
+    title: 'Willkommen bei browSQL',
     text: 'Eine vollständige SQL-IDE, die komplett im Browser läuft — kein Server nötig. Lass uns einen kurzen Rundgang machen.',
     target: null,
   },
@@ -22,7 +22,7 @@ const STEPS = [
   {
     id: 'files',
     title: 'Dateien (Files)',
-    text: 'Hier kannst du SQL- und <b>.md-Dateien</b> (Markdown) verwalten — browserSQL hat einen integrierten Markdown-Preview, perfekt für Notizen und Dokumentation.<br><br>Erstelle, öffne und organisiere deine Dateien in Ordnern.',
+    text: 'Hier kannst du SQL- und <b>.md-Dateien</b> (Markdown) verwalten — browSQL hat einen integrierten Markdown-Preview, perfekt für Notizen und Dokumentation.<br><br>Erstelle, öffne und organisiere deine Dateien in Ordnern.',
     target: '.section-header[data-section="files"]',
   },
   {
@@ -71,7 +71,7 @@ const STEPS = [
   {
     id: 'done',
     title: 'Fertig!',
-    text: 'Du kannst jetzt loslegen: Starte mit einer leeren DB, lade eine Vorlage unter <b>Templates</b>, beginne ein <b>Tutorial</b> oder stelle deine <b>Einstellungen</b> fertig ein. Du kannst z.B. bestimmte Sectionen der Sidebar ausblenden oder den Header und weiteres<br><br>Viel Erfolg mit browserSQL!',
+    text: 'Du kannst jetzt loslegen: Starte mit einer leeren DB, lade eine Vorlage unter <b>Templates</b>, beginne ein <b>Tutorial</b> oder stelle deine <b>Einstellungen</b> fertig ein. Du kannst z.B. bestimmte Sectionen der Sidebar ausblenden oder den Header und weiteres<br><br>Viel Erfolg mit browSQL!',
     target: '#btn-schema-test',
   },
 ];
