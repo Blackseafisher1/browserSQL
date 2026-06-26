@@ -6,6 +6,7 @@ import { runCheck, loadPoints, addPoints, updateDisplay } from './tutorialView.j
 import { showToast } from './toast.js';
 import { DEFAULT_CHALLENGES } from './lessons/defaultChallenges.js';
 import { showEditors, ensureEditor, setEditorContentFor } from './editorView.js';
+import { t } from '../i18n.js';
 
 const CHALLENGE_COMPLETE_KEY = 'browsersql-challenge-complete';
 const CHALLENGE_FAILURES_KEY = 'browsersql-challenge-failures';
@@ -223,7 +224,7 @@ function esc(s) {
 /* ── Reset / Delete ── */
 
 function resetChallengeProgress(challengeId) {
-  if (!confirm(`Reset all progress for this challenge?`)) return;
+  if (!confirm(t('confirm.resetChallenge'))) return;
   for (const key of [CHALLENGE_COMPLETE_KEY, CHALLENGE_FAILURES_KEY, CHALLENGE_SOLUTIONS_KEY]) {
     const obj = JSON.parse(localStorage.getItem(key)) || {};
     for (const k of Object.keys(obj)) {
@@ -235,7 +236,7 @@ function resetChallengeProgress(challengeId) {
 }
 
 async function deleteChallenge(challengeId) {
-  if (!confirm(`Delete this challenge permanently?`)) return;
+  if (!confirm(t('confirm.deleteChallenge'))) return;
   const files = await vfsGet();
   delete files[`challenges/${challengeId}/challenge.json`];
   await vfsPut(files);
@@ -272,18 +273,18 @@ function showChallengeDetail(challengeId) {
   });
 
   el.innerHTML = `<div class="ch-detail">
-    <button id="ch-back" class="btn btn-sm">← Back</button>
+    <button id="ch-back" class="btn btn-sm">${t('challenge.back')}</button>
     <div class="ch-detail-header">
       <span class="ch-detail-title">${esc(challenge.title || challenge.id)}</span>
       <span class="ch-badge ${badges[challenge.difficulty] || 'ch-badge-medium'}">${challenge.difficulty || 'medium'}</span>
     </div>
     ${tags ? `<div class="ch-detail-tags">${tags}</div>` : ''}
-    <div class="ch-detail-progress">${done}/${total} tasks completed</div>
+    <div class="ch-detail-progress">${t('challenge.tasksCompleted', done, total)}</div>
     <div class="ch-item-bar"><div class="ch-item-fill" style="width:${total ? Math.round(done/total*100) : 0}%"></div></div>
     <div class="ch-detail-tasks">${tasksHtml}</div>
-    <button id="ch-start" class="btn btn-sm btn-primary">${done > 0 ? 'Continue' : 'Start Challenge'}</button>
-    <button id="ch-reset">Reset Progress</button>
-    <button id="ch-delete" class="btn btn-sm btn-danger">Delete Challenge</button>
+    <button id="ch-start" class="btn btn-sm btn-primary">${done > 0 ? t('challenge.continue') : t('challenge.startChallenge')}</button>
+    <button id="ch-reset">${t('challenge.resetProgress')}</button>
+    <button id="ch-delete" class="btn btn-sm btn-danger">${t('challenge.deleteChallenge')}</button>
   </div>`;
 
   el.querySelector('#ch-back').addEventListener('click', () => renderChallengeList());
@@ -389,15 +390,15 @@ function renderChallengePanel() {
     </div>
     <div class="ch-item-bar"><div class="ch-item-fill" style="width:${total ? Math.round(doneCount/total*100) : 0}%"></div></div>
     <div class="ch-panel-nav">
-      <button id="ch-panel-prev" class="btn btn-sm" ${currentIdx === 0 ? 'disabled' : ''}>◀ Prev</button>
+      <button id="ch-panel-prev" class="btn btn-sm" ${currentIdx === 0 ? 'disabled' : ''}>${t('challenge.prev')}</button>
       <span class="ch-panel-title">${esc(task.title || task.id)}</span>
-      <button id="ch-panel-next" class="btn btn-sm" ${currentIdx >= total - 1 ? 'disabled' : ''}>Next ▶</button>
+      <button id="ch-panel-next" class="btn btn-sm" ${currentIdx >= total - 1 ? 'disabled' : ''}>${t('challenge.next')}</button>
     </div>
     <div class="ch-panel-content">${rendered}</div>
-    <div class="ch-panel-status" id="challenge-status">${thisDone ? '✅ Task completed!' : 'Write your SQL, then click Verify.'}</div>
+    <div class="ch-panel-status" id="challenge-status">${thisDone ? t('challenge.taskCompleted') : t('challenge.verifyPrompt')}</div>
     <div class="ch-panel-toolbar">
-      <button id="ch-panel-hint" class="btn btn-sm" style="display:${task.hint ? '' : 'none'}">💡 Hint</button>
-      <button id="ch-panel-solution" class="btn btn-sm" style="display:${task.sql ? '' : 'none'}">👁 Solution</button>
+      <button id="ch-panel-hint" class="btn btn-sm" style="display:${task.hint ? '' : 'none'}" data-i18n="challenge.hint">💡 Hint</button>
+      <button id="ch-panel-solution" class="btn btn-sm" style="display:${task.sql ? '' : 'none'}" data-i18n="challenge.solution">👁 Solution</button>
     </div>
   </div>`;
 
@@ -409,7 +410,7 @@ function renderChallengePanel() {
   el.querySelector('#ch-panel-next')?.addEventListener('click', () => navigateChallengeTask(1));
   el.querySelector('#ch-panel-hint')?.addEventListener('click', () => {
     const status = document.getElementById('challenge-status');
-    if (status && task.hint) status.textContent = '💡 ' + task.hint;
+    if (status && task.hint) status.textContent = task.hint;
   });
   el.querySelector('#ch-panel-solution')?.addEventListener('click', () => {
     showChallengeSolution(challenge, task);
@@ -460,8 +461,8 @@ function formatSql(sql) {
 }
 
 function showChallengeSolution(challenge, task) {
-  if (!task.sql) { showToast('No solution available.', 'info'); return; }
-  if (confirm('Viewing the solution awards 0 XP for this task. Continue?')) {
+  if (!task.sql) { showToast(t('challenge.noSolution'), 'info'); return; }
+  if (confirm(t('confirm.solutionChallenge'))) {
     markSolutionViewed(challenge.id, task.id);
     const formatted = formatSql(task.sql);
     showEditors(2);
@@ -481,7 +482,7 @@ function showChallengeSolution(challenge, task) {
     const tab1 = document.getElementById('tab-bar-1');
     if (tab1) {
       tab1.style.display = 'flex';
-      tab1.innerHTML = '<span class="tab-solution-label">SOLUTION</span><button class="tab-close-btn" id="btn-close-solution">&times;</button>';
+      tab1.innerHTML = `<span class="tab-solution-label">${t('challenge.solutionLabel')}</span><button class="tab-close-btn" id="btn-close-solution">&times;</button>`;
       tab1.querySelector('#btn-close-solution')?.addEventListener('click', () => {
         ed1.dom.classList.remove('cm-readonly');
         ed1.dom.removeEventListener('keydown', solKeyHandler, { capture: true });
@@ -490,10 +491,10 @@ function showChallengeSolution(challenge, task) {
         showEditors(1);
       });
     }
-    showToast('👁 Solution in right editor — 0 XP for this task', 'warning', 4000);
+    showToast(t('challenge.solutionToast'), 'warning', 4000);
     const status = document.getElementById('challenge-status');
     if (status) {
-      status.textContent = '📖 Solution shown (right pane) — 0 XP awarded.';
+      status.textContent = t('challenge.solutionStatus');
       status.classList.add('is-error');
     }
   }
@@ -642,7 +643,7 @@ async function handleChallengeFileImport(file) {
     const existing = await vfsGet();
     const path = `challenges/${data.id}/challenge.json`;
     if (existing[path]) {
-      if (!confirm(`Challenge "${data.title || data.id}" already exists. Overwrite?`)) return;
+      if (!confirm(t('confirm.overwriteChallenge', data.title || data.id))) return;
     }
     existing[path] = JSON.stringify(data, null, 2);
     await vfsPut(existing);

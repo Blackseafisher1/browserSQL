@@ -7,6 +7,7 @@ import { loadTutorialDatabase, openLastDB, saveCurrentToLocal } from './dbManage
 import { ensureDefaultFiles, getActiveFileName, getFiles, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
 import { getSettings } from './settings.js';
 import { showToast } from './toast.js';
+import { t } from '../i18n.js';
 
 const ACTIVE_KEY = 'browsersql-tutorial-active';
 const STEP_KEY = 'browsersql-tutorial-step';
@@ -307,12 +308,12 @@ function renderTutorialPanel() {
     });
     const counter = document.createElement('div');
     counter.className = 'tutorial-checklist-counter';
-    counter.textContent = `${count}/${lesson.checklist.length} conditions met`;
+    counter.textContent = t('tutorial.conditionsMet', count, lesson.checklist.length);
     panel.content.appendChild(counter);
   }
 
   if (panel.files) panel.files.innerHTML = '';
-  if (panel.start) panel.start.textContent = state.tutorialActive ? 'Restart' : 'Start';
+  if (panel.start) panel.start.textContent = state.tutorialActive ? t('tutorial.restart') : t('tutorial.start');
   if (panel.end) panel.end.style.display = state.tutorialActive ? '' : 'none';
 
   const hintBtn = document.getElementById('btn-tutorial-hint');
@@ -324,10 +325,10 @@ function renderTutorialPanel() {
   if (panel.prev) panel.prev.disabled = !state.tutorialActive || state.tutorialStep === 0;
   if (panel.next) {
     const modEnd = state.tutorialStep >= lessons.length - 1;
-    panel.next.textContent = modEnd ? 'Finish' : 'Next';
+    panel.next.textContent = modEnd ? t('tutorial.finish') : t('tutorial.next');
     panel.next.disabled = !state.tutorialActive || (!completed && !getSettings().skipEnabled);
   }
-  if (!state.tutorialActive) setStatus('Start the tutorial to begin.', '');
+  if (!state.tutorialActive) setStatus(t('tutorial.startPrompt'), '');
 
   const solBtn = document.getElementById('btn-view-solution');
   if (solBtn) {
@@ -569,10 +570,10 @@ export function verifyLesson(code) {
 function showSolution() {
   const lesson = lessons[state.tutorialStep];
   if (!lesson || !lesson.sql) {
-    showToast('No solution available for this lesson.', 'info');
+    showToast(t('tutorial.noSolution'), 'info');
     return;
   }
-  if (confirm('Viewing the solution awards 0 XP for this lesson. Continue?')) {
+  if (confirm(t('confirm.solutionTutorial'))) {
     markSolutionViewed(lesson.id);
     const editor = state.editorView;
     if (editor) {
@@ -582,7 +583,7 @@ function showSolution() {
       });
       view.dom.classList.add('cm-readonly');
     }
-    showToast('👁 Solution loaded — 0 XP for this lesson', 'warning', 4000);
+    showToast(t('tutorial.solutionLoaded'), 'warning', 4000);
     const statusEl = document.getElementById('tutorial-status');
     if (statusEl) {
       statusEl.textContent = '📖 Solution shown — 0 XP awarded. Read and understand it.';
@@ -669,7 +670,7 @@ export async function initTutorialMode() {
 
   document.getElementById('btn-tutorial-hint')?.addEventListener('click', () => {
     const lesson = lessons[state.tutorialStep];
-    if (lesson?.hint) setStatus('💡 ' + lesson.hint, '');
+    if (lesson?.hint) setStatus(lesson.hint, '');
   });
 
   document.getElementById('btn-view-solution')?.addEventListener('click', () => {
