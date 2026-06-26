@@ -941,6 +941,9 @@
   .cm-editor.cm-readonly .cm-content {
     opacity: 0.7;
   }
+  #editor-container-1 .cm-editor.cm-readonly .cm-scroller {
+    align-items: center;
+  }
 
   /* ── XP Float Animation ── */
   .xp-float {

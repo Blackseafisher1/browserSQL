@@ -13,6 +13,7 @@ function mockContext(textBefore, pos) {
 }
 
 beforeEach(() => {
+  localStorage.setItem('browsersql-settings', JSON.stringify({ autoCompleteBareCols: true }));
   state.tables = [
     {
       name: 'users',
@@ -121,21 +122,26 @@ describe('sqlAutoTriggerSource - SELECT column list', () => {
     expect(result.options).toHaveLength(6);
   });
 
-  it('returns null for comma outside SELECT (e.g. VALUES)', () => {
+  it('returns columns for comma (bare cols enabled)', () => {
     const ctx = mockContext("INSERT INTO t VALUES (1, ");
-    expect(sqlAutoTriggerSource(ctx)).toBeNull();
+    const result = sqlAutoTriggerSource(ctx);
+    expect(result).not.toBeNull();
+    expect(result.options.length).toBeGreaterThan(0);
   });
 });
 
 describe('sqlAutoTriggerSource - no match contexts', () => {
-  it('returns null for plain text', () => {
+  it('returns columns for plain text (bare cols enabled)', () => {
     const ctx = mockContext('SELECT * FROM users');
-    expect(sqlAutoTriggerSource(ctx)).toBeNull();
+    const result = sqlAutoTriggerSource(ctx);
+    expect(result).not.toBeNull();
   });
 
-  it('returns null for incomplete UPDATE', () => {
+  it('returns columns for incomplete UPDATE (bare cols enabled)', () => {
     const ctx = mockContext('UPDATE users');
-    expect(sqlAutoTriggerSource(ctx)).toBeNull();
+    const result = sqlAutoTriggerSource(ctx);
+    expect(result).not.toBeNull();
+    expect(result.options).toHaveLength(3);
   });
 });
 

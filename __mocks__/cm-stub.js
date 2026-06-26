@@ -1,7 +1,7 @@
 // Stub module for all @codemirror/* and @lezer/* imports in tests
-export const EditorView = class { static contentAttributes = { of() {} }; static theme = () => []; static updateListener = { of() {} }; };
+export const EditorView = class { dom = document.createElement('div'); dispatch() {}; state = { doc: { toString() { return ''; } }, selection: { main: { head: 0 } }, sliceDoc() { return ''; } }; static contentAttributes = { of() {} }; static theme = () => []; static updateListener = { of() {} }; static editable = { of: () => [] }; };
 export const drawSelection = () => [];
-export const keymap = () => [];
+export const keymap = { of: () => [] };
 export const lineNumbers = () => [];
 export const highlightActiveLineGutter = () => [];
 export const highlightSpecialChars = () => [];
@@ -22,6 +22,7 @@ export const bracketMatching = () => [];
 export const foldKeymap = [];
 export const autocompletion = () => [];
 export const completionKeymap = [];
+export const acceptCompletion = () => false;
 export const closeBrackets = () => [];
 export const closeBracketsKeymap = [];
 export const searchKeymap = [];

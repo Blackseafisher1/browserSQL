@@ -5,7 +5,7 @@ import { openSingleFile, renderTree, ensureDefaultFiles, VFS_STORE } from './fil
 import { runCheck, loadPoints, addPoints, updateDisplay } from './tutorialView.js';
 import { showToast } from './toast.js';
 import { DEFAULT_CHALLENGES } from './lessons/defaultChallenges.js';
-import { showEditors, ensureEditor, setEditorContentFor, switchEditor } from './editorView.js';
+import { showEditors, ensureEditor, setEditorContentFor } from './editorView.js';
 
 const CHALLENGE_COMPLETE_KEY = 'browsersql-challenge-complete';
 const CHALLENGE_FAILURES_KEY = 'browsersql-challenge-failures';
@@ -463,17 +463,29 @@ function showChallengeSolution(challenge, task) {
   if (!task.sql) { showToast('No solution available.', 'info'); return; }
   if (confirm('Viewing the solution awards 0 XP for this task. Continue?')) {
     markSolutionViewed(challenge.id, task.id);
-    const formatted = '-- SOLUTION:\n' + formatSql(task.sql);
+    const formatted = formatSql(task.sql);
     showEditors(2);
     ensureEditor(1);
     setEditorContentFor(1, formatted);
     const ed1 = ensureEditor(1);
     ed1.dom.classList.add('cm-readonly');
+    const solKeyHandler = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        const k = e.key.toLowerCase();
+        if (k === 'c' || k === 'a') return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    ed1.dom.addEventListener('keydown', solKeyHandler, { capture: true });
     const tab1 = document.getElementById('tab-bar-1');
     if (tab1) {
+      tab1.style.display = 'flex';
       tab1.innerHTML = '<span class="tab-solution-label">SOLUTION</span><button class="tab-close-btn" id="btn-close-solution">&times;</button>';
       tab1.querySelector('#btn-close-solution')?.addEventListener('click', () => {
         ed1.dom.classList.remove('cm-readonly');
+        ed1.dom.removeEventListener('keydown', solKeyHandler, { capture: true });
+        tab1.style.display = '';
         tab1.innerHTML = '';
         showEditors(1);
       });
@@ -583,7 +595,7 @@ export async function exitChallengeMode() {
   const ed1 = ensureEditor(1);
   ed1.dom.classList.remove('cm-readonly');
   const tab1 = document.getElementById('tab-bar-1');
-  if (tab1) tab1.textContent = '';
+  if (tab1) { tab1.textContent = ''; tab1.style.display = ''; }
   showEditors(1);
   const verifyBtn = document.getElementById('btn-verify');
   if (verifyBtn) verifyBtn.style.display = 'none';

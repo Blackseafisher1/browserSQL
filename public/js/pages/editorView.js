@@ -126,9 +126,11 @@ function makeAutocomplete(merged) {
  */
 function makeEditor(doc, parent) {
   const lc = new Compartment();
+  const editableComp = new Compartment();
   const ed = new EditorView({
     doc: doc || '',
     extensions: [
+      editableComp.of(EditorView.editable.of(true)),
       lineNumbers(), highlightActiveLineGutter(), highlightSpecialChars(),
       history(), foldGutter(),
       drawSelection(prefersReducedMotion ? { cursorBlinkRate: 0 } : undefined),
@@ -160,6 +162,7 @@ function makeEditor(doc, parent) {
     parent: parent,
   });
   ed._langComp = lc;
+  ed._editableComp = editableComp;
   return ed;
 }
 
@@ -207,6 +210,7 @@ export function ensureEditor(idx) {
  * @param {number} count Number of visible panes.
  */
 export function showEditors(count) {
+  if (!container0 || !container1) return;
   const wrap0 = container0.closest('.editor-pane-wrap');
   const wrap1 = container1.closest('.editor-pane-wrap');
   if (wrap0) {

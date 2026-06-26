@@ -193,7 +193,8 @@
 
   .tab-item .tab-close,
   .tab-close-btn {
-    font-size: 14px;
+    font-weight: 900;
+    font-size: 16px;
     color: var(--color-text-muted);
     padding: 0 4px;
     border: none;
@@ -208,13 +209,14 @@
   }
 
   .tab-solution-label {
-    padding: 4px 8px;
+    margin: 6px;
     font-size: 12px;
     font-weight: 600;
     color: var(--color-accent);
     text-transform: uppercase;
     letter-spacing: .05em;
   }
+
 
   .tab-separator {
     width: 1px;
