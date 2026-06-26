@@ -234,7 +234,7 @@ async function renderSchema() {
       }
       const ddlRows = state.db.exec(
         `SELECT sql FROM sqlite_master WHERE type='table' AND name=?`,
-        { bind: [t.name], rowMode: 'object' }
+        { bind: [tbl.name], rowMode: 'object' }
       );
       const ddl = ddlRows.length > 0 ? ddlRows[0].sql || '' : '';
       const autoIncCols = new Set();
@@ -242,7 +242,7 @@ async function renderSchema() {
         const pkCols = cols.filter(c => c.pk);
         for (const c of pkCols) autoIncCols.add(c.name);
       }
-      const tableFkSet = fkCols.get(t.name) || new Set();
+      const tableFkSet = fkCols.get(tbl.name) || new Set();
       const columns = cols.map(c => ({
         name: c.name,
         type: c.type || 'TEXT',
@@ -252,7 +252,7 @@ async function renderSchema() {
         uq: uniqueCols.has(c.name),
         ai: autoIncCols.has(c.name),
       }));
-      tableList.push({ name: t.name, columns, indexes });
+      tableList.push({ name: tbl.name, columns, indexes });
     }
     state.tables = tableList;
     const views = state.db.exec(
