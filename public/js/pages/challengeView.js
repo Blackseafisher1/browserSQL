@@ -188,7 +188,7 @@ export async function renderChallengeList() {
   if (!el) return;
   await loadChallenges();
   if (challengesCache.length === 0) {
-    el.innerHTML = '<div class="panel-empty">No challenges yet.<br>Import or create one.</div>';
+    el.innerHTML = `<div class="panel-empty">${t('challenges.empty')}</div>`;
     return;
   }
   el.innerHTML = challengesCache.map(c => {
@@ -380,7 +380,7 @@ function renderChallengePanel() {
   el.innerHTML = `<div class="ch-panel">
     <div class="ch-panel-top">
       <button id="ch-panel-back" class="btn btn-sm">← Back</button>
-      <span class="ch-panel-position">Task ${currentIdx + 1} of ${total}</span>
+      <span class="ch-panel-position">${t('challenge.taskOf', currentIdx + 1, total)}</span>
       <span class="ch-panel-progress">${doneCount}/${total} tasks</span>
       <span class="ch-panel-font">
         <label class="ch-font-label">A</label>
@@ -397,8 +397,8 @@ function renderChallengePanel() {
     <div class="ch-panel-content">${rendered}</div>
     <div class="ch-panel-status" id="challenge-status">${thisDone ? t('challenge.taskCompleted') : t('challenge.verifyPrompt')}</div>
     <div class="ch-panel-toolbar">
-      <button id="ch-panel-hint" class="btn btn-sm" style="display:${task.hint ? '' : 'none'}" data-i18n="challenge.hint">💡 Hint</button>
-      <button id="ch-panel-solution" class="btn btn-sm" style="display:${task.sql ? '' : 'none'}" data-i18n="challenge.solution">👁 Solution</button>
+      <button id="ch-panel-hint" class="btn btn-sm" style="display:${task.hint ? '' : 'none'}">${t('challenge.hint')}</button>
+      <button id="ch-panel-solution" class="btn btn-sm" style="display:${task.sql ? '' : 'none'}">${t('challenge.solution')}</button>
     </div>
   </div>`;
 
@@ -410,7 +410,7 @@ function renderChallengePanel() {
   el.querySelector('#ch-panel-next')?.addEventListener('click', () => navigateChallengeTask(1));
   el.querySelector('#ch-panel-hint')?.addEventListener('click', () => {
     const status = document.getElementById('challenge-status');
-    if (status && task.hint) status.textContent = task.hint;
+    if (status && task.hint) status.textContent = '💡 ' + task.hint;
   });
   el.querySelector('#ch-panel-solution')?.addEventListener('click', () => {
     showChallengeSolution(challenge, task);
@@ -660,7 +660,7 @@ export function openChallengeEditor() {
   const overlay = document.getElementById('challenge-editor-overlay');
   if (!overlay) return;
   overlay.classList.remove('hidden');
-  document.getElementById('challenge-editor-title').textContent = 'Create Challenge';
+  document.getElementById('challenge-editor-title').textContent = t('ce.title');
   const newId = uuid();
   document.getElementById('ce-id').value = newId;
   const display = document.getElementById('ce-id-display');

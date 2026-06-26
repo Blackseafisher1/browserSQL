@@ -84,7 +84,7 @@ function markComplete(step, earnedXP) {
       showToast(`🏁 Module ${lesson.module} Complete! +${bonusXP} XP`, 'celebration', 4000);
     }
   } else if (isNewlyComplete && hadSolution) {
-    showToast('Lesson complete (0 XP — solution was viewed)', 'info', 3000);
+    showToast(t('tutorial.solutionShown'), 'info', 3000);
   }
 }
 
@@ -549,11 +549,11 @@ export function verifyLesson(code) {
   if (!state.tutorialActive) return;
   const lesson = lessons[state.tutorialStep];
   if (!lesson || lesson.type === 'theory') {
-    setStatus('This is a theory lesson. Answer the quiz to continue.', '');
+    setStatus(t('tutorial.answerQuiz'), '');
     return;
   }
   if (!code?.trim()) {
-    setStatus('Write your SQL query first, then click Verify.', '');
+    setStatus(t('tutorial.writeVerify'), '');
     return;
   }
   try {
@@ -670,7 +670,7 @@ export async function initTutorialMode() {
 
   document.getElementById('btn-tutorial-hint')?.addEventListener('click', () => {
     const lesson = lessons[state.tutorialStep];
-    if (lesson?.hint) setStatus(lesson.hint, '');
+    if (lesson?.hint) setStatus('💡 ' + lesson.hint, '');
   });
 
   document.getElementById('btn-view-solution')?.addEventListener('click', () => {
@@ -753,9 +753,9 @@ export async function startTutorialMode(resetProgress = true) {
   }
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
-    setStatus('Answer the quiz to unlock Next.', '');
+    setStatus(t('tutorial.answerQuiz'), '');
   } else {
-    setStatus('Write your SQL, then click Verify to check.', '');
+    setStatus(t('tutorial.writeVerify'), '');
   }
   state.tutorialChecklistStatus = [];
   renderTutorialPanel();
@@ -775,10 +775,10 @@ async function goToLesson(step) {
   if (state.editorView?.dom) state.editorView.dom.classList.remove('cm-readonly');
   toggleEditorForLesson(lesson);
   if (lesson.type === 'theory') {
-    setStatus('Answer the quiz to unlock Next.', '');
+    setStatus(t('tutorial.answerQuiz'), '');
   } else {
     await openSingleFile(lesson.file);
-    setStatus('Write your SQL, then click Verify to check.', '');
+    setStatus(t('tutorial.writeVerify'), '');
   }
   state.tutorialChecklistStatus = [];
   renderTutorialPanel();
