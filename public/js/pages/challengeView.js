@@ -470,7 +470,14 @@ function showChallengeSolution(challenge, task) {
     const ed1 = ensureEditor(1);
     ed1.dom.classList.add('cm-readonly');
     const tab1 = document.getElementById('tab-bar-1');
-    if (tab1) tab1.textContent = 'SOLUTION';
+    if (tab1) {
+      tab1.innerHTML = '<span class="tab-solution-label">SOLUTION</span><button class="tab-close-btn" id="btn-close-solution">&times;</button>';
+      tab1.querySelector('#btn-close-solution')?.addEventListener('click', () => {
+        ed1.dom.classList.remove('cm-readonly');
+        tab1.innerHTML = '';
+        showEditors(1);
+      });
+    }
     showToast('👁 Solution in right editor — 0 XP for this task', 'warning', 4000);
     const status = document.getElementById('challenge-status');
     if (status) {

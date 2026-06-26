@@ -191,18 +191,29 @@
     border-top: 2px solid var(--color-accent);
   }
 
-  .tab-item .tab-close {
-    font-size: 12px;
+  .tab-item .tab-close,
+  .tab-close-btn {
+    font-size: 14px;
     color: var(--color-text-muted);
-    padding: 0 2px;
+    padding: 0 4px;
     border: none;
     background: none;
     cursor: pointer;
     line-height: 1;
   }
 
-  .tab-item .tab-close:hover {
+  .tab-item .tab-close:hover,
+  .tab-close-btn:hover {
     color: var(--color-error);
+  }
+
+  .tab-solution-label {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: .05em;
   }
 
   .tab-separator {
