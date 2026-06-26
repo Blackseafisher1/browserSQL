@@ -111,8 +111,6 @@ export function sqlAutoTriggerSource(context) {
   const { state: edState, pos } = context;
   const textBefore = edState.sliceDoc(0, pos);
   if (!textBefore.trim()) return null;
-  const lastChar = textBefore.slice(-1);
-  if (lastChar === ' ' || lastChar === '\t' || lastChar === '\n') return null;
   const ctx = detectContext(textBefore);
   const from = wordStart(textBefore, pos);
 

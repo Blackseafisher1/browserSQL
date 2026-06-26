@@ -9,7 +9,7 @@ const SQL_KEYWORDS = new Set([
 export function parseColumnAliases(text) {
   text = stripComments(text);
   const aliases = new Set();
-  const selectBlockRe = /SELECT\s+([\s\S]*?)(?:FROM|INTO|;)/gi;
+  const selectBlockRe = /SELECT\s+([\s\S]*?)(?:FROM|INTO|;|$)/gi;
   let m;
   while ((m = selectBlockRe.exec(text)) !== null) {
     const selectBody = m[1];
