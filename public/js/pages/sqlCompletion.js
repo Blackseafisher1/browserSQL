@@ -90,6 +90,12 @@ function detectContext(text) {
   return null;
 }
 
+function wordStart(text, pos) {
+  let i = pos - 1;
+  while (i >= 0 && /[\w\u00C0-\u024f]/.test(text[i])) i--;
+  return i + 1;
+}
+
 export function sqlAutoTriggerSource(context) {
   const { state: edState, pos } = context;
   const textBefore = edState.sliceDoc(0, pos);
@@ -97,6 +103,7 @@ export function sqlAutoTriggerSource(context) {
   const lastChar = textBefore.slice(-1);
   if (lastChar === ' ' || lastChar === '\t' || lastChar === '\n') return null;
   const ctx = detectContext(textBefore);
+  const from = wordStart(textBefore, pos);
 
   if (!ctx) {
     const dotPos = textBefore.lastIndexOf('.');
@@ -105,7 +112,7 @@ export function sqlAutoTriggerSource(context) {
     const tables = referencedTables(textBefore);
     const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
     if (!opts.length) return null;
-    return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+    return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
   }
 
   switch (ctx.type) {
@@ -117,7 +124,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: t.name,
       }));
-      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'insert': {
@@ -128,7 +135,7 @@ export function sqlAutoTriggerSource(context) {
       const colList = nonPk.map(c => c.name).join(', ');
       const insertText = `(${colList})\nVALUES ()`;
       return {
-        from: pos,
+        from,
         options: [{
           label: `(${colList}) VALUES ()`,
           type: 'keyword',
@@ -152,7 +159,7 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: t.name,
       }));
-      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'update-set': {
@@ -163,14 +170,14 @@ export function sqlAutoTriggerSource(context) {
         type: 'property',
         detail: t.name,
       }));
-      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'select-col': {
       const tables = referencedTables(textBefore);
       const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     case 'condition': {
@@ -178,7 +185,7 @@ export function sqlAutoTriggerSource(context) {
       if (!tables.length) return null;
       const opts = columnOptsForTables(context, tables);
       if (!opts.length) return null;
-      return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
 
     default:
