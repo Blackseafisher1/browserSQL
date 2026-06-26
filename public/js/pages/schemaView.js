@@ -12,9 +12,9 @@ export function buildERD() {
   if (!tables || tables.length === 0) return '';
 
   let lines = ['erDiagram'];
-  for (const t of tables) {
-    lines.push(`    ${t.name} {`);
-    for (const c of t.columns) {
+  for (const tbl of tables) {
+    lines.push(`    ${tbl.name} {`);
+    for (const c of tbl.columns) {
       let type = (c.type || 'text').toLowerCase().split('(')[0].trim();
       const ann = c.pk ? ' PK' : c.fk ? ' FK' : '';
       lines.push(`        ${type} ${c.name}${ann}`);
@@ -200,9 +200,9 @@ async function renderSchema() {
     );
     // Collect FK relationships
     const allFks = [];
-    for (const t of tables) {
-      const fks = state.db.exec(`PRAGMA foreign_key_list(${escId(t.name)})`, { rowMode: 'object' });
-      for (const fk of fks) allFks.push({ table: t.name, from: fk.from, refTable: fk.table, refCol: fk.to });
+    for (const tbl of tables) {
+      const fks = state.db.exec(`PRAGMA foreign_key_list(${escId(tbl.name)})`, { rowMode: 'object' });
+      for (const fk of fks) allFks.push({ table: tbl.name, from: fk.from, refTable: fk.table, refCol: fk.to });
     }
     state.foreignKeys = allFks;
     const fkCols = new Map();
@@ -212,13 +212,13 @@ async function renderSchema() {
     }
 
     const tableList = [];
-    for (const t of tables) {
+    for (const tbl of tables) {
       const cols = state.db.exec(
-        `PRAGMA table_info(${escId(t.name)})`,
+        `PRAGMA table_info(${escId(tbl.name)})`,
         { rowMode: 'object' }
       );
       const idxs = state.db.exec(
-        `PRAGMA index_list(${escId(t.name)})`,
+        `PRAGMA index_list(${escId(tbl.name)})`,
         { rowMode: 'object' }
       );
       const uniqueCols = new Set();
@@ -274,22 +274,22 @@ function renderTree(tables, views) {
     return;
   }
   let html = '';
-  for (const t of tables) {
-    const expanded = state.tableExpanded.has(t.name) ? 'expanded' : '';
-    const active = state.activeTable === t.name ? 'active' : '';
-    const arrow = state.tableExpanded.has(t.name) ? '▾' : '▸';
-    html += `<div class="schema-table" data-table="${esc(t.name)}">`;
-    html += `<div class="schema-table-name ${active}" data-table-name="${esc(t.name)}">`;
+  for (const tbl of tables) {
+    const expanded = state.tableExpanded.has(tbl.name) ? 'expanded' : '';
+    const active = state.activeTable === tbl.name ? 'active' : '';
+    const arrow = state.tableExpanded.has(tbl.name) ? '▾' : '▸';
+    html += `<div class="schema-table" data-table="${esc(tbl.name)}">`;
+    html += `<div class="schema-table-name ${active}" data-table-name="${esc(tbl.name)}">`;
     html += `<span class="expand-icon ${expanded}">${arrow}</span>`;
-    html += `<span class="schema-table-label">${esc(t.name)}</span>`;
+    html += `<span class="schema-table-label">${esc(tbl.name)}</span>`;
     html += `<span class="schema-table-actions">`;
-    html += `<button class="btn-schema-ddl" data-ddl="${esc(t.name)}" title="${t('schema.viewDDL')}">DDL</button>`;
-    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="${t('schema.dropTable')}">${t('schema.drop')}</button>`;
+    html += `<button class="btn-schema-ddl" data-ddl="${esc(tbl.name)}" title="${t('schema.viewDDL')}">DDL</button>`;
+    html += `<button class="btn-schema-drop" data-drop="${esc(tbl.name)}" title="${t('schema.dropTable')}">${t('schema.drop')}</button>`;
     html += `</span>`;
     html += `</div>`;
-    if (state.tableExpanded.has(t.name)) {
+    if (state.tableExpanded.has(tbl.name)) {
       html += `<div class="schema-columns">`;
-      for (const c of t.columns) {
+      for (const c of tbl.columns) {
         html += `<div class="schema-column">`;
         html += `<span>${esc(c.name)}</span>`;
         html += `<span class="col-type">${esc(c.type)}</span>`;
@@ -300,10 +300,9 @@ function renderTree(tables, views) {
         if (c.nn) html += '<span class="col-badge col-nn">NN</span>';
         html += `</div>`;
       }
-      // Indexes under columns
-      if (t.indexes && t.indexes.length > 0) {
+      if (tbl.indexes && tbl.indexes.length > 0) {
         html += `<div class="schema-indexes">`;
-        for (const idx of t.indexes) {
+        for (const idx of tbl.indexes) {
           const label = (idx.unique ? 'UNIQUE ' : '') + 'INDEX';
           html += `<div class="schema-index"><span class="col-badge col-idx">${esc(label)}</span><span>${esc(idx.name)}</span><span class="col-type">${esc(idx.columns.join(', '))}</span></div>`;
         }
