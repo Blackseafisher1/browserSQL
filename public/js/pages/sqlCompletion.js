@@ -17,7 +17,7 @@ function allColumnOptions(context) {
       opts.push({
         label: c.name,
         type: 'property',
-        detail: `${t.name}.${c.type || ''}`,
+        detail: t.name,
       });
     }
   }
@@ -48,7 +48,7 @@ function columnOptsForTables(context, tableNames) {
       opts.push({
         label: c.name,
         type: 'property',
-        detail: `${t.name}.${c.type || ''}`,
+        detail: t.name,
       });
     }
   }
@@ -115,7 +115,7 @@ export function sqlAutoTriggerSource(context) {
       const opts = t.columns.filter(c => !c.pk).map(c => ({
         label: `${c.name}`,
         type: 'property',
-        detail: c.type || '',
+        detail: t.name,
       }));
       return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
@@ -150,7 +150,7 @@ export function sqlAutoTriggerSource(context) {
       const opts = t.columns.map(c => ({
         label: c.name,
         type: 'property',
-        detail: c.type || '',
+        detail: t.name,
       }));
       return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
@@ -161,7 +161,7 @@ export function sqlAutoTriggerSource(context) {
       const opts = t.columns.map(c => ({
         label: c.name,
         type: 'property',
-        detail: c.type || '',
+        detail: t.name,
       }));
       return { from: pos, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
     }
