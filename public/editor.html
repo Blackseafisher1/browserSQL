@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" class="notranslate">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -66,20 +66,20 @@
         <input id="db-name-input" class="db-name" value="default" spellcheck="false">
       </div>
       <div class="header-right">
-        <button id="btn-new-db" class="btn btn-sm" data-action="new-db" title="New Database (Ctrl+M)">New</button>
-        <button id="btn-open-db" class="btn btn-sm" data-action="open-db" title="Open Database (Ctrl+O)">Open</button>
-        <button id="btn-export-db" class="btn btn-sm" title="Export as .sqlite file (Ctrl+S)">Export</button>
+        <button id="btn-new-db" class="btn btn-sm" data-action="new-db" data-i18n="header.new" data-i18n-title="header.new.title">New</button>
+        <button id="btn-open-db" class="btn btn-sm" data-action="open-db" data-i18n="header.open" data-i18n-title="header.open.title">Open</button>
+        <button id="btn-export-db" class="btn btn-sm" data-i18n="header.export" data-i18n-title="header.export.title">Export</button>
         <div class="recent-wrap">
-          <button id="btn-recent-dbs" class="btn btn-sm" title="Recent databases">Recent &#9662;</button>
+          <button id="btn-recent-dbs" class="btn btn-sm" data-i18n="header.recent" data-i18n-html data-i18n-title="header.recent.title">Recent &#9662;</button>
           <div id="recent-dbs-dropdown" class="dropdown-menu hidden"></div>
         </div>
-        <button id="btn-gensql" class="btn btn-sm" title="Generate SQL from natural language">GenSQL</button>
-        <button id="btn-test-schema" class="btn btn-sm" title="Load a seed data template">Templates</button>
+        <button id="btn-gensql" class="btn btn-sm" data-i18n="header.gensql" data-i18n-title="header.gensql.title">GenSQL</button>
+        <button id="btn-test-schema" class="btn btn-sm" data-i18n="header.templates" data-i18n-title="header.templates.title">Templates</button>
         <button id="btn-theme-toggle" class="btn btn-sm" title="Toggle theme">&#9790;</button>
-        <button id="btn-cloud-login" class="btn btn-sm" title="Login to cloud"> Sign in/up 🔑</button>
-        <button id="btn-cloud-user" class="btn btn-sm" title="Log out" style="display:none"></button>
-        <button id="btn-settings" class="btn btn-sm" title="Settings">&#9881;</button>
-        <button id="btn-mobile-menu" class="btn btn-sm mobile-menu-btn" title="Menu">&#8942;</button>
+        <button id="btn-cloud-login" class="btn btn-sm" data-i18n-title="header.cloud.login.title">Sign in/up 🔑</button>
+        <button id="btn-cloud-user" class="btn btn-sm" data-i18n-title="header.cloud.logout.title" style="display:none"></button>
+        <button id="btn-settings" class="btn btn-sm" data-i18n-title="header.settings.title">&#9881;</button>
+        <button id="btn-mobile-menu" class="btn btn-sm mobile-menu-btn" data-i18n-title="header.menu.title">&#8942;</button>
       </div>
     </header>
     <aside id="schema-panel" class="schema-panel notranslate">
@@ -87,26 +87,25 @@
       <div class="sidebar-inner">
       <div class="section-node section-node-fixed">
         <div class="section-header" data-section="ops">
-          <span class="section-arrow">▾</span><span class="section-label">Operations</span>
+          <span class="section-arrow">▾</span>          <span class="section-label" data-i18n="sidebar.ops">Operations</span>
         </div>
         <div class="section-body" id="section-ops">
           <div class="ops-bar">
-            <button class="btn btn-sm" id="btn-schema-new" title="New">New</button>
-            <button class="btn btn-sm" id="btn-schema-open" title="Open">Open</button>
-            <button class="btn btn-sm" id="btn-schema-export" title="Export">Export</button>
-            <button class="btn btn-sm" id="btn-schema-gensql" title="Generate SQL" style="font-size:10px">GenSQL</button>
-            <button class="btn btn-sm" id="btn-schema-test" title="Templates">Templates</button>
-            <button class="btn btn-sm" id="btn-schema-login" title="Login to cloud" style="font-size:11px">Sign in/up 🔑<in>
-           
-            <button class="btn btn-sm" id="btn-schema-cloud-user" title="Log out" style="display:none;font-size:11px"></button>
-            <button class="btn btn-sm" id="btn-schema-recent" title="Recent">Recent</button>
+            <button class="btn btn-sm" id="btn-schema-new" data-i18n="ops.new" data-i18n-title="ops.new.title">New</button>
+            <button class="btn btn-sm" id="btn-schema-open" data-i18n="ops.open" data-i18n-title="ops.open.title">Open</button>
+            <button class="btn btn-sm" id="btn-schema-export" data-i18n="ops.export" data-i18n-title="ops.export.title">Export</button>
+            <button class="btn btn-sm" id="btn-schema-gensql" data-i18n="ops.gensql" data-i18n-title="ops.gensql.title" style="font-size:10px">GenSQL</button>
+            <button class="btn btn-sm" id="btn-schema-test" data-i18n="ops.templates" data-i18n-title="ops.templates.title">Templates</button>
+            <button class="btn btn-sm" id="btn-schema-login" data-i18n-title="ops.cloud.login.title" style="font-size:11px">Sign in/up 🔑<in>
+            <button class="btn btn-sm" id="btn-schema-cloud-user" data-i18n-title="ops.cloud.logout.title" style="display:none;font-size:11px"></button>
+            <button class="btn btn-sm" id="btn-schema-recent" data-i18n="ops.recent" data-i18n-title="ops.recent.title">Recent</button>
             <button class="btn btn-sm" id="btn-schema-theme" title="Theme">&#9790;</button>
-            <button class="btn btn-sm" id="btn-schema-settings" title="Settings">&#9881;</button>
+            <button class="btn btn-sm" id="btn-schema-settings" data-i18n-title="header.settings.title">&#9881;</button>
           </div>
           <div id="ops-cloud" class="ops-bar" style="display:none;border-top:1px solid var(--color-border-light);padding-top:var(--space-1);margin-top:var(--space-1);flex-wrap:wrap">
-            <button type="button" class="btn btn-sm" id="btn-cloud-sync">☁ Save</button>
-            <button type="button" class="btn btn-sm" id="btn-cloud-load">☁ Load</button>
-            <button type="button" class="btn btn-sm" id="btn-cloud-manage" style="font-size:10px">Manage</button>
+            <button type="button" class="btn btn-sm" id="btn-cloud-sync" data-i18n="cloud.save">☁ Save</button>
+            <button type="button" class="btn btn-sm" id="btn-cloud-load" data-i18n="cloud.load">☁ Load</button>
+            <button type="button" class="btn btn-sm" id="btn-cloud-manage" data-i18n="cloud.manage" style="font-size:10px">Manage</button>
             <span id="cloud-status" style="font-size:10px;color:var(--color-text-muted);width:100%;text-align:center"></span>
           </div>
           <div class="ops-footer">
@@ -117,11 +116,11 @@
       </div>
       <div class="section-node">
         <div class="section-header" data-section="tutorial">
-          <span class="section-arrow">▾</span><span class="section-label">Tutorial</span>
-          <button class="btn btn-sm section-add-btn" id="btn-tutorial-start" title="Start tutorial">Start</button>
-          <button class="btn btn-sm section-add-btn" id="btn-tutorial-end" title="End tutorial" style="display:none">End</button>
-          <button class="btn btn-sm section-add-btn" id="btn-tutorial-prev" title="Previous lesson">Prev</button>
-          <button class="btn btn-sm section-add-btn" id="btn-tutorial-next" title="Next lesson">Next</button>
+          <span class="section-arrow">▾</span>          <span class="section-label" data-i18n="sidebar.tutorial">Tutorial</span>
+          <button class="btn btn-sm section-add-btn" id="btn-tutorial-start" data-i18n="tutorial.start" data-i18n-title="tutorial.start.title">Start</button>
+          <button class="btn btn-sm section-add-btn" id="btn-tutorial-end" data-i18n="tutorial.end" data-i18n-title="tutorial.end.title" style="display:none">End</button>
+          <button class="btn btn-sm section-add-btn" id="btn-tutorial-prev" data-i18n="tutorial.prev" data-i18n-title="tutorial.prev.title">Prev</button>
+          <button class="btn btn-sm section-add-btn" id="btn-tutorial-next" data-i18n="tutorial.next" data-i18n-title="tutorial.next.title">Next</button>
         </div>
         <div class="section-body" id="section-tutorial">
           <div class="tutorial-panel">
@@ -154,44 +153,44 @@
       <div id="tutorial-resize-handle" class="sidebar-resize-handle"></div>
       <div class="section-node">
         <div class="section-header" data-section="challenges">
-          <span class="section-arrow">▾</span><span class="section-label">Challenges</span>
+          <span class="section-arrow">▾</span>          <span class="section-label" data-i18n="sidebar.challenges">Challenges</span>
           <button class="btn btn-sm section-add-btn" id="btn-challenge-import" title="Import challenge file">⬇</button>
           <button class="btn btn-sm section-add-btn" id="btn-challenge-new" title="Create new challenge">+</button>
           <button class="btn btn-sm section-add-btn" id="btn-challenge-refresh" title="Refresh list" style="font-size:14px">↻</button>
         </div>
         <div class="section-body" id="section-challenges">
           <div id="challenge-list" class="challenge-list">
-            <div class="panel-empty">No challenges yet.<br>Import or create one.</div>
+            <div class="panel-empty" data-i18n="challenges.empty" data-i18n-html>No challenges yet.<br>Import or create one.</div>
           </div>
         </div>
       </div>
       <div id="challenges-resize-handle" class="sidebar-resize-handle"></div>
       <div class="section-node">
         <div class="section-header" data-section="files">
-          <span class="section-arrow">▾</span><span class="section-label">Files</span>
-          <button class="btn btn-sm section-add-btn" id="btn-file-new" title="New file">+</button>
-          <button class="btn btn-sm section-add-btn" id="btn-folder-new" title="New folder">+F</button>
-          <button class="btn btn-sm section-add-btn" id="btn-export-files" title="Export all files as ZIP" style="font-size:11px">📦</button>
-          <button class="btn btn-sm section-add-btn" id="btn-import-files" title="Import files from ZIP" style="font-size:11px">📂</button>
-          <button class="btn btn-sm section-add-btn" id="btn-cloud-files" title="Upload files to cloud" style="font-size:11px">☁</button>
+          <span class="section-arrow">▾</span>          <span class="section-label" data-i18n="sidebar.files">Files</span>
+          <button class="btn btn-sm section-add-btn" id="btn-file-new" data-i18n-title="files.new.title">+</button>
+          <button class="btn btn-sm section-add-btn" id="btn-folder-new" data-i18n="files.newfolder" data-i18n-title="files.newfolder.title">+F</button>
+          <button class="btn btn-sm section-add-btn" id="btn-export-files" data-i18n-title="files.exportzip.title">📦</button>
+          <button class="btn btn-sm section-add-btn" id="btn-import-files" data-i18n-title="files.importzip.title">📂</button>
+          <button class="btn btn-sm section-add-btn" id="btn-cloud-files" data-i18n-title="files.cloud.title">☁</button>
         </div>
         <div class="section-body" id="section-files">
           <div id="files-tree" class="files-tree">
-            <div class="panel-empty">No files</div>
+            <div class="panel-empty" data-i18n="files.empty">No files</div>
           </div>
         </div>
       </div>
       <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
       <div class="section-node">
         <div class="section-header" data-section="schema">
-          <span class="section-arrow">▾</span><span class="section-label">Schema</span>
-          <button id="btn-copy-ddl-all" class="btn btn-sm section-add-btn" title="Copy all DDL to clipboard" style="font-size:10px">📋</button>
-          <button id="btn-erd" class="btn btn-sm section-add-btn" title="Show ER diagram" style="font-size:10px">🔗</button>
-          <button id="btn-import-csv" class="btn btn-sm section-add-btn" title="Import CSV" style="font-size:10px">CSV</button>
+          <span class="section-arrow">▾</span>          <span class="section-label" data-i18n="sidebar.schema">Schema</span>
+          <button id="btn-copy-ddl-all" class="btn btn-sm section-add-btn" data-i18n-title="schema.ddl.copy.title" style="font-size:10px">📋</button>
+          <button id="btn-erd" class="btn btn-sm section-add-btn" data-i18n-title="schema.erd.title" style="font-size:10px">🔗</button>
+          <button id="btn-import-csv" class="btn btn-sm section-add-btn" data-i18n="schema.csv" data-i18n-title="schema.csv.title" style="font-size:10px">CSV</button>
         </div>
         <div class="section-body" id="section-schema">
           <div id="schema-tree" class="schema-tree">
-            <div class="schema-empty">No tables</div>
+            <div class="schema-empty" data-i18n="schema.empty">No tables</div>
           </div>
         </div>
       </div>
@@ -200,16 +199,16 @@
     <div id="schema-resize-handle" class="schema-resize-handle"></div>
     <div id="mobile-menu-panel" class="mobile-menu-panel hidden">
       <div class="mobile-menu-header">
-        <span>Menu</span>
+        <span data-i18n="header.menu">Menu</span>
         <button id="btn-mobile-menu-close" class="btn btn-close">&times;</button>
       </div>
       <div class="mobile-menu-actions">
-        <button class="btn" data-action="new-db">New</button>
-        <button class="btn" data-action="open-db">Open</button>
-        <button id="btn-mobile-export" class="btn">Export</button>
-        <button id="btn-mobile-delete" class="btn btn-danger">Delete</button>
-        <button id="btn-mobile-test" class="btn">Templates</button>
-        <button id="btn-mobile-recent" class="btn">Recent</button>
+        <button class="btn" data-action="new-db" data-i18n="header.new">New</button>
+        <button class="btn" data-action="open-db" data-i18n="header.open">Open</button>
+        <button id="btn-mobile-export" class="btn" data-i18n="header.export">Export</button>
+        <button id="btn-mobile-delete" class="btn btn-danger" data-i18n="dropdown.context.delete">Delete</button>
+        <button id="btn-mobile-test" class="btn" data-i18n="header.templates">Templates</button>
+        <button id="btn-mobile-recent" class="btn" data-i18n="ops.recent">Recent</button>
       </div>
     </div>
     <main id="main-content" class="main-content">
@@ -225,22 +224,22 @@
         </div>
       </div>
       <div class="execute-bar">
-        <button id="btn-execute" class="btn btn-primary" data-action="execute" title="Execute (Ctrl+Enter)">Execute</button>
-        <button id="btn-execute-all" class="btn btn-sm" data-action="execute-all" title="Run all (Ctrl+Shift+Enter)">Run All</button>
-        <button id="btn-format-sql" class="btn btn-sm" title="Format SQL (Ctrl+Alt+F)">Format</button>
-        <button id="btn-verify" class="btn btn-sm btn-verify" data-action="verify" title="Check your solution" style="display:none">Verify</button>
-        <button id="btn-preview" class="btn btn-sm hidden" title="Preview markdown">Preview</button>
+        <button id="btn-execute" class="btn btn-primary" data-action="execute" data-i18n="execute.run" data-i18n-title="execute.run.title">Execute</button>
+        <button id="btn-execute-all" class="btn btn-sm" data-action="execute-all" data-i18n="execute.runAll" data-i18n-title="execute.runAll.title">Run All</button>
+        <button id="btn-format-sql" class="btn btn-sm" data-i18n="execute.format" data-i18n-title="execute.format.title">Format</button>
+        <button id="btn-verify" class="btn btn-sm btn-verify" data-action="verify" data-i18n="execute.verify" data-i18n-title="execute.verify.title" style="display:none">Verify</button>
+        <button id="btn-preview" class="btn btn-sm hidden" data-i18n="execute.preview" data-i18n-title="execute.preview.title">Preview</button>
           <span class="execute-hint">Ctrl+Enter</span>
           <span class="execute-spacer"></span>
-          <button id="btn-csv-export" class="btn btn-sm" title="Export results as CSV">📊 CSV</button>
-        <span class="results-zoom-label">Zoom</span>
+          <button id="btn-csv-export" class="btn btn-sm" data-i18n="execute.csv" data-i18n-title="execute.csv.title">📊 CSV</button>
+        <span class="results-zoom-label" data-i18n="execute.zoom">Zoom</span>
         <input type="range" id="results-zoom" class="results-zoom" min="6" max="30" step="1" value="13">
         <span id="results-zoom-value" class="results-zoom-value">13</span>
       </div>
       <div id="editor-resize-handle" class="editor-resize-handle"></div>
       <div id="results-container" class="results-container">
         <div class="results-header">
-          <span id="results-info" class="results-info">Ready</span>
+          <span id="results-info" class="results-info" data-i18n="results.ready">Ready</span>
         </div>
         <div id="results-output" class="results-output"></div>
       </div>
@@ -260,12 +259,12 @@
 
   <div id="ddl-modal-overlay" class="modal-overlay hidden">
     <div id="ddl-modal" class="modal">
-      <div class="modal-header">
-        <span id="ddl-modal-title" class="modal-title">Table</span>
-        <div class="modal-header-actions">
-          <button id="btn-drop-table" class="btn btn-sm btn-danger">Drop Table</button>
-          <button id="btn-copy-ddl" class="btn btn-sm" title="Copy DDL to clipboard">📋</button>
-          <button id="ddl-modal-close" class="btn btn-close">&times;</button>
+          <div class="modal-header">
+            <span id="ddl-modal-title" class="modal-title" data-i18n="ddl.title">Table</span>
+            <div class="modal-header-actions">
+              <button id="btn-drop-table" class="btn btn-sm btn-danger" data-i18n="ddl.drop">Drop Table</button>
+              <button id="btn-copy-ddl" class="btn btn-sm" data-i18n-title="ddl.copy.title">📋</button>
+              <button id="ddl-modal-close" class="btn btn-close">&times;</button>
         </div>
       </div>
       <pre id="ddl-modal-content" class="modal-content"></pre>
@@ -275,13 +274,13 @@
   <div id="auth-modal-overlay" class="modal-overlay hidden">
     <div id="auth-modal" class="modal" style="width:95vw;max-width:420px">
       <div class="modal-header">
-        <span id="auth-title" class="modal-title">Login</span>
+          <span id="auth-title" class="modal-title" data-i18n="auth.login.title">Login</span>
         <button id="auth-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body">
         <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-          <input id="auth-username" class="ai-prompt-input" type="text" placeholder="Username" autocomplete="username">
-          <input id="auth-password" class="ai-prompt-input" type="password" placeholder="Password" autocomplete="current-password">
+          <input id="auth-username" class="ai-prompt-input" type="text" data-i18n-placeholder="auth.username.placeholder" placeholder="Username" autocomplete="username">
+          <input id="auth-password" class="ai-prompt-input" type="password" data-i18n-placeholder="auth.password.placeholder" placeholder="Password" autocomplete="current-password">
           <div id="auth-error" style="color:var(--color-error);font-size:var(--size-fluid-1)"></div>
           <button id="auth-submit" class="btn btn-primary" style="width:100%">Login</button>
           <div id="auth-toggle" style="text-align:center;font-size:var(--size-fluid-1);color:var(--color-text-muted)">No account? <a href="#" id="auth-toggle-link">Register</a></div>
@@ -293,11 +292,11 @@
   <div id="cloud-import-modal" class="modal-overlay hidden">
     <div class="modal" style="min-width:340px;max-width:440px">
       <div class="modal-header">
-        <span class="modal-title">Import from Cloud</span>
+        <span class="modal-title" data-i18n="cloud.import.title">Import from Cloud</span>
         <button id="cloud-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body" style="max-height:55vh;overflow-y:auto">
-        <p style="margin:0 0 var(--space-2);font-size:var(--size-fluid-1);color:var(--color-text-muted)">Databases:</p>
+        <p style="margin:0 0 var(--space-2);font-size:var(--size-fluid-1);color:var(--color-text-muted)" data-i18n="cloud.import.databases">Databases:</p>
         <div id="cloud-import-dbs"></div>
         <hr style="border:none;border-top:1px solid var(--color-border-light);margin:var(--space-2) 0">
         <label style="display:flex;align-items:center;gap:var(--space-2);cursor:pointer;font-size:var(--size-fluid-1)">
@@ -306,11 +305,11 @@
         </label>
         <label style="display:flex;align-items:center;gap:var(--space-2);margin:var(--space-1) 0 var(--space-1) 22px;font-size:var(--size-fluid-1);color:var(--color-text-muted);cursor:pointer">
           <input type="checkbox" id="cloud-import-files-keep" checked>
-          <span>Keep local files (moved to old-data/)</span>
+          <span data-i18n="cloud.import.files.keep">Keep local files (moved to old-data/)</span>
         </label>
         <div style="display:flex;gap:var(--space-2);margin-top:var(--space-3)">
-          <button id="btn-cloud-import-go" class="btn btn-primary" style="flex:1">Import</button>
-          <button id="btn-cloud-import-cancel" class="btn" style="flex:1">Cancel</button>
+          <button id="btn-cloud-import-go" class="btn btn-primary" style="flex:1" data-i18n="cloud.import.go">Import</button>
+          <button id="btn-cloud-import-cancel" class="btn" style="flex:1" data-i18n="cloud.import.cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -319,7 +318,7 @@
   <div id="cloud-manage-modal" class="modal-overlay hidden">
     <div class="modal" style="min-width:340px;max-width:440px">
       <div class="modal-header">
-        <span class="modal-title">Cloud Management</span>
+        <span class="modal-title" data-i18n="cloud.manage.title">Cloud Management</span>
         <button id="cloud-manage-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body" style="max-height:55vh;overflow-y:auto">
@@ -336,7 +335,7 @@
   <div id="account-modal-overlay" class="modal-overlay hidden">
     <div class="modal" style="width:95vw;max-width:380px">
       <div class="modal-header">
-        <span id="account-modal-title" class="modal-title">👤 Account</span>
+        <span id="account-modal-title" class="modal-title" data-i18n="account.title">👤 Account</span>
         <button id="account-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-2)">
@@ -364,20 +363,20 @@
   <div id="ai-modal-overlay" class="modal-overlay hidden">
      <div id="ai-modal" class="modal" style="width:95vw;max-width:900px;max-height:90vh">
       <div class="modal-header">
-        <span class="modal-title">Generate SQL</span>
+        <span class="modal-title" data-i18n="ai.title">Generate SQL</span>
         <button id="ai-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body">
         <div id="ai-selected-info" style="font-size:11px;color:var(--color-accent);margin-bottom:var(--space-2);padding:var(--space-1);background:var(--color-bg);border-radius:4px;display:none"></div>
         <div id="ai-rate-info" style="font-size:10px;color:var(--color-text-muted);margin-bottom:var(--space-1)"></div>
-        <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:var(--space-2);padding:4px 6px;background:var(--color-bg);border-radius:4px;border:1px solid var(--color-border)">Input is sent to an AI model. Only SQL-related requests are accepted. Do not share sensitive data.</div>
-        <textarea id="ai-prompt-input" class="ai-prompt-input" rows="8" placeholder="e.g. show employee name and years with company"></textarea>
+        <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:var(--space-2);padding:4px 6px;background:var(--color-bg);border-radius:4px;border:1px solid var(--color-border)" data-i18n="ai.disclaimer">Input is sent to an AI model. Only SQL-related requests are accepted. Do not share sensitive data.</div>
+        <textarea id="ai-prompt-input" class="ai-prompt-input" rows="8" data-i18n-placeholder="ai.placeholder" placeholder="e.g. show employee name and years with company"></textarea>
         <label style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);font-size:var(--size-fluid-1);cursor:pointer">
           <input type="checkbox" id="ai-include-schema" checked>
-          <span>Include schema</span>
+          <span data-i18n="ai.includeSchema">Include schema</span>
         </label>
         <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2)">
-          <button id="btn-ai-generate" class="btn btn-primary" style="flex:1">Generate</button>
+          <button id="btn-ai-generate" class="btn btn-primary" style="flex:1" data-i18n="ai.generate">Generate</button>
           <span id="ai-status" class="ai-status"></span>
         </div>
       </div>
@@ -389,132 +388,141 @@
   <div id="settings-modal-overlay" class="modal-overlay hidden">
     <div id="settings-modal" class="modal">
       <div class="modal-header">
-        <span class="modal-title">Settings</span>
+        <span class="modal-title" data-i18n="settings.title">Settings</span>
         <button id="settings-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body settings-body">
-        <div class="settings-category">Sidebar</div>
+        <div class="settings-category" data-i18n="cat.language">Language</div>
         <label class="settings-row">
-          <span>Show tutorial</span>
+          <span data-i18n="settings.lang">Language</span>
+          <select id="setting-lang">
+            <option value="en" data-i18n="lang.en">English</option>
+            <option value="de" data-i18n="lang.de">Deutsch</option>
+          </select>
+        </label>
+
+        <div class="settings-category" data-i18n="cat.sidebar">Sidebar</div>
+        <label class="settings-row">
+          <span data-i18n="set.showTutorial">Show tutorial</span>
           <input type="checkbox" id="setting-showtutorial">
         </label>
         <label class="settings-row">
-          <span>Show challenges</span>
+          <span data-i18n="set.showChallenges">Show challenges</span>
           <input type="checkbox" id="setting-showchallenges">
         </label>
         <label class="settings-row">
-          <span>Show files</span>
+          <span data-i18n="set.showFiles">Show files</span>
           <input type="checkbox" id="setting-showfiles">
         </label>
         <label class="settings-row">
-          <span>Show schema</span>
+          <span data-i18n="set.showSchema">Show schema</span>
           <input type="checkbox" id="setting-showschema">
         </label>
         <label class="settings-row">
-          <span>Hide header</span>
+          <span data-i18n="set.hideHeader">Hide header</span>
           <input type="checkbox" id="setting-hideheader">
         </label>
 
-        <div class="settings-category">Editor</div>
+        <div class="settings-category" data-i18n="cat.editor">Editor</div>
         <label class="settings-row">
-          <span>Font size</span>
+          <span data-i18n="set.fontSize">Font size</span>
           <input type="range" id="setting-fontsize" min="10" max="24" step="1">
           <span id="setting-fontsize-value" class="settings-value">14</span>
         </label>
         <label class="settings-row">
-          <span>SQL keywords UPPERCASE</span>
+          <span data-i18n="set.keywordUpper">SQL keywords UPPERCASE</span>
           <input type="checkbox" id="setting-keyword-case">
         </label>
         <label class="settings-row">
-          <span>Block cursor (overtype)</span>
+          <span data-i18n="set.blockCursor">Block cursor (overtype)</span>
           <input type="checkbox" id="setting-block-cursor">
         </label>
         <label class="settings-row">
-          <span>Floating tab bar (glass effect)</span>
+          <span data-i18n="set.floatingTabs">Floating tab bar (glass effect)</span>
           <input type="checkbox" id="setting-floating-tabs">
         </label>
         <label class="settings-row">
-          <span>Floating bottom bar (glass effect)</span>
+          <span data-i18n="set.floatingBottom">Floating bottom bar (glass effect)</span>
           <input type="checkbox" id="setting-floating-bottom">
         </label>
         <label class="settings-row">
-          <span>Top margin</span>
+          <span data-i18n="set.topMargin">Top margin</span>
           <input type="range" id="setting-topmargin" min="0" max="100" step="1">
           <span id="setting-topmargin-value" class="settings-value">0</span>
         </label>
 
-        <div class="settings-category">SQL Formatting</div>
+        <div class="settings-category" data-i18n="cat.formatting">SQL Formatting</div>
         <label class="settings-row">
-          <span>Format columns on new lines</span>
+          <span data-i18n="set.formatCols">Format columns on new lines</span>
           <input type="checkbox" id="setting-format-cols">
         </label>
         <label class="settings-row">
-          <span>Newline after ON</span>
+          <span data-i18n="set.formatOn">Newline after ON</span>
           <input type="checkbox" id="setting-format-on">
         </label>
         <label class="settings-row">
-          <span>Show Format button</span>
+          <span data-i18n="set.showFormatBtn">Show Format button</span>
           <input type="checkbox" id="setting-show-format-btn">
         </label>
 
-        <div class="settings-category">Autocomplete</div>
+        <div class="settings-category" data-i18n="cat.autocomplete">Autocomplete</div>
         <label class="settings-row">
-          <span>Suggest column names (without <code>table.</code>)</span>
+          <span data-i18n="set.autoCompleteBare" data-i18n-html>Suggest column names (without <code>table.</code>)</span>
           <input type="checkbox" id="setting-autocomplete-bare">
         </label>
 
-        <div class="settings-category">Mobile & Keyboard</div>
+        <div class="settings-category" data-i18n="cat.mobile">Mobile & Keyboard</div>
         <label class="settings-row">
-          <span>SQL keyboard</span>
+          <span data-i18n="set.kbd">SQL keyboard</span>
           <input type="checkbox" id="setting-kbd">
         </label>
         <label class="settings-row">
-          <span>Key height</span>
+          <span data-i18n="set.kbdHeight">Key height</span>
           <input type="range" id="setting-kbdheight" min="12" max="100" step="2">
           <span id="setting-kbdheight-value" class="settings-value">40</span>
         </label>
         <label class="settings-row">
-          <span>Kbd bar offset</span>
+          <span data-i18n="set.kbdOffset">Kbd bar offset</span>
           <input type="range" id="setting-kbdoffset" min="-200" max="200" step="5">
           <span id="setting-kbdoffset-value" class="settings-value">0</span>
         </label>
 
-        <div class="settings-category">Cursor Colors</div>
+        <div class="settings-category" data-i18n="cat.cursor">Cursor Colors</div>
         <label class="settings-row">
-          <span>Over text</span>
+          <span data-i18n="set.cursorText">Over text</span>
           <input type="color" id="setting-cursor-color-text">
         </label>
         <label class="settings-row">
-          <span>Over space</span>
+          <span data-i18n="set.cursorSpace">Over space</span>
           <input type="color" id="setting-cursor-color-space">
         </label>
         <label class="settings-row">
-          <span>Normal</span>
+          <span data-i18n="set.cursorNormal">Normal</span>
           <input type="color" id="setting-cursor-color-normal">
-          <span class="settings-value" style="font-size:11px;min-width:auto">(theme)</span>
+          <span class="settings-value" style="font-size:11px;min-width:auto" data-i18n="set.cursorTheme">(theme)</span>
         </label>
         <div class="settings-row">
           <span></span>
-          <button id="setting-cursor-colors-reset" class="btn-sm">Reset cursor colors</button>
+          <button id="setting-cursor-colors-reset" class="btn-sm" data-i18n="set.cursorReset">Reset cursor colors</button>
         </div>
 
-        <div class="settings-category">Advanced</div>
+        <div class="settings-category" data-i18n="cat.advanced">Advanced</div>
         <label class="settings-row">
-          <span>Skip tutorial lessons (testing only)</span>
+          <span data-i18n="set.skipLabel">Skip tutorial lessons (testing only)</span>
           <input type="checkbox" id="setting-skip">
         </label>
         <div class="settings-row">
           <span></span>
-          <button id="btn-start-tour" class="btn-sm">Start feature tour again</button>
+          <button id="btn-start-tour" class="btn-sm" data-i18n="set.tourBtn">Start feature tour again</button>
         </div>
         <hr class="settings-divider">
         <div class="settings-row">
           <span></span>
-          <button id="btn-reset-settings" class="btn-sm" style="color:var(--color-error)">Reset settings to defaults</button>
+          <button id="btn-reset-settings" class="btn-sm" style="color:var(--color-error)" data-i18n="set.resetBtn">Reset settings to defaults</button>
         </div>
         <div class="settings-row">
           <span></span>
-          <button id="btn-reset-all" class="btn-sm btn-danger" style="font-weight:700">Reset everything (delete all data)</button>
+          <button id="btn-reset-all" class="btn-sm btn-danger" style="font-weight:700" data-i18n="set.resetAllBtn">Reset everything (delete all data)</button>
         </div>
       </div>
     </div>
@@ -542,11 +550,11 @@
   <div id="template-modal-overlay" class="modal-overlay hidden">
     <div id="template-modal" class="modal" style="width:95vw;max-width:960px;max-height:90vh">
       <div class="modal-header">
-        <span class="modal-title">Seed Data Templates</span>
+        <span class="modal-title" data-i18n="template.title">Seed Data Templates</span>
         <button id="template-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:var(--space-3)">Choose a template to load seed data into a new database.</p>
+        <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:var(--space-3)" data-i18n="template.description">Choose a template to load seed data into a new database.</p>
         <div id="template-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--space-3)"></div>
       </div>
     </div>
@@ -557,17 +565,17 @@
   <div id="shortcuts-overlay" class="modal-overlay hidden">
     <div id="shortcuts-modal" class="modal" style="min-width:320px;max-width:450px">
       <div class="modal-header">
-        <span class="modal-title">Keyboard Shortcuts</span>
+        <span class="modal-title" data-i18n="shortcuts.title">Keyboard Shortcuts</span>
         <button id="shortcuts-modal-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Enter</span><span>Execute statement at cursor</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Shift+Enter</span><span>Run all statements</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+S</span><span>Export database</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+O</span><span>Open database</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+M</span><span>New database</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Space</span><span>Trigger autocomplete</span></div>
-        <div class="shortcut-row"><span class="shortcut-key">Esc</span><span>Close modal</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Enter</span><span data-i18n="shortcuts.execute">Execute statement at cursor</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Shift+Enter</span><span data-i18n="shortcuts.runAll">Run all statements</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+S</span><span data-i18n="shortcuts.export">Export database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+O</span><span data-i18n="shortcuts.open">Open database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+M</span><span data-i18n="shortcuts.new">New database</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Ctrl+Space</span><span data-i18n="shortcuts.autocomplete">Trigger autocomplete</span></div>
+        <div class="shortcut-row"><span class="shortcut-key">Esc</span><span data-i18n="shortcuts.close">Close modal</span></div>
       </div>
     </div>
   </div>
@@ -575,7 +583,7 @@
   <div id="challenge-editor-overlay" class="modal-overlay hidden">
     <div id="challenge-editor-modal" class="modal" style="min-width:500px;max-width:750px">
       <div class="modal-header">
-        <span class="modal-title" id="challenge-editor-title">Create Challenge</span>
+        <span class="modal-title" id="challenge-editor-title" data-i18n="ce.title">Create Challenge</span>
         <button id="challenge-editor-close" class="btn btn-close">&times;</button>
       </div>
       <div class="modal-body challenge-editor-body">

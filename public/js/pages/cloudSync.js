@@ -1,4 +1,5 @@
 import { $, isOffline } from '../utils.js';
+import { t } from '../i18n.js';
 
 const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? 'http://localhost:8081'
@@ -72,9 +73,9 @@ function showAuthModal() {
   document.getElementById('auth-username').value = '';
   document.getElementById('auth-password').value = '';
   document.getElementById('auth-error').textContent = '';
-  document.getElementById('auth-title').textContent = 'Login';
-  document.getElementById('auth-submit').textContent = 'Login';
-  document.getElementById('auth-toggle').innerHTML = 'No account? <a href="#" id="auth-toggle-link">Register</a>';
+  document.getElementById('auth-title').textContent = t('auth.login.title');
+  document.getElementById('auth-submit').textContent = t('auth.submit.login');
+  document.getElementById('auth-toggle').innerHTML = t('auth.toggle.register');
   document.getElementById('auth-username').focus();
 }
 
@@ -91,17 +92,17 @@ function initAuthModal() {
     if (!link) return;
     e.preventDefault();
     isRegister = !isRegister;
-    document.getElementById('auth-title').textContent = isRegister ? 'Register' : 'Login';
-    document.getElementById('auth-submit').textContent = isRegister ? 'Register' : 'Login';
+    document.getElementById('auth-title').textContent = isRegister ? t('auth.register.title') : t('auth.login.title');
+    document.getElementById('auth-submit').textContent = isRegister ? t('auth.submit.register') : t('auth.submit.login');
     document.getElementById('auth-toggle').innerHTML = isRegister
-      ? 'Already have an account? <a href="#" id="auth-toggle-link">Login</a>'
-      : 'No account? <a href="#" id="auth-toggle-link">Register</a>';
+      ? t('auth.toggle.login')
+      : t('auth.toggle.register');
     document.getElementById('auth-error').textContent = '';
   });
   document.getElementById('auth-submit').addEventListener('click', async () => {
     const username = document.getElementById('auth-username').value.trim();
     const password = document.getElementById('auth-password').value;
-    if (!username || !password) { document.getElementById('auth-error').textContent = 'Fill in both fields.'; return; }
+    if (!username || !password) { document.getElementById('auth-error').textContent = t('auth.error.empty'); return; }
     document.getElementById('auth-error').textContent = '';
     const btn = document.getElementById('auth-submit');
     btn.disabled = true;
@@ -211,7 +212,7 @@ export async function loadFromCloud() {
 
   const dbContainer = document.getElementById('cloud-import-dbs');
   if (dbFiles.length === 0) {
-    dbContainer.innerHTML = '<span style="color:var(--color-text-muted);font-size:var(--size-fluid-1)">No databases</span>';
+    dbContainer.innerHTML = `<span style="color:var(--color-text-muted);font-size:var(--size-fluid-1)">${t('cloud.import.nodb')}</span>`;
   } else {
     const names = dbFiles.map(f => f.name.replace(/\.db\.json$/, ''));
     dbContainer.innerHTML = names.map(n =>
@@ -227,11 +228,11 @@ export async function loadFromCloud() {
   if (hasFiles) {
     filesCb.disabled = false;
     filesCb.checked = true;
-    preview.textContent = '(files.zip on server)';
+    preview.textContent = t('cloud.import.files.server');
   } else {
     filesCb.disabled = true;
     filesCb.checked = false;
-    preview.textContent = '(no files.zip on server)';
+    preview.textContent = t('cloud.import.files.none');
   }
 
   document.getElementById('cloud-import-files-keep').checked = true;
@@ -330,7 +331,7 @@ async function doImport() {
 }
 
 async function deleteCloudFile(name) {
-  if (!confirm(`Delete "${name}" from cloud?`)) return;
+  if (!confirm(t('confirm.deleteCloud', name))) return;
   try {
     await api('/api/files/' + encodeURIComponent(name), { method: 'DELETE' });
     setStatus(`Deleted ${name}`);
@@ -344,7 +345,7 @@ async function showManageModal() {
 
   const list = document.getElementById('cloud-manage-list');
   const blocklist = getBlocklist();
-  list.innerHTML = '<span style="color:var(--color-text-muted)">Loading...</span>';
+  list.innerHTML = `<span style="color:var(--color-text-muted)">${t('cloud.manage.loading')}</span>`;
 
   const modal = document.getElementById('cloud-manage-modal');
   modal.classList.remove('hidden');
@@ -354,7 +355,7 @@ async function showManageModal() {
     if (!Array.isArray(fileList)) fileList = [];
     list.innerHTML = '';
     if (fileList.length === 0) {
-      list.innerHTML = '<span style="color:var(--color-text-muted)">No files in cloud</span>';
+      list.innerHTML = `<span style="color:var(--color-text-muted)">${t('cloud.manage.none')}</span>`;
     } else {
       for (const f of fileList) {
         const item = document.createElement('div');
@@ -366,7 +367,7 @@ async function showManageModal() {
         list.appendChild(item);
       }
     }
-  } catch (e) { list.innerHTML = '<span style="color:var(--color-error)">Error loading files</span>'; }
+  } catch (e) { list.innerHTML = `<span style="color:var(--color-error)">${t('cloud.manage.error')}</span>`; }
 
   document.getElementById('cloud-blocklist').value = blocklist.join(', ');
 }

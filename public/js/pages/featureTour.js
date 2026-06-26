@@ -1,77 +1,79 @@
+import { t } from '../i18n.js';
+
 const TOUR_KEY = 'browSQL-tour-done';
 
 const STEPS = [
   {
     id: 'welcome',
-    title: 'Willkommen bei browSQL',
-    text: 'Eine vollständige SQL-IDE, die komplett im Browser läuft — kein Server nötig. Lass uns einen kurzen Rundgang machen.',
+    title: () => t('tour.1.title'),
+    text: () => t('tour.1.text'),
     target: null,
   },
   {
     id: 'ops',
-    title: 'Operations & Sidebar',
-    text: 'Die <b>Operations</b>-Leiste bietet schnellen Zugriff auf: Neue DB, Öffnen, Exportieren, Templates laden und mehr.<br><br>Alles in der Sidebar ist <b>resizable</b> — ziehe an den Trennern zwischen den Abschnitten, um die Größe anzupassen. Auch die Sidebar selbst kannst du beliebig breit ziehen.',
+    title: () => t('tour.2.title'),
+    text: () => t('tour.2.text'),
     target: '.section-header[data-section="ops"]',
   },
   {
     id: 'recent',
-    title: 'Datenbank wechseln',
-    text: 'Über <b>Recent</b> in der Operations-Leiste kannst du schnell zwischen gespeicherten Datenbanken wechseln. Praktisch, wenn du mit mehreren Projekten arbeitest.',
+    title: () => t('tour.3.title'),
+    text: () => t('tour.3.text'),
     target: '#btn-schema-recent',
   },
   {
     id: 'files',
-    title: 'Dateien (Files)',
-    text: 'Hier kannst du SQL- und <b>.md-Dateien</b> (Markdown) verwalten — browSQL hat einen integrierten Markdown-Preview, perfekt für Notizen und Dokumentation.<br><br>Erstelle, öffne und organisiere deine Dateien in Ordnern.',
+    title: () => t('tour.4.title'),
+    text: () => t('tour.4.text'),
     target: '.section-header[data-section="files"]',
   },
   {
     id: 'schema',
-    title: 'Schema-Browser',
-    text: 'Zeigt alle Tabellen der aktuellen Datenbank. Klicke auf eine Tabelle, um Daten vorzusehen, oder expandiere sie für Spalten, Typen und Constraints.<br><br>Auch dieser Bereich ist <b>in der Höhe veränderbar</b> — perfekt, wenn du mehr Platz für Tabellen oder Dateien brauchst.',
+    title: () => t('tour.5.title'),
+    text: () => t('tour.5.text'),
     target: '.section-header[data-section="schema"]',
   },
   {
     id: 'tutorial',
-    title: 'Tutorials',
-    text: 'Lerne SQL Schritt für Schritt mit interaktiven Lektionen — von SELECT bis zu komplexen JOINs und CTEs. Jede Lektion enthält Aufgaben, die automatisch geprüft werden.',
+    title: () => t('tour.6.title'),
+    text: () => t('tour.6.text'),
     target: '.section-header[data-section="tutorial"]',
   },
   {
     id: 'challenges',
-    title: 'Challenges',
-    text: 'Teste dein Wissen mit vorgefertigten Challenges. Jede Aufgabe gibt XP bei Erfolg.<br><br>Du kannst auch <b>eigene Challenges erstellen</b> und importieren — perfekt für Lehrer und Kurse.',
+    title: () => t('tour.7.title'),
+    text: () => t('tour.7.text'),
     target: '.section-header[data-section="challenges"]',
   },
   {
     id: 'resize',
-    title: 'Alles ist resizable',
-    text: 'Die <b>gesamte Sidebar</b> kannst du per Drag an der rechten Kante verändern. Auch der <b>Editor</b> und die <b>Ergebnisse</b> sind durch einen horizontalen Teiler getrennt — einfach ziehen und anpassen.<br><br>So kannst du dir den Arbeitsbereich genau nach Wunsch einrichten.',
+    title: () => t('tour.8.title'),
+    text: () => t('tour.8.text'),
     target: '#schema-resize-handle',
   },
   {
     id: 'editor',
-    title: 'SQL-Editor',
-    text: 'Schreibe SQL hier. <kbd>Ctrl+Enter</kbd> führt die Abfrage unter dem Cursor aus, <kbd>Ctrl+Shift+Enter</kbd> führt alles aus.<br><br>Der Editor hat Autocomplete für Tabellen, Spalten und Aliase. Probier es einfach aus!',
+    title: () => t('tour.9.title'),
+    text: () => t('tour.9.text'),
     target: '#editor-container-0 .cm-editor',
   },
   {
     id: 'execute',
-    title: 'Ausführen & Ergebnisse',
-    text: 'Klicke <b>Execute</b> oder drücke <kbd>Ctrl+Enter</kbd>. Das Ergebnis erscheint unten als Tabelle — exportierbar als CSV. Auch die Ergebnisgröße ist über den Zoom-Regler einstellbar.',
+    title: () => t('tour.10.title'),
+    text: () => t('tour.10.text'),
     target: '#btn-execute',
   },
   {
     id: 'settings',
-    title: 'Einstellungen anpassen',
-    text: 'Hier kannst du alles nach deinem Geschmack einstellen: Editor, Autocomplete, Sidebar-Sektionen ein-/ausblenden, Header verstecken, SQL-Formatierung, Cursor-Farben und vieles mehr.<br><br>Nimm dir einen Moment Zeit und stell es so ein, wie du es magst!',
+    title: () => t('tour.11.title'),
+    text: () => t('tour.11.text'),
     target: '#btn-schema-settings',
     openSettings: true,
   },
   {
     id: 'done',
-    title: 'Fertig!',
-    text: 'Du kannst jetzt loslegen: Starte mit einer leeren DB, lade eine Vorlage unter <b>Templates</b>, beginne ein <b>Tutorial</b> oder stelle deine <b>Einstellungen</b> fertig ein. Du kannst z.B. bestimmte Sectionen der Sidebar ausblenden oder den Header und weiteres<br><br>Viel Erfolg mit browSQL!',
+    title: () => t('tour.12.title'),
+    text: () => t('tour.12.text'),
     target: '#btn-schema-test',
   },
 ];
@@ -107,18 +109,20 @@ function showStep(index) {
   const total = STEPS.length;
   const isFirst = index === 0;
   const isLast = index === total - 1;
+  const stepTitle = typeof step.title === 'function' ? step.title() : step.title;
+  const stepText = typeof step.text === 'function' ? step.text() : step.text;
 
   card.innerHTML = `
-    ${!isFirst && !isLast ? `<div class="tour-card-step">Schritt ${index} von ${total - 2}</div>` : ''}
-    <div class="tour-card-title">${step.title}</div>
-    <div class="tour-card-text">${step.text}</div>
+    ${!isFirst && !isLast ? `<div class="tour-card-step">${t('tour.step', index, total - 2)}</div>` : ''}
+    <div class="tour-card-title">${stepTitle}</div>
+    <div class="tour-card-text">${stepText}</div>
     <div class="tour-card-actions">
-      <button class="tour-skip" id="tour-skip">Überspringen</button>
+      <button class="tour-skip" id="tour-skip">${t('tour.skip')}</button>
       <div>
-        ${!isFirst ? `<button class="tour-btn" id="tour-prev" style="margin-right:6px">← Zurück</button>` : ''}
-        ${isLast ? `<button class="tour-btn tour-btn-settings" id="tour-open-settings" style="margin-right:6px">⚙ Settings</button>` : ''}
+        ${!isFirst ? `<button class="tour-btn" id="tour-prev" style="margin-right:6px">${t('tour.back')}</button>` : ''}
+        ${isLast ? `<button class="tour-btn tour-btn-settings" id="tour-open-settings" style="margin-right:6px">${t('tour.settings')}</button>` : ''}
         <button class="tour-btn ${isLast ? 'tour-btn-done' : 'tour-btn-primary'}" id="tour-next">
-          ${isLast ? 'Fertig!' : isFirst ? 'Starten' : 'Weiter'}
+          ${isLast ? t('tour.done') : isFirst ? t('tour.start') : t('tour.next')}
         </button>
       </div>
     </div>

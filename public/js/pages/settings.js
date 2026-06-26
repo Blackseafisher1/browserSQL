@@ -1,5 +1,6 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
+import { t, setLang, getLang } from '../i18n.js';
 
 const STORAGE_KEY = 'browsersql-settings';
 
@@ -221,7 +222,7 @@ export function initSettings() {
 
   $('#setting-skip')?.addEventListener('change', (e) => {
     if (e.target.checked && !settings.skipEnabled) {
-      if (!confirm('Only enable skip to view all lessons for testing.\nIf you really want to learn, keep it disabled.\nEnable anyway?')) {
+      if (!confirm(t('confirm.skip'))) {
         e.target.checked = false;
         return;
       }
@@ -304,6 +305,15 @@ export function initSettings() {
     applySettings();
   });
 
+  const langSelect = $('#setting-lang');
+  if (langSelect) {
+    langSelect.value = getLang();
+    langSelect.addEventListener('change', (e) => {
+      setLang(e.target.value);
+      window.dispatchEvent(new CustomEvent('settings-changed'));
+    });
+  }
+
   $('#setting-kbdoffset')?.addEventListener('input', (e) => {
     settings.kbdOffset = parseInt(e.target.value);
     saveSettings();
@@ -315,7 +325,7 @@ export function initSettings() {
   });
 
   $('#btn-reset-settings')?.addEventListener('click', () => {
-    if (!confirm('Reset all settings to defaults?')) return;
+    if (!confirm(t('confirm.resetSettings'))) return;
     localStorage.removeItem(STORAGE_KEY);
     settings = defaultSettings();
     saveSettings();
@@ -329,8 +339,8 @@ export function initSettings() {
   });
 
   $('#btn-reset-all')?.addEventListener('click', () => {
-    if (!confirm('This will delete ALL local data:\n- All databases\n- All files\n- Tutorial progress & XP\n- All settings\n\nThis cannot be undone. Continue?')) return;
-    if (!confirm('Are you absolutely sure? All your work will be lost.')) return;
+    if (!confirm(t('confirm.resetAll.1'))) return;
+    if (!confirm(t('confirm.resetAll.2'))) return;
     localStorage.clear();
     if ('caches' in window) {
       caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});

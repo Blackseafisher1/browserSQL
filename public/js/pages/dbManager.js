@@ -1,5 +1,6 @@
 import { $ } from '../utils.js';
 import { state, resetState } from '../state.js';
+import { t } from '../i18n.js';
 
 const LAST_DB_KEY = 'browsersql-lastdb';
 
@@ -117,27 +118,27 @@ export function initDBManager() {
     if (!dbName) return;
     document.getElementById('context-menu')?.classList.add('hidden');
     if (item.dataset.action === 'rename-db') {
-      const newName = prompt('Rename database:', dbName);
+      const newName = prompt(t('confirm.renameDB'), dbName);
       if (!newName || newName === dbName) return;
       (async () => {
         try {
           const data = await loadFromLocal(dbName);
-          if (!data) { alert('Database not found.'); return; }
+          if (!data) { alert(t('error.dbNotFound', dbName)); return; }
           await saveToLocal(newName, data);
           await deleteFromLocal(dbName);
           await refreshRecentDBsList();
           recentDropdown.classList.add('hidden');
-        } catch (err) { alert('Rename failed: ' + (err.message || err)); }
+        } catch (err) { alert(t('error.renameFailed', err.message || err)); }
       })();
     }
     if (item.dataset.action === 'delete-db') {
-      if (!confirm(`Delete "${dbName}" from local storage? This cannot be undone.`)) return;
+      if (!confirm(t('confirm.deleteDB', dbName))) return;
       (async () => {
         try {
           await deleteFromLocal(dbName);
           await refreshRecentDBsList();
           recentDropdown.classList.add('hidden');
-        } catch (err) { alert('Delete failed: ' + (err.message || err)); }
+        } catch (err) { alert(t('error.deleteFailed', err.message || err)); }
       })();
     }
   });
@@ -222,7 +223,7 @@ async function sqlite3Init() {
  */
 async function newDatabase() {
   if (!state.sqlite3) return;
-  const name = prompt('Database name:', 'default');
+  const name = prompt(t('prompt.dbName'), 'default');
   if (!name) return;
   try { state.db?.close(); } catch (_) {}
   state.db = new state.sqlite3.oo1.DB();
@@ -317,7 +318,7 @@ async function handleFileOpen(e) {
     await saveToLocal(name, bytes);
     refreshRecentDBsList();
   } catch (err) {
-    showErrorInResults(`Failed to open database: ${err.message || String(err)}`);
+    showErrorInResults(t('error.openFailed', err.message || String(err)));
   }
   fileInput.value = '';
 }
@@ -327,7 +328,7 @@ async function handleFileOpen(e) {
  */
 async function exportDatabase() {
   if (!state.db || !state.sqlite3) {
-    showErrorInResults('No database to export.');
+    showErrorInResults(t('error.noDB'));
     return;
   }
   try {
@@ -342,7 +343,7 @@ async function exportDatabase() {
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   } catch (err) {
-    showErrorInResults(`Export failed: ${err.message || String(err)}`);
+    showErrorInResults(t('error.exportFailed', err.message || String(err)));
   }
 }
 
@@ -365,7 +366,7 @@ export async function loadTestSchema() {
   try {
     const existing = await loadFromLocal('test_data');
     if (existing) {
-      if (!confirm('You already have a test_data database. Overwrite it?')) return;
+      if (!confirm(t('confirm.overwriteTest'))) return;
     }
     const res = await fetch('test_schema.sql');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -381,7 +382,7 @@ export async function loadTestSchema() {
     if (state.renderSchema) state.renderSchema();
     showReadyInResults();
   } catch (err) {
-    showErrorInResults(`Test schema failed: ${err.message || String(err)}`);
+    showErrorInResults(t('error.schemaFailed', err.message || String(err)));
   }
 }
 
@@ -406,7 +407,7 @@ export async function loadTutorialDatabase(seedSql = TUTORIAL_SCHEMA) {
     showReadyInResults();
     return true;
   } catch (err) {
-    showErrorInResults(`Tutorial database failed: ${err.message || String(err)}`);
+    showErrorInResults(t('error.tutorialFailed', err.message || String(err)));
     return false;
   }
 }
@@ -419,7 +420,7 @@ export async function refreshRecentDBsList() {
     const dbs = await listLocalDBs();
     recentDropdown.innerHTML = '';
     if (dbs.length === 0) {
-      recentDropdown.innerHTML = '<div class="dropdown-empty">No saved databases</div>';
+      recentDropdown.innerHTML = `<div class="dropdown-empty">${t('dropdown.empty')}</div>`;
     } else {
       for (const db of dbs) {
         const item = document.createElement('button');
@@ -434,8 +435,8 @@ export async function refreshRecentDBsList() {
           e.stopPropagation();
           const menu = document.getElementById('context-menu');
           menu.innerHTML = `
-            <button class="context-menu-item" data-action="rename-db" data-db="${esc(item.dataset.name)}">Rename</button>
-            <button class="context-menu-item danger" data-action="delete-db" data-db="${esc(item.dataset.name)}">Delete</button>
+            <button class="context-menu-item" data-action="rename-db" data-db="${esc(item.dataset.name)}">${t('dropdown.context.rename')}</button>
+            <button class="context-menu-item danger" data-action="delete-db" data-db="${esc(item.dataset.name)}">${t('dropdown.context.delete')}</button>
           `;
           menu.dataset.contextDb = item.dataset.name;
           const rect = menu.getBoundingClientRect();
@@ -466,14 +467,14 @@ async function handleRecentClick(e) {
   try {
     const data = await loadFromLocal(name);
     if (!data) {
-      showErrorInResults(`Database "${name}" not found in local storage.`);
+      showErrorInResults(t('error.dbNotFound', name));
       await deleteFromLocal(name);
       refreshRecentDBsList();
       return;
     }
     await loadDBState(data, name);
   } catch (err) {
-    showErrorInResults(`Failed to open from local: ${err.message || String(err)}`);
+    showErrorInResults(t('error.openFailed', err.message || String(err)));
   }
 }
 
@@ -483,10 +484,10 @@ async function handleRecentClick(e) {
 async function deleteCurrentFromLocal() {
   const name = state.dbName;
   if (!name) {
-    showErrorInResults('No saved database to delete.');
+    showErrorInResults(t('error.noSavedDB'));
     return;
   }
-  const confirmed = confirm(`Delete "${name}" from local storage? This cannot be undone.`);
+  const confirmed = confirm(t('confirm.deleteDB', name));
   if (!confirmed) return;
   try {
     await deleteFromLocal(name);
@@ -494,7 +495,7 @@ async function deleteCurrentFromLocal() {
     refreshRecentDBsList();
     showReadyInResults();
   } catch (err) {
-    showErrorInResults(`Delete failed: ${err.message || String(err)}`);
+    showErrorInResults(t('error.deleteFailed', err.message || String(err)));
   }
 }
 
@@ -516,7 +517,7 @@ function handleShortcuts(e) {
 function showReadyInResults() {
   const el = $('#results-info');
   const out = $('#results-output');
-  if (el) el.textContent = 'Ready';
+  if (el) el.textContent = t('results.ready');
   if (out) out.innerHTML = '';
 }
 
@@ -527,7 +528,7 @@ function showReadyInResults() {
 function showErrorInResults(msg) {
   const el = $('#results-info');
   const out = $('#results-output');
-  if (el) el.textContent = 'Error';
+  if (el) el.textContent = t('results.error');
   if (out) out.innerHTML = `<div class="results-error">${esc(msg)}</div>`;
 }
 

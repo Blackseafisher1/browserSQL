@@ -1,5 +1,6 @@
 import { $, esc } from '../utils.js';
 import { state } from '../state.js';
+import { t } from '../i18n.js';
 
 const info = $('#results-info');
 const output = $('#results-output');
@@ -76,7 +77,7 @@ export function showResults(rows, queryTime, sql) {
   const mul = getMultiplier(sql);
   const ft = formatTime(queryTime);
   const est = formatEstimate(queryTime, mul.mul);
-  info.textContent = `${rowCount} row${rowCount !== 1 ? 's' : ''} | ${ft}s (est. disk time: ~${est}s, ${mul.label})`;
+  info.textContent = t('results.info', rowCount, rowCount !== 1 ? 's' : '', ft, est, mul.label);
 
   let table = '<div class="results-table-wrapper"><table class="results-table"><thead><tr>';
   for (const col of cols) {
@@ -147,7 +148,7 @@ export function showNoResults(msg, sql) {
  * @param {string} msg Error message.
  */
 export function showError(msg) {
-  info.textContent = 'Error';
+  info.textContent = t('results.error');
   output.innerHTML = `<div class="results-error">${esc(msg)}</div>`;
 }
 
@@ -156,7 +157,7 @@ export function showError(msg) {
  * @param {Array<{name: string}>} columns Column metadata.
  */
 export function showEmptyTableColumns(columns) {
-  info.textContent = `0 rows | Table info`;
+  info.textContent = t('results.infoZero');
   if (!columns || columns.length === 0) {
     output.innerHTML = '<div class="results-empty">0 rows</div>';
     return;
@@ -173,6 +174,6 @@ export function showEmptyTableColumns(columns) {
  * Clears the results pane and restores the ready state.
  */
 export function showReady() {
-  info.textContent = 'Ready';
+  info.textContent = t('results.ready');
   output.innerHTML = '';
 }

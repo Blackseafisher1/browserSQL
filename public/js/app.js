@@ -8,6 +8,7 @@ import { initTutorialMode } from './pages/tutorialView.js';
 import { initChallengeMode } from './pages/challengeView.js';
 import { initCloudSync } from './pages/cloudSync.js';
 import { state } from './state.js';
+import { init as initI18n, t } from './i18n.js';
 
 const STORAGE_KEY = 'browsersql-theme';
 
@@ -42,6 +43,7 @@ window.toggleTheme = toggleTheme;
  */
 async function main() {
   document.addEventListener('touchstart', () => {}, { passive: true });
+  initI18n();
   initTheme();
 
   const loadingBar = document.getElementById('sqlite-loading-bar');
@@ -583,8 +585,8 @@ function initOfflineDetection() {
     setTimeout(() => { toast.style.opacity = '0'; }, 3000);
   }
 
-  window.addEventListener('online', () => show('Back online', false));
-  window.addEventListener('offline', () => show('You are offline — cloud features unavailable', true));
+  window.addEventListener('online', () => show(t('toast.backOnline'), false));
+  window.addEventListener('offline', () => show(t('toast.offline'), true));
 }
 
 main();

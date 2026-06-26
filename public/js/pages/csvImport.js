@@ -1,6 +1,7 @@
 import { state, resetState } from '../state.js';
 import { showToast } from './toast.js';
 import { saveCurrentToLocal } from './dbManager.js';
+import { t } from '../i18n.js';
 
 function escId(name) {
   return '"' + name.replace(/"/g, '""') + '"';
@@ -78,20 +79,20 @@ function parseCSV(text) {
 
 export async function importCSV(file) {
   if (!state.sqlite3) {
-    showToast('No database loaded. Create or open one first.', 'error');
+    showToast(t('toast.noDB'), 'error');
     return;
   }
 
   const text = await file.text();
   const rows = parseCSV(text);
   if (rows.length < 1) {
-    showToast('CSV file is empty.', 'error');
+    showToast(t('toast.csvEmpty'), 'error');
     return;
   }
 
   const CSV_WARN_KEY = 'browsersql-csv-warned';
   if (!localStorage.getItem(CSV_WARN_KEY)) {
-    if (!confirm('⚠️ CSV Import Warning:\n\n- No type safety — all columns will be inferred\n- Only 1 table can be imported per file\n- Column names come from the first row\n\nContinue?')) return;
+    if (!confirm(t('confirm.importCSV'))) return;
     localStorage.setItem(CSV_WARN_KEY, '1');
   }
 
@@ -140,8 +141,8 @@ export async function importCSV(file) {
     if (state.renderSchema) state.renderSchema();
     await saveCurrentToLocal();
 
-    showToast(`Imported ${data.length} rows into table "${tableName}"`, 'success');
+    showToast(t('toast.imported', data.length, tableName), 'success');
   } catch (err) {
-    showToast(`CSV import failed: ${err.message || String(err)}`, 'error');
+    showToast(t('toast.importFailed', err.message || String(err)), 'error');
   }
 }
