@@ -1,5 +1,6 @@
 import { $, isOffline, fetchWithOfflineFallback } from '../utils.js';
 import { state } from '../state.js';
+import { t } from '../i18n.js';
 
 const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? 'http://localhost:8081'
@@ -28,7 +29,7 @@ let currentAbortController = null;
 function updateRateDisplay() {
   const token = localStorage.getItem('browsersql-cloud-token');
   const limit = token ? 35 : 15;
-  rateInfo.textContent = `⚡ ${limit}/h limit (${token ? 'logged in' : 'not logged in'})`;
+  rateInfo.textContent = t('ai.rateInfo', limit, token ? t('ai.loggedIn') : t('ai.notLoggedIn'));
   rateInfo.style.color = 'var(--color-text-muted)';
 }
 
@@ -63,7 +64,7 @@ function insertSQL(sql) {
 
 export async function showAIGenerateModal() {
   if (isOffline()) {
-    statusText.textContent = '❌ No internet connection. AI generation requires a network.';
+    statusText.textContent = t('ai.noConnection');
     return;
   }
   const ed = state.editorView;
@@ -72,9 +73,9 @@ export async function showAIGenerateModal() {
     if (!sel.empty) {
       selRange = { from: sel.from, to: sel.to };
       const text = ed.state.sliceDoc(sel.from, sel.to - sel.from);
-      selectedInfo.textContent = `📝 Selected: ${text.substring(0, 60)}${text.length > 60 ? '...' : ''}`;
+      selectedInfo.textContent = t('ai.selected', text.substring(0, 60), text.length > 60 ? '...' : '');
       selectedInfo.style.display = '';
-      promptInput.placeholder = 'Extra instructions (leave empty to fix/optimize)';
+      promptInput.placeholder = t('ai.placeholderFix');
     } else {
       selRange = null;
       selectedInfo.style.display = 'none';
@@ -113,7 +114,7 @@ async function handleGenerate() {
   }
 
   generateBtn.disabled = true;
-  statusText.textContent = 'Generating...';
+  statusText.textContent = t('ai.generating');
   spinner.style.display = 'inline';
 
   if (currentAbortController) currentAbortController.abort();
@@ -140,7 +141,7 @@ async function handleGenerate() {
     insertSQL(sql);
     hideModal();
   } catch (err) {
-    statusText.textContent = `Error: ${err.message || String(err)}`;
+    statusText.textContent = t('ai.apiError', err.message || String(err));
     generateBtn.disabled = false;
     spinner.style.display = 'none';
   }

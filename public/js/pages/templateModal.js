@@ -1,6 +1,7 @@
 import { $ } from '../utils.js';
 import { state, resetState } from '../state.js';
 import { loadTutorialDatabase, saveCurrentToLocal, loadFromLocal } from './dbManager.js';
+import { t } from '../i18n.js';
 import { SEED_USERS, SEED_USERS_EXT, SEED_USERS_NULL, SEED_SHOP, SEED_SHOP_EXT, SEED_EMPLOYEES, SEED_NORMALIZE, SEED_INVENTORY, SEED_ABITUR, SEED_DATES, SEED_MARCH_ORDERS, SEED_NORDWIND, SEED_TEST_SCHEMA } from './lessons/seeds.js';
 
 const overlay = $('#template-modal-overlay');
@@ -103,11 +104,11 @@ function renderTemplates() {
     card.innerHTML = `
       <div class="template-card-header">
         <span class="template-card-name">${esc(tpl.name)}</span>
-        <span class="template-card-tables">${tpl.tables} table${tpl.tables !== 1 ? 's' : ''}</span>
+        <span class="template-card-tables">${t('template.tables', tpl.tables, tpl.tables !== 1 ? 'n' : '')}</span>
       </div>
       <div class="template-card-desc">${esc(tpl.desc)}</div>
       <div class="template-card-footer">
-        <button class="btn btn-sm btn-template-load" data-loading="false">Load</button>
+        <button class="btn btn-sm btn-template-load" data-loading="false">${t('template.load')}</button>
       </div>
     `;
     grid.appendChild(card);
@@ -128,7 +129,7 @@ async function loadTemplate(tpl) {
   const card = grid.querySelector(`[data-id="${tpl.id}"]`);
   const loadBtn = card?.querySelector('.btn-template-load');
   if (loadBtn) {
-    loadBtn.textContent = 'Loading...';
+    loadBtn.textContent = t('template.loading');
     loadBtn.disabled = true;
   }
 
@@ -136,8 +137,8 @@ async function loadTemplate(tpl) {
     if (tpl.fetchUrl) {
       const existing = await loadFromLocal(tpl.id);
       if (existing) {
-        if (!confirm(`You already have a "${tpl.name}" database. Overwrite it?`)) {
-          if (loadBtn) { loadBtn.textContent = 'Load'; loadBtn.disabled = false; }
+        if (!confirm(t('confirm.overwriteTemplate', tpl.name))) {
+          if (loadBtn) { loadBtn.textContent = t('template.load'); loadBtn.disabled = false; }
           return;
         }
       }
@@ -166,10 +167,10 @@ async function loadTemplate(tpl) {
     showReadyInResults();
     hideModal();
   } catch (err) {
-    showErrorInResults(`Template "${tpl.name}" failed: ${err.message || String(err)}`);
+    showErrorInResults(t('error.templateFailed', tpl.name, err.message || String(err)));
   } finally {
     if (loadBtn) {
-      loadBtn.textContent = 'Load';
+      loadBtn.textContent = t('template.load');
       loadBtn.disabled = false;
     }
   }
@@ -178,14 +179,14 @@ async function loadTemplate(tpl) {
 function showReadyInResults() {
   const el = document.getElementById('results-info');
   const out = document.getElementById('results-output');
-  if (el) el.textContent = 'Ready';
+  if (el) el.textContent = t('results.ready');
   if (out) out.innerHTML = '';
 }
 
 function showErrorInResults(msg) {
   const el = document.getElementById('results-info');
   const out = document.getElementById('results-output');
-  if (el) el.textContent = 'Error';
+  if (el) el.textContent = t('results.error');
   if (out) out.innerHTML = `<div class="results-error">${esc(msg)}</div>`;
 }
 

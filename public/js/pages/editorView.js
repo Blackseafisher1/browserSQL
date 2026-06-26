@@ -355,7 +355,7 @@ function setupPreviewButton() {
     const out = $('#results-output');
     const info = $('#results-info');
     if (out) out.innerHTML = '<div class="markdown-preview">' + html + '</div>';
-    if (info) info.textContent = 'Preview';
+    if (info) info.textContent = t('editor.preview');
   });
 }
 
@@ -443,11 +443,11 @@ export async function executeQuery() {
   // Early returns
   if (!view) return;
   if (state.tutorialActive && state.tutorialLessonType === 'theory') {
-    showError('This lesson is a quiz. Answer it in the editor panel.');
+    showError(t('editor.theoryQuiz'));
     return;
   }
   if (state.activeFileIsJS) {
-    showError('JS Shell is not available.');
+    showError(t('editor.jsShellNA'));
     return;
   }
   if (state.activeFileIsMD) {
@@ -455,7 +455,7 @@ export async function executeQuery() {
     return;
   }
   if (!state.db) {
-    showError('No database loaded.');
+    showError(t('editor.noDB'));
     return;
   }
 
@@ -521,8 +521,8 @@ export async function executeQuery() {
       showResults(rows, elapsed, code);
     } else {
       const message = changes > 0 
-        ? `${changes} row${changes !== 1 ? 's' : ''} affected | ${elapsed}ms`
-        : `0 rows | ${elapsed}ms`;
+        ? t('editor.rowsAffected', changes, changes !== 1 ? 's' : '', elapsed)
+        : t('editor.zeroRows', elapsed);
       showNoResults(message, code);
     }
     
@@ -538,7 +538,7 @@ export async function executeQuery() {
 
 export async function executeAll() {
   if (!view) return;
-  if (!state.db) { showError('No database loaded.'); return; }
+  if (!state.db) { showError(t('editor.noDB')); return; }
   const code = view.state.doc.toString().trim();
   if (!code) return;
   const wrapped = 'BEGIN TRANSACTION;\n' + code + '\nCOMMIT;';
@@ -546,13 +546,13 @@ export async function executeAll() {
   try {
     state.db.exec(wrapped, { rowMode: 'object' });
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-    showNoResults(`All statements executed successfully | ${elapsed}ms`, code);
+    showNoResults(t('editor.allExecuted', elapsed), code);
     if (state.dbName !== 'browsersql-tutorial') {
       saveCurrentToLocal().catch(e => console.warn('[save] Failed:', e));
     }
     if (state.renderSchema) state.renderSchema();
   } catch (err) {
     try { state.db.exec('ROLLBACK;'); } catch (_) {}
-    showError(`Transaction rolled back: ${err.message || String(err)} (${((performance.now() - startTime) / 1000).toFixed(2)}ms)`);
+    showError(t('editor.txRolledBack', err.message || String(err), ((performance.now() - startTime) / 1000).toFixed(2)));
   }
 }

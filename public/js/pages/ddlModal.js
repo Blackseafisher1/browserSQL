@@ -1,6 +1,7 @@
 import { $ } from '../utils.js';
 import { state } from '../state.js';
 import { saveCurrentToLocal } from './dbManager.js';
+import { t } from '../i18n.js';
 
 const overlay = $('#ddl-modal-overlay');
 const title = $('#ddl-modal-title');
@@ -19,11 +20,11 @@ export function showDDLModal(tableName) {
   currentTableName = tableName;
   try {
     const ddl = buildFormattedDDL(tableName);
-    title.textContent = `Table: ${tableName}`;
+    title.textContent = t('ddl.title.format', tableName);
     content.textContent = ddl;
     overlay.classList.remove('hidden');
   } catch (e) {
-    title.textContent = 'Error';
+    title.textContent = t('results.error');
     content.textContent = String(e);
     overlay.classList.remove('hidden');
   }
@@ -37,7 +38,7 @@ export function showDDLModal(tableName) {
 function buildFormattedDDL(tableName) {
   const db = state.db;
   const cols = db.exec(`PRAGMA table_info(${escId(tableName)})`, { rowMode: 'object' });
-  if (cols.length === 0) return `-- Table "${tableName}" not found`;
+  if (cols.length === 0) return `-- ${t('ddl.tableNotFound', tableName)}`;
 
   const fks = db.exec(`PRAGMA foreign_key_list(${escId(tableName)})`, { rowMode: 'object' });
   const lines = [];
@@ -106,7 +107,7 @@ export function hideDDLModal() {
  */
 function dropCurrentTable() {
   if (!currentTableName || !state.db) return;
-  const confirmed = confirm(`Drop table "${currentTableName}"? This cannot be undone.`);
+  const confirmed = confirm(t('confirm.dropTable', currentTableName));
   if (!confirmed) return;
   try {
     state.db.exec(`DROP TABLE IF EXISTS ${escId(currentTableName)}`);
@@ -115,7 +116,7 @@ function dropCurrentTable() {
     saveCurrentToLocal();
     showReadyInResults();
   } catch (e) {
-    alert(`Drop failed: ${e.message || String(e)}`);
+    alert(t('error.dropFailed', e.message || String(e)));
   }
 }
 
@@ -126,7 +127,7 @@ function escId(name) {
 function showReadyInResults() {
   const el = $('#results-info');
   const out = $('#results-output');
-  if (el) el.textContent = 'Ready';
+  if (el) el.textContent = t('results.ready');
   if (out) out.innerHTML = '';
 }
 

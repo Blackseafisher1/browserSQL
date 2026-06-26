@@ -1,6 +1,7 @@
 import { $, $$, esc, escId } from '../utils.js';
 import { state } from '../state.js';
 import { showDDLModal } from './ddlModal.js';
+import { t } from '../i18n.js';
 
 const tree = $('#schema-tree');
 const contextMenu = $('#context-menu');
@@ -41,37 +42,37 @@ async function showERD() {
 
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-border);flex-shrink:0';
-  header.innerHTML = '<span style="font-weight:600">Entity Relationship Diagram</span><div style="display:flex;gap:var(--space-2)">';
+  header.innerHTML = `<span style="font-weight:600">${t('schema.erd.header')}</span><div style="display:flex;gap:var(--space-2)">`;
 
   const zoomOutBtn = document.createElement('button');
   zoomOutBtn.className = 'btn btn-sm';
   zoomOutBtn.textContent = '−';
-  zoomOutBtn.title = 'Zoom out';
+  zoomOutBtn.title = t('schema.erd.zoomOut');
 
   const zoomInBtn = document.createElement('button');
   zoomInBtn.className = 'btn btn-sm';
   zoomInBtn.textContent = '+';
-  zoomInBtn.title = 'Zoom in';
+  zoomInBtn.title = t('schema.erd.zoomIn');
 
   const resetBtn = document.createElement('button');
   resetBtn.className = 'btn btn-sm';
   resetBtn.textContent = '↺';
-  resetBtn.title = 'Reset zoom';
+  resetBtn.title = t('schema.erd.resetZoom');
 
   const copyBtn = document.createElement('button');
   copyBtn.className = 'btn btn-sm';
-  copyBtn.textContent = '📋 Copy';
-  copyBtn.title = 'Copy Mermaid ERD code';
+  copyBtn.textContent = t('schema.erd.copyCode');
+  copyBtn.title = t('schema.erd.copyCode');
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(erdCode);
-    copyBtn.textContent = '✓ Copied';
-    setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+    copyBtn.textContent = t('schema.erd.copied');
+    setTimeout(() => copyBtn.textContent = t('schema.erd.copyCode'), 2000);
   });
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'btn btn-close';
   closeBtn.innerHTML = '&times;';
-  closeBtn.title = 'Close ERD';
+  closeBtn.title = t('schema.erd.close');
   closeBtn.addEventListener('click', () => wrap.remove());
 
   const hdrActions = header.querySelector('div');
@@ -85,7 +86,7 @@ async function showERD() {
   const body = document.createElement('div');
   body.id = 'erd-body';
   body.style.cssText = 'flex:1;overflow:hidden;position:relative;cursor:grab';
-  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--color-text-muted)">Loading diagram...</div>';
+  body.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--color-text-muted)">${t('schema.erd.loading')}</div>`;
   wrap.appendChild(body);
 
   const editorSplit = document.querySelector('.editor-split');
@@ -114,12 +115,12 @@ async function showERD() {
     // Legend
     const legend = document.createElement('div');
     legend.innerHTML = `
-      <div style="font-size:10px;font-weight:600;margin-bottom:4px">Relationships</div>
+      <div style="font-size:10px;font-weight:600;margin-bottom:4px">${t('schema.erd.relationships')}</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 6px;font-size:9px;align-items:center">
-        <span style="font-family:monospace;white-space:nowrap">||--o{</span><span>one to zero or many</span>
-        <span style="font-family:monospace;white-space:nowrap">||--|{</span><span>one to one or many</span>
-        <span style="font-family:monospace;white-space:nowrap">}o--o{</span><span>zero or many to zero or many</span>
-        <span style="font-family:monospace;white-space:nowrap">||--||</span><span>one to one</span>
+        <span style="font-family:monospace;white-space:nowrap">||--o{</span><span>${t('schema.erd.oneToZeroMany')}</span>
+        <span style="font-family:monospace;white-space:nowrap">||--|{</span><span>${t('schema.erd.oneToOneMany')}</span>
+        <span style="font-family:monospace;white-space:nowrap">}o--o{</span><span>${t('schema.erd.zeroManyToZeroMany')}</span>
+        <span style="font-family:monospace;white-space:nowrap">||--||</span><span>${t('schema.erd.oneToOne')}</span>
       </div>`;
     legend.style.cssText = 'position:absolute;top:8px;left:8px;z-index:10;background:var(--color-bg-surface);border:1px solid var(--color-border);border-radius:6px;padding:6px 10px;opacity:0.85;pointer-events:none';
     body.appendChild(legend);
@@ -152,8 +153,8 @@ async function showERD() {
       resetBtn.addEventListener('click', () => { scale = 1; panX = 0; panY = 0; applyTransform(); });
     }
   } catch (e) {
-    body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">⚠️ Diagram render failed.</div>
-      <div style="margin-bottom:var(--space-2)">Copy this code and paste at <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
+    body.innerHTML = `<div style="color:var(--color-error);margin-bottom:var(--space-2)">${t('schema.erd.renderFailed')}</div>
+      <div style="margin-bottom:var(--space-2)">${t('schema.erd.copyHint')} <a href="https://mermaid.live" target="_blank" rel="noopener" style="color:var(--color-accent)">mermaid.live</a>:</div>
       <pre style="background:var(--color-bg-surface);padding:1rem;border-radius:6px;overflow:auto;font-size:12px;margin:0">${esc(erdCode)}</pre>`;
   }
 }
@@ -269,7 +270,7 @@ async function renderSchema() {
 
 function renderTree(tables, views) {
   if (tables.length === 0 && (!views || views.length === 0)) {
-    tree.innerHTML = '<div class="schema-empty">No tables or views</div>';
+    tree.innerHTML = `<div class="schema-empty">${t('schema.emptyOrViews')}</div>`;
     return;
   }
   let html = '';
@@ -282,8 +283,8 @@ function renderTree(tables, views) {
     html += `<span class="expand-icon ${expanded}">${arrow}</span>`;
     html += `<span class="schema-table-label">${esc(t.name)}</span>`;
     html += `<span class="schema-table-actions">`;
-    html += `<button class="btn-schema-ddl" data-ddl="${esc(t.name)}" title="View DDL">DDL</button>`;
-    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="Drop table">Drop</button>`;
+    html += `<button class="btn-schema-ddl" data-ddl="${esc(t.name)}" title="${t('schema.viewDDL')}">DDL</button>`;
+    html += `<button class="btn-schema-drop" data-drop="${esc(t.name)}" title="${t('schema.dropTable')}">${t('schema.drop')}</button>`;
     html += `</span>`;
     html += `</div>`;
     if (state.tableExpanded.has(t.name)) {
@@ -313,7 +314,7 @@ function renderTree(tables, views) {
     html += `</div>`;
   }
   if (views && views.length > 0) {
-    html += `<div class="schema-section-label">Views</div>`;
+    html += `<div class="schema-section-label">${t('schema.views')}</div>`;
     for (const v of views) {
       html += `<div class="schema-table"><div class="schema-table-name" data-view-name="${esc(v.name)}"><span class="schema-table-label">👁 ${esc(v.name)}</span></div></div>`;
     }
@@ -342,7 +343,7 @@ function handleTreeClick(e) {
   const dropBtn = e.target.closest('[data-drop]');
   if (dropBtn) {
     const name = dropBtn.dataset.drop;
-    if (confirm(`Drop table "${name}"? This cannot be undone.`)) {
+    if (confirm(t('confirm.dropTableSchema', name))) {
       state.db.exec(`DROP TABLE IF EXISTS ${escId(name)}`);
       if (state.renderSchema) state.renderSchema();
       import('./dbManager.js').then(m => m.saveCurrentToLocal());

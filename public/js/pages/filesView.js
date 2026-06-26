@@ -258,10 +258,10 @@ function startInlineRename(oldName) {
   const finish = async () => {
     const raw = input.value.trim();
     const newName = raw ? folder + raw : '';
-    if (!isSafePath(newName)) { alert('Invalid filename'); input.focus(); return; }
+    if (!isSafePath(newName)) { alert(t('files.invalidFilename')); input.focus(); return; }
     if (newName && newName !== oldName) {
       const files = await getFiles();
-      if (files[newName]) { alert('File already exists'); input.focus(); return; }
+      if (files[newName]) { alert(t('files.fileExists')); input.focus(); return; }
       files[newName] = files[oldName];
       delete files[oldName];
       await saveFiles(files);
@@ -299,7 +299,7 @@ async function openInPane(name, pane) {
 }
 
 export async function createFile(name) {
-  if (!isSafePath(name)) { alert('Invalid filename'); return false; }
+  if (!isSafePath(name)) { alert(t('files.invalidFilename')); return false; }
   const files = await getFiles();
   if (name in files) return false;
   files[name] = '';
@@ -355,7 +355,7 @@ export async function renderTree() {
   const active = activeFile || getActiveFileName();
   const names = Object.keys(files).sort();
   const visible = names.filter(n => !n.startsWith('_'));
-  if (visible.length === 0) { el.innerHTML = '<div class="panel-empty">No files</div>'; return; }
+  if (visible.length === 0) { el.innerHTML = `<div class="panel-empty">${t('files.empty')}</div>`; return; }
   el.innerHTML = renderNode(buildTree(names), '', active, 0);
 }
 
@@ -629,7 +629,7 @@ export async function initFilesView() {
       if (!name.includes('.')) name += '.sql';
       if (selectedFolder) name = selectedFolder + '/' + name;
       const files = await getFiles();
-      if (files[name]) { alert('File exists'); input.focus(); return; }
+      if (files[name]) { alert(t('files.fileExists')); input.focus(); return; }
       await createFile(name);
       if (selectedFolder) expandedFolders.add(selectedFolder);
       input.remove();
@@ -645,7 +645,7 @@ export async function initFilesView() {
     const list = document.getElementById('files-tree');
     const input = document.createElement('input');
     input.className = 'file-rename-input';
-    input.placeholder = 'folder name';
+    input.placeholder = t('files.folderName');
     input.style.cssText = 'display:block;width:100%;padding:4px 12px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text);outline:none;margin:2px 0;box-sizing:border-box';
     if (selectedFolder) {
       const folderEl = list.querySelector(`[data-folder="${escAttr(selectedFolder)}"]`);
@@ -719,8 +719,8 @@ export async function initFilesView() {
     zipInput.value = '';
     const { readZip } = await import('./zip.js');
     let imported;
-    try { imported = await readZip(file); } catch { alert('Invalid ZIP file.'); return; }
-    if (!imported || !Object.keys(imported).length) { alert('No files found in archive.'); return; }
+    try { imported = await readZip(file); } catch { alert(t('files.zipInvalid')); return; }
+    if (!imported || !Object.keys(imported).length) { alert(t('files.zipNoFiles')); return; }
     const existing = await getFiles();
     const visible = Object.keys(existing).filter(n => !n.startsWith('_'));
     if (visible.length > 0) {
