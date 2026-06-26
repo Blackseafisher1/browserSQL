@@ -20,6 +20,7 @@ import { verifyChallenge } from './challengeView.js';
 import { saveCurrentFile } from './filesView.js';
 import { getSettings, defaultSettings } from './settings.js';
 import { $, escId } from '../utils.js';
+import { t } from '../i18n.js';
 
 const darkHighlight = HighlightStyle.define([
   { tag: tags.keyword, color: '#7db1dc' },
@@ -386,7 +387,7 @@ function setupEditorContextMenu() {
     if (state.tutorialActive && state.tutorialLessonType === 'theory') return;
     e.preventDefault();
     const menu = document.getElementById('context-menu');
-    menu.innerHTML = `<button class="context-menu-item" data-action="generate-sql">Generate SQL</button>`;
+    menu.innerHTML = `<button class="context-menu-item" data-action="generate-sql">${t('editor.context.generateSQL')}</button>`;
     const rect = menu.getBoundingClientRect();
     const maxX = window.innerWidth - rect.width;
     const maxY = window.innerHeight - rect.height;

@@ -1,5 +1,6 @@
 import { $, esc, isSafePath } from '../utils.js';
 import { state } from '../state.js';
+import { t } from '../i18n.js';
 import { setEditorContent, getEditorContent, setLanguage, setEditorContentFor, ensureEditor, switchEditor, showEditors } from './editorView.js';
 
 const ACTIVE_KEY = 'browsersql-active-file';
@@ -497,7 +498,7 @@ export async function initFilesView() {
     e.preventDefault();
     const name = item.dataset.file;
     const menu = document.getElementById('context-menu');
-    menu.innerHTML = `<button class="context-menu-item" data-action="open-side" data-file="${esc(name)}">Open to the Side</button><button class="context-menu-item" data-action="rename" data-file="${esc(name)}">Rename</button>`;
+    menu.innerHTML = `<button class="context-menu-item" data-action="open-side" data-file="${esc(name)}">${t('files.context.openSide')}</button><button class="context-menu-item" data-action="rename" data-file="${esc(name)}">${t('files.context.rename')}</button>`;
     const rect = menu.getBoundingClientRect();
     const maxX = window.innerWidth - rect.width; const maxY = window.innerHeight - rect.height;
     menu.style.left = Math.min(e.clientX, maxX) + 'px'; menu.style.top = Math.min(e.clientY, maxY) + 'px';

@@ -68,6 +68,8 @@ const LOCALES = {
     'files.exportzip.title': 'Export all files as ZIP',
     'files.importzip.title': 'Import files from ZIP',
     'files.cloud.title': 'Upload files to cloud',
+    'files.context.openSide': 'Open to the Side',
+    'files.context.rename': 'Rename',
 
     'schema.empty': 'No tables',
     'schema.ddl.copy.title': 'Copy all DDL to clipboard',
@@ -87,6 +89,8 @@ const LOCALES = {
     'execute.csv': '📊 CSV',
     'execute.csv.title': 'Export results as CSV',
     'execute.zoom': 'Zoom',
+
+    'editor.context.generateSQL': 'Generate SQL',
 
     'results.ready': 'Ready',
     'results.error': 'Error',
@@ -348,6 +352,8 @@ const LOCALES = {
     'files.exportzip.title': 'Alle Dateien als ZIP exportieren',
     'files.importzip.title': 'Dateien aus ZIP importieren',
     'files.cloud.title': 'Dateien in Cloud hochladen',
+    'files.context.openSide': 'Seitlich öffnen',
+    'files.context.rename': 'Umbenennen',
 
     'schema.empty': 'Keine Tabellen',
     'schema.ddl.copy.title': 'DDL in Zwischenablage kopieren',
@@ -367,6 +373,8 @@ const LOCALES = {
     'execute.csv': '📊 CSV',
     'execute.csv.title': 'Ergebnisse als CSV exportieren',
     'execute.zoom': 'Zoom',
+
+    'editor.context.generateSQL': 'SQL generieren',
 
     'results.ready': 'Bereit',
     'results.error': 'Fehler',
