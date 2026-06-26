@@ -1,6 +1,14 @@
 import { state } from '../state.js';
 import { parseColumnAliases } from './sqlSchemaParser.js';
 
+function bareColsEnabled() {
+  try {
+    const raw = localStorage.getItem('browsersql-settings');
+    if (!raw) return false;
+    return JSON.parse(raw).autoCompleteBareCols === true;
+  } catch { return false; }
+}
+
 function docAliases(context) {
   const fullDoc = context.state.sliceDoc(0);
   return parseColumnAliases(fullDoc).map(a => ({
@@ -11,9 +19,12 @@ function docAliases(context) {
 }
 
 function allColumnOptions(context) {
+  const seen = new Set();
   const opts = [];
   for (const t of state.tables) {
     for (const c of t.columns) {
+      if (seen.has(c.name)) continue;
+      seen.add(c.name);
       opts.push({
         label: c.name,
         type: 'property',
@@ -109,6 +120,11 @@ export function sqlAutoTriggerSource(context) {
     const dotPos = textBefore.lastIndexOf('.');
     const afterDot = textBefore.slice(dotPos + 1).trim();
     if (dotPos > 0 && /^\w*$/.test(afterDot)) return null;
+    if (!bareColsEnabled()) {
+      const aliases = docAliases(context);
+      if (!aliases.length) return null;
+      return { from, options: aliases, validFor: /^[\w\u00C0-\u024f]+$/ };
+    }
     const tables = referencedTables(textBefore);
     const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
     if (!opts.length) return null;
@@ -174,6 +190,11 @@ export function sqlAutoTriggerSource(context) {
     }
 
     case 'select-col': {
+      if (!bareColsEnabled()) {
+        const aliases = docAliases(context);
+        if (!aliases.length) return null;
+        return { from, options: aliases, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
       const tables = referencedTables(textBefore);
       const opts = tables.length ? columnOptsForTables(context, tables) : allColumnOptions(context);
       if (!opts.length) return null;
@@ -181,6 +202,11 @@ export function sqlAutoTriggerSource(context) {
     }
 
     case 'condition': {
+      if (!bareColsEnabled()) {
+        const aliases = docAliases(context);
+        if (!aliases.length) return null;
+        return { from, options: aliases, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
       const tables = referencedTables(textBefore);
       if (!tables.length) return null;
       const opts = columnOptsForTables(context, tables);

@@ -174,6 +174,7 @@ function renderTabs() {
   for (let p = 0; p < 2; p++) {
     const bar = document.getElementById('tab-bar-' + p);
     if (!bar) continue;
+    if (p === 1 && bar.querySelector('.tab-solution-label')) continue;
     bar.innerHTML = '';
     const visible = paneTabs[p].filter(n => !n.startsWith('_'));
     bar.style.display = visible.length > 0 ? 'flex' : 'none';

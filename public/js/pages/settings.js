@@ -6,7 +6,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false };
 }
 
 let settings = loadSettings();
@@ -88,6 +88,8 @@ export function applySettings() {
   if (sfbCb) sfbCb.checked = settings.showFormatBtn !== false;
   const fb = $('#btn-format-sql');
   if (fb) fb.style.display = settings.showFormatBtn !== false ? '' : 'none';
+  const acCb = $('#setting-autocomplete-bare');
+  if (acCb) acCb.checked = settings.autoCompleteBareCols === true;
   document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
   document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor || DEFAULT_CURSOR_COLOR);
@@ -269,6 +271,11 @@ export function initSettings() {
     settings.showFormatBtn = e.target.checked;
     saveSettings();
     applySettings();
+  });
+
+  $('#setting-autocomplete-bare')?.addEventListener('change', (e) => {
+    settings.autoCompleteBareCols = e.target.checked;
+    saveSettings();
   });
 
   $('#setting-cursor-color-text')?.addEventListener('input', (e) => {
