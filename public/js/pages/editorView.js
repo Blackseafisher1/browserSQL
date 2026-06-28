@@ -77,7 +77,7 @@ function updateCursorTextState(view) {
 function debounceUpdate(update) {
   if (update.docChanged) {
     const head = update.view.state.selection.main.head;
-    if (head > 0 && update.view.state.sliceDoc(head - 1, head) === ' ') {
+    if (head > 0 && !/[\w\u00C0-\u024f]/.test(update.view.state.sliceDoc(head - 1, head))) {
       closeCompletion(update.view);
     }
 
