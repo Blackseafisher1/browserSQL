@@ -149,7 +149,6 @@ function makeEditor(doc, parent) {
       keymap.of([
         { key: 'Ctrl-Enter', run: () => { executeQuery(); return true; } },
         { key: 'Shift-Ctrl-Enter', run: () => { executeAll(); return true; } },
-        { key: 'Enter', run: acceptCompletion },
         ...completionKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...closeBracketsKeymap
       ]),
       lc.of(makeSql()),
