@@ -148,7 +148,7 @@ function initSidebarResize() {
   updateHandlePos();
 
   function move(e) {
-    const newWidth = Math.max(0, startWidth + (getX(e) - startX));
+    const newWidth = Math.max(0, Math.min(window.innerWidth - 40, startWidth + (getX(e) - startX)));
     document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
     handle.style.left = newWidth + 'px';
   }
