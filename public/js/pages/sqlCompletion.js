@@ -10,8 +10,10 @@ function bareColsEnabled() {
 }
 
 function docAliases(context) {
-  const fullDoc = context.state.sliceDoc(0);
-  return parseColumnAliases(fullDoc).map(a => ({
+  const fullDoc = context.state.sliceDoc(0, context.pos);
+  const lastSemi = fullDoc.lastIndexOf(';');
+  const text = lastSemi >= 0 ? fullDoc.slice(lastSemi + 1) : fullDoc;
+  return parseColumnAliases(text).map(a => ({
     label: a,
     type: 'property',
     detail: 'alias',
