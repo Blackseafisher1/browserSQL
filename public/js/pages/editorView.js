@@ -5,7 +5,7 @@ import { Compartment, EditorState } from '@codemirror/state';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
-import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, acceptCompletion } from '@codemirror/autocomplete';
+import { autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap, closeCompletion } from '@codemirror/autocomplete';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { sql, SQLite, schemaCompletionSource, keywordCompletionSource } from '@codemirror/lang-sql';
 import { sqlAutoTriggerSource } from './sqlCompletion.js';
@@ -76,6 +76,11 @@ function updateCursorTextState(view) {
 
 function debounceUpdate(update) {
   if (update.docChanged) {
+    const head = update.view.state.selection.main.head;
+    if (head > 0 && update.view.state.sliceDoc(head - 1, head) === ' ') {
+      closeCompletion(update.view);
+    }
+
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       saveCurrentFile().catch(() => {});
