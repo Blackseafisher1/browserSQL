@@ -39,10 +39,10 @@
 
   .cm-editor .cm-selectionBackground {
     background: var(--color-accent);
-    opacity: 0.2;
+    opacity: 0.5;
   }
   [data-theme="dark"] .cm-editor .cm-selectionBackground {
-    opacity: 0.12;
+    opacity: 0.4;
   }
 
   .cm-editor .cm-lineNumbers .cm-gutterElement {
@@ -161,10 +161,10 @@
     background-attachment: fixed;
   }
   [data-theme="light"] body.editor-bg-img .cm-editor .cm-scroller {
-    background-image: url('/maptexture2.webp');
+    background-image: url('/white.jpg');
   }
   [data-theme="dark"] body.editor-bg-img .cm-editor .cm-scroller {
-    background-image: url('/bg-blue-gray.webp'), url('/maptexture2.webp');
+    background-image: url('/bg-blue-gray.webp');
   }
 
   @media (prefers-reduced-motion: reduce) {
