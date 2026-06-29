@@ -1,6 +1,7 @@
 import { $, esc } from '../utils.js';
 import { state } from '../state.js';
 import { t } from '../i18n.js';
+import { showToast } from './toast.js';
 
 const info = $('#results-info');
 const output = $('#results-output');
