@@ -12,7 +12,8 @@ const TEMPLATES = [
    {
   id: 'Nordwind',
   name: 'Nordwind',
-  desc: '8 Tabellen: Lieferant, Kunde, Versandfirma, Personal, Kategorie, Artikel, Bestellung, Bestelldetails - simuliert eine Versandhandelsdatenbank',
+  desc: '8 tables: supplier, customer, shipper, employee, category, product, order, order details — simulates a mail-order database',
+  descDe: '8 Tabellen: Lieferant, Kunde, Versandfirma, Personal, Kategorie, Artikel, Bestellung, Bestelldetails — simuliert eine Versandhandelsdatenbank',
   tables: 8,
   seed: SEED_NORDWIND
   },
@@ -108,6 +109,7 @@ const TEMPLATES = [
     id: 'pokemon',
     name: 'Pokémon',
     desc: '18 types, 20 Pokémon, weaknesses & battle system — 5 tables with type matchups.',
+    descDe: '18 Typen, 20 Pokémon, Schwächen & Kampfsystem — 5 Tabellen mit Typ-Matchups.',
     tables: 5,
     seed: SEED_POKEMON,
     queries: `-- create-types
