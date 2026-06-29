@@ -117,12 +117,9 @@ export function csvFromLastResult() {
       return '"' + String(v).replace(/"/g, '""') + '"';
     }).join(',') + '\n';
   }
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'query_results.csv'; a.click();
-  URL.revokeObjectURL(url);
-  navigator.clipboard?.writeText(csv).catch(() => {});
+  navigator.clipboard?.writeText(csv).then(() => {
+    showToast(t('toast.csvCopied'), 'success');
+  }).catch(() => {});
 }
 
 /**

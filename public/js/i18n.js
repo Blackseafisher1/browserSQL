@@ -318,6 +318,7 @@ const LOCALES = {
 
     'toast.noDB': 'No database loaded. Create or open one first.',
     'toast.csvEmpty': 'CSV file is empty.',
+    'toast.csvCopied': 'CSV copied to clipboard 📋',
     'toast.imported': 'Imported {0} rows into table "{1}"',
     'toast.importFailed': 'CSV import failed: {0}',
     'toast.backOnline': 'Back online',
@@ -686,6 +687,7 @@ const LOCALES = {
 
     'toast.noDB': 'Keine Datenbank geladen. Erstelle oder öffne zuerst eine.',
     'toast.csvEmpty': 'CSV-Datei ist leer.',
+    'toast.csvCopied': 'CSV in Zwischenablage kopiert 📋',
     'toast.imported': '{0} Zeilen in Tabelle "{1}" importiert',
     'toast.importFailed': 'CSV-Import fehlgeschlagen: {0}',
     'toast.backOnline': 'Wieder online',
