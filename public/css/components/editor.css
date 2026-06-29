@@ -287,22 +287,24 @@ body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
   transition: background 0.25s ease, box-shadow 0.25s ease;
   pointer-events: none;
+  flex-shrink: 0;
 }
 .theme-toggle-thumb {
   position: absolute;
-  top: -3px;
-  left: -3px;
-  width: 22px;
-  height: 22px;
+  top: 50%;
+  left: 0;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-  transition: transform 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.25s ease;
+  transform: translateY(-50%);
+  transition: left 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55), background 0.25s ease;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
 }
 .theme-toggle-thumb::before {
@@ -314,7 +316,7 @@ body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
 }
 [data-theme="dark"] .theme-toggle-thumb {
   background: #1a1a2e;
-  transform: translateX(16px);
+  left: 12px;
 }
 [data-theme="dark"] .theme-toggle-thumb::before {
   content: '☽';
@@ -329,5 +331,5 @@ body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   font-size: 11px;
 }
 [data-theme="dark"] .theme-toggle-sm .theme-toggle-thumb {
-  transform: translateX(11px);
+  left: 8px;
 }
