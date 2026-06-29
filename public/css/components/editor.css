@@ -154,6 +154,19 @@
     -webkit-user-modify: read-write-plaintext-only;
   }
 
+  body.editor-bg-img .cm-editor .cm-scroller {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  [data-theme="light"] body.editor-bg-img .cm-editor .cm-scroller {
+    background-image: url('/maptexture2.webp');
+  }
+  [data-theme="dark"] body.editor-bg-img .cm-editor .cm-scroller {
+    background-image: url('/bg-blue-gray.webp'), url('/maptexture2.webp');
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .cm-editor .cm-cursor,
     .cm-editor .cm-cursorLayer {

@@ -7,7 +7,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
 }
 
 let settings = loadSettings();
@@ -75,6 +75,9 @@ export function applySettings() {
   document.body.classList.toggle('block-cursor', settings.blockCursor === true);
   const bcCb = $('#setting-block-cursor');
   if (bcCb) bcCb.checked = settings.blockCursor === true;
+  document.body.classList.toggle('editor-bg-img', settings.editorBgImg === true);
+  const ebgCb = $('#setting-editor-bg');
+  if (ebgCb) ebgCb.checked = settings.editorBgImg === true;
   document.body.classList.toggle('floating-tabs', settings.floatingTabs === true);
   const ftCb = $('#setting-floating-tabs');
   if (ftCb) ftCb.checked = settings.floatingTabs === true;
@@ -242,6 +245,12 @@ export function initSettings() {
 
   $('#setting-block-cursor')?.addEventListener('change', (e) => {
     settings.blockCursor = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-editor-bg')?.addEventListener('change', (e) => {
+    settings.editorBgImg = e.target.checked;
     saveSettings();
     applySettings();
   });
