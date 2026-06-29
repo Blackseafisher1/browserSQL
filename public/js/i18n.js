@@ -267,6 +267,7 @@ const LOCALES = {
 
     'settings.title': 'Settings',
     'cat.language': 'Language',
+    'settings.lang': 'Active language',
     'cat.sidebar': 'Sidebar',
     'cat.editor': 'Editor',
     'cat.formatting': 'SQL Formatting',
@@ -633,6 +634,7 @@ const LOCALES = {
 
     'settings.title': 'Einstellungen',
     'cat.language': 'Sprache',
+    'settings.lang': 'Aktive Sprache',
     'cat.sidebar': 'Seitenleiste',
     'cat.editor': 'Editor',
     'cat.formatting': 'SQL-Formatierung',
