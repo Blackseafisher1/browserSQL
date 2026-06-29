@@ -108,18 +108,18 @@ Both ensure unique values, but:
 
 In SQLite, \`INTEGER PRIMARY KEY\` auto-increments by default — but there's a catch.
 
-**Without AUTOINCREMENT:** IDs start at 1. If you delete the last row, SQLite may **reuse** that ID (\`max(rowid) + 1\`).
+**Without AUTOINCREMENT:** IDs start at 1 and generally increase. However, if you delete the row with the current highest ID, SQLite may **reuse** that ID on future inserts because it assigns \`max(rowid) + 1\`.
 
-**With AUTOINCREMENT:** IDs are guaranteed to never be reused. Important for CashPal's transaction records — you never want duplicate transaction IDs.
+**With AUTOINCREMENT:** IDs are guaranteed to never be reused, even if rows are deleted. SQLite tracks the largest ID ever used in a special \`sqlite_sequence\` table. Important for CashPal's transaction records — you never want duplicate transaction IDs.
 
 **⚠️ Other databases are different.** In MySQL/PostgreSQL, \`INTEGER PRIMARY KEY\` does NOT auto-increment — you need \`AUTO_INCREMENT\` or \`SERIAL\`.
 
 **Goal:** know when AUTOINCREMENT matters.`,
     question: {
-      prompt: 'Without AUTOINCREMENT, what ID does a new row get after deleting the last row (ID 5)?',
+      prompt: 'Without AUTOINCREMENT, what ID does a new row get after deleting the row with ID 5 (the highest ID)?',
       options: ['5', '6', '1', 'Random'],
       answer: 0,
-      explanation: 'Without AUTOINCREMENT, SQLite reuses the highest row ID (max(rowid)+1 = 5).',
+      explanation: 'Without AUTOINCREMENT, SQLite assigns max(rowid) + 1. Since the highest existing ID is now 4, the new row gets 5 — reusing the deleted ID.',
     },
     seed: SEED_EMPTY,
   },

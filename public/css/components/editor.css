@@ -266,3 +266,63 @@ body.block-cursor .cm-editor .cm-cursor {
 body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   background: color-mix(in srgb, var(--cursor-color-space, #0056d9) 85%, transparent) !important;
 }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-md);
+  user-select: none;
+}
+.theme-toggle:hover {
+  background: var(--color-bg-hover);
+}
+.theme-toggle-sun,
+.theme-toggle-moon {
+  font-size: 13px;
+  line-height: 1;
+  pointer-events: none;
+}
+.theme-toggle-track {
+  position: relative;
+  width: 28px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--color-border);
+  transition: background 0.25s ease;
+  pointer-events: none;
+}
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text);
+  transition: transform 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  pointer-events: none;
+}
+[data-theme="dark"] .theme-toggle-track {
+  background: var(--color-accent);
+}
+[data-theme="dark"] .theme-toggle-thumb {
+  transform: translateX(14px);
+}
+.theme-toggle-sm .theme-toggle-sun,
+.theme-toggle-sm .theme-toggle-moon {
+  font-size: 11px;
+}
+.theme-toggle-sm .theme-toggle-track {
+  width: 22px;
+  height: 12px;
+}
+.theme-toggle-sm .theme-toggle-thumb {
+  width: 8px;
+  height: 8px;
+}
+[data-theme="dark"] .theme-toggle-sm .theme-toggle-thumb {
+  transform: translateX(10px);
+}
