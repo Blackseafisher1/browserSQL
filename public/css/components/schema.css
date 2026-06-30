@@ -110,9 +110,10 @@
   }
 
   .ops-bar .btn {
-    font-size: 10px;
-    padding: 2px 6px;
+    font-size: 14px;
+    padding: 3px 8px;
   }
+ 
 
   .ops-footer {
     display: flex;
