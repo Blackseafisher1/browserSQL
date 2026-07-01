@@ -3,7 +3,7 @@ import { state } from '../state.js';
 import { renderMarkdown } from './marker.js';
 import { lessons, MODULE_NAMES } from './lessons/index.js';
 import { SEED_EMPTY, SEED_EMPTY_FK, SEED_USERS, SEED_USERS_EXT, SEED_USERS_NULL, SEED_SHOP, SEED_SHOP_EXT, SEED_EMPLOYEES, SEED_NORMALIZE, SEED_INVENTORY, SEED_DATES } from './lessons/seeds.js';
-import { loadTutorialDatabase, openLastDB, saveCurrentToLocal } from './dbManager.js';
+import { loadTutorialDatabase, openLastDB, saveCurrentToLocal, showReadyInResults } from './dbManager.js';
 import { ensureDefaultFiles, getActiveFileName, getFiles, openSingleFile, replaceFiles, renderTree, saveCurrentFile, switchFile } from './filesView.js';
 import { getSettings } from './settings.js';
 import { showToast } from './toast.js';
@@ -703,7 +703,13 @@ async function exitTutorialMode() {
   localStorage.removeItem(ACTIVE_KEY);
   await openLastDB();
   if (state.dbName === TUTORIAL_DB_NAME) {
-    document.getElementById('btn-new-db')?.click();
+    const name = localStorage.getItem('browsersql-lastdb') || 'default';
+    state.db?.close();
+    state.db = new state.sqlite3.oo1.DB();
+    state.dbName = name;
+    document.getElementById('db-name-input').value = name;
+    if (state.renderSchema) state.renderSchema();
+    showReadyInResults();
   }
   await ensureDefaultFiles();
   await renderTree();

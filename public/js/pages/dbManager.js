@@ -157,6 +157,7 @@ export async function initDatabase() {
     state.sqlite3 = sqlite3;
     state.db = new sqlite3.oo1.DB();
     dbNameInput.value = state.dbName;
+    localStorage.setItem(LAST_DB_KEY, state.dbName);
     return true;
   } catch (e) {
     console.error('SQLite init failed:', e);
@@ -231,7 +232,7 @@ async function newDatabase() {
   updateDBName(name.trim());
   if (state.renderSchema) state.renderSchema();
   showReadyInResults();
-  localStorage.removeItem(LAST_DB_KEY);
+  localStorage.setItem(LAST_DB_KEY, name.trim());
   await saveCurrentToLocal();
   await refreshRecentDBsList();
 }
@@ -355,6 +356,7 @@ export async function saveCurrentToLocal() {
   try {
     const byteArray = exportDB();
     await saveToLocal(state.dbName || 'database', byteArray);
+    localStorage.setItem(LAST_DB_KEY, state.dbName || 'database');
   } catch (_) {}
 }
 
@@ -403,6 +405,7 @@ export async function loadTutorialDatabase(seedSql = TUTORIAL_SCHEMA) {
     }
     state.dbName = TUTORIAL_DB_NAME;
     dbNameInput.value = TUTORIAL_DB_NAME;
+    localStorage.setItem(LAST_DB_KEY, TUTORIAL_DB_NAME);
     if (state.renderSchema) state.renderSchema();
     showReadyInResults();
     return true;
@@ -514,7 +517,7 @@ function handleShortcuts(e) {
 /**
  * Writes the ready state to the results pane.
  */
-function showReadyInResults() {
+export function showReadyInResults() {
   const el = $('#results-info');
   const out = $('#results-output');
   if (el) el.textContent = t('results.ready');

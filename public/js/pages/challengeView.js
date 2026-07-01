@@ -1,6 +1,6 @@
 import { state } from '../state.js';
 import { renderMarkdown } from './marker.js';
-import { loadTutorialDatabase, saveCurrentToLocal, openLastDB } from './dbManager.js';
+import { loadTutorialDatabase, saveCurrentToLocal, openLastDB, showReadyInResults } from './dbManager.js';
 import { openSingleFile, renderTree, ensureDefaultFiles, VFS_STORE } from './filesView.js';
 import { runCheck, loadPoints, addPoints, updateDisplay } from './tutorialView.js';
 import { showToast } from './toast.js';
@@ -608,7 +608,13 @@ export async function exitChallengeMode() {
   if (state.db && state.dbName === 'browsersql-tutorial') {
     await openLastDB().catch(() => {});
     if (state.dbName === 'browsersql-tutorial') {
-      document.getElementById('btn-new-db')?.click();
+      const name = localStorage.getItem('browsersql-lastdb') || 'default';
+      state.db?.close();
+      state.db = new state.sqlite3.oo1.DB();
+      state.dbName = name;
+      document.getElementById('db-name-input').value = name;
+      if (state.renderSchema) state.renderSchema();
+      showReadyInResults();
     }
   }
   await ensureDefaultFiles().catch(() => {});
