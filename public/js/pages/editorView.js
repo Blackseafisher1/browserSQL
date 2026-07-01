@@ -77,7 +77,7 @@ function updateCursorTextState(view) {
 function debounceUpdate(update) {
   if (update.docChanged) {
     const head = update.view.state.selection.main.head;
-    if (head > 0 && !/[\w\u00C0-\u024f]/.test(update.view.state.sliceDoc(head - 1, head))) {
+    if (head > 0 && !/[\w\u00C0-\u024f.]/.test(update.view.state.sliceDoc(head - 1, head))) {
       closeCompletion(update.view);
     }
 
@@ -114,7 +114,7 @@ function makeAutocomplete(merged) {
     merged = mergeSchema(currentSchema, aliases, ctes);
   }
   return autocompletion({
-    activateOnTyping: (state) => /[\w\u00C0-\u024f]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
+    activateOnTyping: (state) => /[\w\u00C0-\u024f.]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
     tooltipClass: () => 'notranslate',
     override: [
       sqlAutoTriggerSource,
