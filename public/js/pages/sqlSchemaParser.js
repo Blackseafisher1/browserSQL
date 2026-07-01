@@ -6,6 +6,14 @@ const SQL_KEYWORDS = new Set([
   'WHEN', 'THEN', 'CASE', 'END', 'ASC', 'DESC', 'FOR',
 ]);
 
+/**
+ * Parse column aliases (SELECT ... AS alias) from the given SQL text.
+ * When used from sqlCompletion.js, the caller scopes text to the current
+ * statement only (truncated at last `;`) to prevent alias spillover.
+ * Uses \w so umlauts in aliases are NOT matched — aliases are typically
+ * ASCII-only identifiers, but if umlaut aliases are needed, \w must be
+ * widened to [\w\u00C0-\u024f] here too.
+ */
 export function parseColumnAliases(text) {
   text = stripComments(text);
   const aliases = new Set();
@@ -25,6 +33,13 @@ export function parseColumnAliases(text) {
   return [...aliases];
 }
 
+/**
+ * Parse table aliases (FROM table alias or FROM table AS alias).
+ * Uses \w which does NOT match umlauts — table names with umlauts won't
+ * produce aliases via this function. If needed, widen to [\w\u00C0-\u024f].
+ * This is called on the full document (not statement-scoped) for schema
+ * merging purposes.
+ */
 export function parseAliases(text) {
   text = stripComments(text);
   const map = {};

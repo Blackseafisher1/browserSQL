@@ -74,6 +74,11 @@ function updateCursorTextState(view) {
   document.body.classList.toggle('cursor-on-space', isSpace);
 }
 
+/**
+ * Close autocomplete when the last typed character cannot be part of an identifier.
+ * This prevents the popup from lingering after space, comma, semicolon, parens etc.
+ * Only letters (incl. umlauts), digits, underscore, and dot keep it open.
+ */
 function debounceUpdate(update) {
   if (update.docChanged) {
     const head = update.view.state.selection.main.head;
@@ -106,6 +111,17 @@ function debounceUpdate(update) {
 function makeSql(schema) {
   return sql({ dialect: SQLite, upperCaseKeywords: getSettings().keywordUpper, schema: schema || currentSchema });
 }
+/**
+ * Build the autocompletion config.
+ * Order of `override` sources matters — first to return non-null wins.
+ * 1. sqlAutoTriggerSource — our custom context-aware source (INSERT template, aliases, dot)
+ * 2. keywordCompletionSource — SQL keywords from @codemirror/lang-sql
+ * 3. schemaCompletionSource — table/column names from the database schema
+ *
+ * activateOnTyping: only trigger completion when typing chars that can start/continue
+ * an identifier: letters (incl. umlauts), digits, underscore, and dot (for table.column).
+ * This prevents unwanted popups on space, comma, parens etc.
+ */
 function makeAutocomplete(merged) {
   if (!merged) {
     const doc = view?.state.doc.toString() || '';
@@ -149,6 +165,8 @@ function makeEditor(doc, parent) {
       keymap.of([
         { key: 'Ctrl-Enter', run: () => { executeQuery(); return true; } },
         { key: 'Shift-Ctrl-Enter', run: () => { executeAll(); return true; } },
+        // completionKeymap MUST come before defaultKeymap so Enter accepts the
+        // autocomplete selection instead of inserting a newline.
         ...completionKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...closeBracketsKeymap
       ]),
       lc.of(makeSql()),

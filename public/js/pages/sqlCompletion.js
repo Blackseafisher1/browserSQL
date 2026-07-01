@@ -9,6 +9,10 @@ function bareColsEnabled() {
   } catch { return false; }
 }
 
+/**
+ * Return column aliases from the CURRENT statement only (text after last `;`).
+ * This prevents aliases from finished statements spilling into the next query.
+ */
 function docAliases(context) {
   const fullDoc = context.state.sliceDoc(0, context.pos);
   const lastSemi = fullDoc.lastIndexOf(';');
@@ -42,6 +46,10 @@ function tableByName(name) {
   return state.tables.find(t => t.name === name);
 }
 
+/**
+ * Extract table names referenced by FROM/JOIN/UPDATE in the text before cursor.
+ * Uses [\w\u00C0-\u024f] to also match identifiers with umlauts.
+ */
 function referencedTables(text) {
   const names = new Set();
   let m;
@@ -69,6 +77,11 @@ function columnOptsForTables(context, tableNames) {
   return opts;
 }
 
+/**
+ * Detect SQL context from the text before cursor.
+ * Each regex uses [\w\u00C0-\u024f] for table names so that umlauts work.
+ * Returns context type and table name, or null if no specific context.
+ */
 function detectContext(text) {
   let m;
 
@@ -109,6 +122,18 @@ function wordStart(text, pos) {
   return i + 1;
 }
 
+/**
+ * Custom autocomplete source for context-aware SQL completion.
+ * Runs before keywordCompletionSource and schemaCompletionSource.
+ *
+ * If no specific context is detected and there's a dot (table.column pattern),
+ * returns null and lets schemaCompletionSource handle it via its AST-based
+ * dot-node resolution. The dot is added to activateOnTyping in editorView.js
+ * so typing it fires the completion system.
+ *
+ * When bareColsEnabled is false, only column aliases from the current
+ * statement are suggested (no bare column names without table context).
+ */
 export function sqlAutoTriggerSource(context) {
   const { state: edState, pos } = context;
   const textBefore = edState.sliceDoc(0, pos);

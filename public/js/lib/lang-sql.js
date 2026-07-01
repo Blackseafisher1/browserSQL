@@ -31,6 +31,9 @@ const whitespace = 36,
   Builtin = 24;
 
 function isAlpha(ch) {
+    // PATCHED: added ch >= 192 && ch <= 591 (U+00C0-U+024F) to support umlauts
+    // (äöüÄÖÜß) and other Latin Extended-A accented chars in identifiers.
+    // Without this, the parser tokenizer would split `männas` into `m` + `ännas`.
     return ch >= 65 && ch <= 90 || ch >= 97 && ch <= 122 || ch >= 48 && ch <= 57 || ch >= 192 && ch <= 591;
 }
 function isHexDigit(ch) {
@@ -460,6 +463,10 @@ function maybeQuoteCompletions(quote, completions) {
         return completions;
     return completions.map(c => (Object.assign(Object.assign({}, c), { label: c.label[0] == quote ? c.label : quote + c.label + quote, apply: undefined })));
 }
+// PATCHED: widened from /^\w*$/ and /^[`'"]?\w*[`'"]?$/ to include
+// \u00C0-\u024f so that identifiers with umlauts pass the validFor check.
+// Without this, typing `mä` would fail /^\w*$/ and the completion popup
+// would close immediately (no options would be considered "valid").
 const Span = /^[\w\u00C0-\u024f]*$/, QuotedSpan = /^[`'"]?[\w\u00C0-\u024f]*[`'"]?$/;
 function isSelfTag(namespace) {
     return namespace.self && typeof namespace.self.label == "string";
@@ -524,6 +531,9 @@ class CompletionLevel {
     }
 }
 function nameCompletion(label, type, idQuote, idCaseInsensitive) {
+    // PATCHED: regex widened from ^[a-z_][a-z_\d]*$ to include \u00C0-\u024f
+    // so identifiers with umlauts don't get backtick-quoted via the apply field.
+    // Without this, `männas` → apply: "`männas" → backtick pollution.
     if ((new RegExp("^[a-z_\\u00C0-\\u024f][a-z_\\d\\u00C0-\\u024f]*$", idCaseInsensitive ? "i" : "")).test(label))
         return { label, type };
     return { label, type, apply: idQuote + label + idQuote };
@@ -770,6 +780,10 @@ const SQLite = /*@__PURE__*/SQLDialect.define({
     operatorChars: "*+-%<>!=&|/~",
     identifierQuotes: "`\"",
     specialVar: "@:?$",
+    // PATCHED: added caseInsensitiveIdentifiers: true because SQLite identifiers
+    // (table names, column names) are case-insensitive. Without this flag, the
+    // nameCompletion regex is used WITHOUT the /i flag, so uppercase table names
+    // like "Männas" fail the ^[a-z_...] check and get backtick-quoted.
     caseInsensitiveIdentifiers: true
 });
 /**
