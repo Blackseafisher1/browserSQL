@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { parseColumnAliases, parseAliases } from './sqlSchemaParser.js';
+import { parseColumnAliases } from './sqlSchemaParser.js';
 
 function bareColsEnabled() {
   try {
@@ -119,24 +119,7 @@ export function sqlAutoTriggerSource(context) {
   if (!ctx) {
     const dotPos = textBefore.lastIndexOf('.');
     const afterDot = textBefore.slice(dotPos + 1).trim();
-    if (dotPos > 0) {
-      const beforeDot = textBefore.slice(0, dotPos).split(/\s+/).pop() || '';
-      if (beforeDot) {
-        const aliases = parseAliases(textBefore);
-        const tableName = aliases[beforeDot] || beforeDot;
-        const table = tableByName(tableName);
-        if (table) {
-          const opts = table.columns.map(c => ({
-            label: c.name,
-            type: 'property',
-            detail: table.name,
-          }));
-          const matched = afterDot ? opts.filter(o => o.label.startsWith(afterDot)) : opts;
-          return { from: pos - afterDot.length, options: matched.length ? matched : opts, validFor: /^[\w\u00C0-\u024f]+$/ };
-        }
-      }
-      return null;
-    }
+    if (dotPos > 0 && /^\w*$/.test(afterDot)) return null;
     if (!bareColsEnabled()) {
       const aliases = docAliases(context);
       if (!aliases.length) return null;
