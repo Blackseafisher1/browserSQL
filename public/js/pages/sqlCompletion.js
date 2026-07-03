@@ -11,13 +11,17 @@ function bareColsEnabled() {
 
 /**
  * Return column aliases from the CURRENT statement only (text after last `;`).
- * This prevents aliases from finished statements spilling into the next query.
+ * Filters out whatever the user is currently typing so an alias doesn't suggest itself.
  */
 function docAliases(context) {
   const fullDoc = context.state.sliceDoc(0, context.pos);
   const lastSemi = fullDoc.lastIndexOf(';');
   const text = lastSemi >= 0 ? fullDoc.slice(lastSemi + 1) : fullDoc;
-  return parseColumnAliases(text).map(a => ({
+  const currentWord = /[\w\u00C0-\u024f]+$/.exec(text);
+  const currentPartial = currentWord ? currentWord[0] : '';
+  return parseColumnAliases(text)
+    .filter(a => a !== currentPartial)
+    .map(a => ({
     label: a,
     type: 'property',
     detail: 'alias',
@@ -36,6 +40,15 @@ function allColumnOptions(context) {
         type: 'property',
         detail: t.name,
       });
+    }
+  }
+  if (state._ctes) {
+    for (const [cteName, cols] of Object.entries(state._ctes)) {
+      for (const col of cols) {
+        if (seen.has(col)) continue;
+        seen.add(col);
+        opts.push({ label: col, type: 'property', detail: cteName });
+      }
     }
   }
   opts.push(...docAliases(context));
@@ -64,13 +77,18 @@ function columnOptsForTables(context, tableNames) {
   const opts = [];
   for (const name of tableNames) {
     const t = tableByName(name);
-    if (!t) continue;
-    for (const c of t.columns) {
-      opts.push({
-        label: c.name,
-        type: 'property',
-        detail: t.name,
-      });
+    if (t) {
+      for (const c of t.columns) {
+        opts.push({
+          label: c.name,
+          type: 'property',
+          detail: t.name,
+        });
+      }
+    } else if (state._ctes && state._ctes[name]) {
+      for (const col of state._ctes[name]) {
+        opts.push({ label: col, type: 'property', detail: name });
+      }
     }
   }
   opts.push(...docAliases(context));

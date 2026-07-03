@@ -95,6 +95,7 @@ function debounceUpdate(update) {
       const aliases = parseAliases(doc);
       const colAliases = parseColumnAliases(doc);
       state._columnAliases = colAliases;
+      state._ctes = ctes;
       const merged = mergeSchema(currentSchema, aliases, ctes);
       const key = JSON.stringify(merged);
       if (key !== cachedMergedKey) {
@@ -177,7 +178,7 @@ function makeEditor(doc, parent) {
         '.cm-content': { fontFamily: "'JetBrains Mono', monospace", fontVariantLigatures: 'contextual' },
         '.cm-gutters': { fontFamily: "'JetBrains Mono', monospace", background: 'var(--color-bg-editor)', color: 'var(--color-text-muted)', borderRight: '1px solid var(--color-border-light)' },
         '.cm-activeLineGutter': { background: 'var(--color-bg-hover)' },
-        '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' },
+        '.cm-tooltip-autocomplete': { background: 'var(--color-bg-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', zIndex: 9999 },
         '.cm-tooltip-autocomplete ul li[aria-selected]': { background: 'var(--color-accent)', color: 'var(--color-accent-text)' },
       }),
       EditorView.updateListener.of(debounceUpdate),
