@@ -4,6 +4,8 @@ const SQL_KEYWORDS = new Set([
   'BY', 'HAVING', 'LIMIT', 'OFFSET', 'AS', 'NOT', 'NULL', 'IS', 'IN',
   'LIKE', 'BETWEEN', 'EXISTS', 'DISTINCT', 'ALL', 'UNION', 'ELSE',
   'WHEN', 'THEN', 'CASE', 'END', 'ASC', 'DESC', 'FOR',
+  'OVER', 'PARTITION', 'RANGE', 'UNBOUNDED', 'PRECEDING', 'FOLLOWING',
+  'WINDOW', 'FILTER', 'EXCLUDE', 'TIES', 'OTHERS', 'GROUPS', 'NULLS',
 ]);
 
 /**

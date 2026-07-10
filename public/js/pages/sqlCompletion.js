@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { parseColumnAliases } from './sqlSchemaParser.js';
+import { parseColumnAliases, parseAliases } from './sqlSchemaParser.js';
 
 function bareColsEnabled() {
   try {
@@ -162,7 +162,30 @@ export function sqlAutoTriggerSource(context) {
   if (!ctx) {
     const dotPos = textBefore.lastIndexOf('.');
     const afterDot = textBefore.slice(dotPos + 1).trim();
-    if (dotPos > 0 && /^\w*$/.test(afterDot)) return null;
+    if (dotPos > 0 && /^\w*$/.test(afterDot)) {
+      const beforeDot = textBefore.slice(0, dotPos).trim();
+      const parts = beforeDot.split(/[\s,()]+/);
+      const name = parts[parts.length - 1];
+      const t = tableByName(name);
+      if (t) {
+        const opts = t.columns.map(c => ({ label: c.name, type: 'property', detail: t.name }));
+        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
+      if (state._ctes && state._ctes[name]) {
+        const opts = state._ctes[name].map(col => ({ label: col, type: 'property', detail: name }));
+        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
+      const aliases = parseAliases(textBefore);
+      const realTable = aliases[name];
+      if (realTable) {
+        const tbl = tableByName(realTable);
+        if (tbl) {
+          const opts = tbl.columns.map(c => ({ label: c.name, type: 'property', detail: `${name} (${realTable})` }));
+          return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+        }
+      }
+      return null;
+    }
     if (!bareColsEnabled()) {
       const aliases = docAliases(context);
       if (!aliases.length) return null;

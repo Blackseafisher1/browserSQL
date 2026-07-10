@@ -441,6 +441,8 @@ function navigateChallengeTask(delta) {
 /* ── Challenge solution ── */
 
 function formatSql(sql) {
+  const trimmed = sql.trim();
+  if (/^\s*(INSERT|CREATE)\b/i.test(trimmed)) return sql;
   const settings = JSON.parse(localStorage.getItem('browsersql-settings')) || {};
   return sql
     .replace(/\s+/g, ' ')

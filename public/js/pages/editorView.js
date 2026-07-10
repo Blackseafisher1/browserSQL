@@ -31,6 +31,9 @@ const darkHighlight = HighlightStyle.define([
   { tag: tags.function(tags.propertyName), color: '#dcdcaa' },
   { tag: tags.bool, color: '#ff8484' },
   { tag: tags.null, color: '#7db1dc' },
+  { tag: tags.paren, color: '#d4b800' },
+  { tag: tags.brace, color: '#d4b800' },
+  { tag: tags.squareBracket, color: '#d4b800' },
 ]);
 const syntaxThemeComp = new Compartment();
 const autocompleteComp = new Compartment();
@@ -43,6 +46,9 @@ const lightHighlight = HighlightStyle.define([
   { tag: tags.function(tags.propertyName), color: '#4f4a10' },
   { tag: tags.bool, color: '#8b1818' },
   { tag: tags.null, color: '#125089' },
+  { tag: tags.paren, color: '#aa8c00' },
+  { tag: tags.brace, color: '#aa8c00' },
+  { tag: tags.squareBracket, color: '#aa8c00' },
 ]);
 function getSyntaxTheme() {
   if (state.activeFileIsMD) return syntaxHighlighting(defaultHighlightStyle, { fallback: true });
@@ -428,6 +434,8 @@ function setupEditorContextMenu() {
 }
 
 function formatSql(sql) {
+  const trimmed = sql.trim();
+  if (/^\s*(INSERT|CREATE)\b/i.test(trimmed)) return sql;
   const settings = getSettings();
   const colsNewline = settings.formatCols;
   let result = sql
