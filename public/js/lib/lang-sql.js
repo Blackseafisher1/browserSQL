@@ -774,9 +774,9 @@ const MSSQL = /*@__PURE__*/SQLDialect.define({
 [SQLite](https://sqlite.org/) dialect.
 */
 const SQLite = /*@__PURE__*/SQLDialect.define({
-    keywords: SQLKeywords + "abort analyze attach autoincrement conflict database detach exclusive fail glob ignore index indexed instead isnull notnull offset plan pragma query raise regexp reindex rename replace temp vacuum virtual",
+    keywords: SQLKeywords + "abort analyze attach autoincrement conflict database detach exclusive fail glob ignore index indexed instead isnull notnull offset plan pragma query raise regexp reindex rename replace temp vacuum virtual row_number rank dense_rank percent_rank cume_dist ntile lead lag first_value last_value nth_value",
     types: SQLTypes + "bool blob long longblob longtext medium mediumblob mediumint mediumtext tinyblob tinyint tinytext text bigint int2 int8 unsigned signed real",
-    builtin: "auth backup bail changes clone databases dbinfo dump echo eqp explain fullschema headers help import imposter indexes iotrace lint load log mode nullvalue once print prompt quit restore save scanstats separator shell show stats system tables testcase timeout timer trace vfsinfo vfslist vfsname width row_number rank dense_rank percent_rank cume_dist ntile lead lag first_value last_value nth_value",
+    builtin: "auth backup bail changes clone databases dbinfo dump echo eqp explain fullschema headers help import imposter indexes iotrace lint load log mode nullvalue once print prompt quit restore save scanstats separator shell show stats system tables testcase timeout timer trace vfsinfo vfslist vfsname width",
     operatorChars: "*+-%<>!=&|/~",
     identifierQuotes: "`\"",
     specialVar: "@:?$",

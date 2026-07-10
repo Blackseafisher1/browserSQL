@@ -157,7 +157,7 @@ export async function initDatabase() {
     state.sqlite3 = sqlite3;
     state.db = new sqlite3.oo1.DB();
     dbNameInput.value = state.dbName;
-    localStorage.setItem(LAST_DB_KEY, state.dbName);
+    if (!localStorage.getItem(LAST_DB_KEY)) localStorage.setItem(LAST_DB_KEY, state.dbName);
     return true;
   } catch (e) {
     console.error('SQLite init failed:', e);

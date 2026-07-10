@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { parseColumnAliases, parseAliases } from './sqlSchemaParser.js';
+import { parseColumnAliases } from './sqlSchemaParser.js';
 
 function bareColsEnabled() {
   try {
@@ -29,24 +29,24 @@ function docAliases(context) {
 }
 
 function allColumnOptions(context) {
-  const seen = new Set();
-  const opts = [];
+  const colMap = {};
   for (const t of state.tables) {
     for (const c of t.columns) {
-      if (seen.has(c.name)) continue;
-      seen.add(c.name);
-      opts.push({
-        label: c.name,
-        type: 'property',
-        detail: t.name,
-      });
+      if (colMap[c.name]) {
+        colMap[c.name].push(t.name);
+      } else {
+        colMap[c.name] = [t.name];
+      }
     }
   }
+  const opts = Object.entries(colMap).map(([col, tables]) => ({
+    label: col,
+    type: 'property',
+    detail: tables.join(', '),
+  }));
   if (state._ctes) {
     for (const [cteName, cols] of Object.entries(state._ctes)) {
       for (const col of cols) {
-        if (seen.has(col)) continue;
-        seen.add(col);
         opts.push({ label: col, type: 'property', detail: cteName });
       }
     }
@@ -144,10 +144,8 @@ function wordStart(text, pos) {
  * Custom autocomplete source for context-aware SQL completion.
  * Runs before keywordCompletionSource and schemaCompletionSource.
  *
- * If no specific context is detected and there's a dot (table.column pattern),
- * returns null and lets schemaCompletionSource handle it via its AST-based
- * dot-node resolution. The dot is added to activateOnTyping in editorView.js
- * so typing it fires the completion system.
+ * Dot-completion (table.column): handled FIRST before any context detection
+ * so that SELECT col, t. always suggests only columns from table t.
  *
  * When bareColsEnabled is false, only column aliases from the current
  * statement are suggested (no bare column names without table context).
@@ -156,36 +154,34 @@ export function sqlAutoTriggerSource(context) {
   const { state: edState, pos } = context;
   const textBefore = edState.sliceDoc(0, pos);
   if (!textBefore.trim()) return null;
-  const ctx = detectContext(textBefore);
   const from = wordStart(textBefore, pos);
 
-  if (!ctx) {
-    const dotPos = textBefore.lastIndexOf('.');
+  // Dot-completion — must run before detectContext so something like
+  // "SELECT col1, t." is not swallowed by the select-col context.
+  // Uses state._mergedSchema (built from full doc) for case-insensitive
+  // lookup against real tables, CTEs, and aliases.
+  const dotPos = textBefore.lastIndexOf('.');
+  if (dotPos > 0) {
     const afterDot = textBefore.slice(dotPos + 1).trim();
-    if (dotPos > 0 && /^\w*$/.test(afterDot)) {
+    if (/^\w*$/.test(afterDot)) {
       const beforeDot = textBefore.slice(0, dotPos).trim();
       const parts = beforeDot.split(/[\s,()]+/);
       const name = parts[parts.length - 1];
-      const t = tableByName(name);
-      if (t) {
-        const opts = t.columns.map(c => ({ label: c.name, type: 'property', detail: t.name }));
-        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
-      }
-      if (state._ctes && state._ctes[name]) {
-        const opts = state._ctes[name].map(col => ({ label: col, type: 'property', detail: name }));
-        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
-      }
-      const aliases = parseAliases(textBefore);
-      const realTable = aliases[name];
-      if (realTable) {
-        const tbl = tableByName(realTable);
-        if (tbl) {
-          const opts = tbl.columns.map(c => ({ label: c.name, type: 'property', detail: `${name} (${realTable})` }));
+      const merged = state._mergedSchema;
+      if (merged) {
+        const key = Object.keys(merged).find(k => k.toLowerCase() === name.toLowerCase());
+        if (key) {
+          const opts = merged[key].map(col => ({ label: col, type: 'property', detail: key }));
           return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
         }
       }
       return null;
     }
+  }
+
+  const ctx = detectContext(textBefore);
+
+  if (!ctx) {
     if (!bareColsEnabled()) {
       const aliases = docAliases(context);
       if (!aliases.length) return null;

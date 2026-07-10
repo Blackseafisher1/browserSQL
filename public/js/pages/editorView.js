@@ -102,6 +102,8 @@ function debounceUpdate(update) {
       const colAliases = parseColumnAliases(doc);
       state._columnAliases = colAliases;
       state._ctes = ctes;
+      state._aliases = aliases;
+      state._mergedSchema = merged;
       const merged = mergeSchema(currentSchema, aliases, ctes);
       const key = JSON.stringify(merged);
       if (key !== cachedMergedKey) {
