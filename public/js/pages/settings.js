@@ -7,7 +7,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: false, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: true, cursorSubtle: true, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
 }
 
 let settings = loadSettings();
@@ -73,8 +73,13 @@ export function applySettings() {
   const kwCb = $('#setting-keyword-case');
   if (kwCb) kwCb.checked = settings.keywordUpper === true;
   document.body.classList.toggle('block-cursor', settings.blockCursor === true);
+  document.body.classList.toggle('cursor-subtle', settings.cursorSubtle === true);
   const bcCb = $('#setting-block-cursor');
   if (bcCb) bcCb.checked = settings.blockCursor === true;
+  const csRow = $('#setting-cursor-subtle-row');
+  if (csRow) csRow.style.display = settings.blockCursor ? '' : 'none';
+  const csCb = $('#setting-cursor-subtle');
+  if (csCb) csCb.checked = settings.cursorSubtle === true;
   document.body.classList.toggle('editor-bg-img', settings.editorBgImg === true);
   const ebgCb = $('#setting-editor-bg');
   if (ebgCb) ebgCb.checked = settings.editorBgImg === true;
@@ -245,6 +250,12 @@ export function initSettings() {
 
   $('#setting-block-cursor')?.addEventListener('change', (e) => {
     settings.blockCursor = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-subtle')?.addEventListener('change', (e) => {
+    settings.cursorSubtle = e.target.checked;
     saveSettings();
     applySettings();
   });

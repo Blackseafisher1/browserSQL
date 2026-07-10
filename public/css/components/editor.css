@@ -268,6 +268,14 @@ body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   background: var(--cursor-color-space, #0056d9) !important;
   border-bottom: none !important;
 }
+body.block-cursor.cursor-subtle .cm-editor .cm-cursor {
+  background: color-mix(in srgb, var(--cursor-color-text, #0056d9) 15%, transparent) !important;
+  box-shadow: 0 0 0 1px var(--cursor-color-text, #0056d9) !important;
+}
+body.block-cursor.cursor-subtle.cursor-on-space .cm-editor .cm-cursor {
+  background: var(--cursor-color-space, #0056d9) !important;
+  box-shadow: none !important;
+}
 
 .theme-toggle {
   display: inline-flex;
@@ -275,12 +283,6 @@ body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   cursor: pointer;
   padding: 2px 6px;
   user-select: none;
-}
-.theme-toggle:hover .theme-toggle-track {
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 12px rgba(200,200,220,0.5);
-}
-[data-theme="dark"] .theme-toggle:hover .theme-toggle-track {
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 0 14px rgba(160,90,255,0.55);
 }
 .theme-toggle-track {
   position: relative;
