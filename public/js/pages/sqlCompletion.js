@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { parseColumnAliases } from './sqlSchemaParser.js';
+import { parseColumnAliases, parseAliases } from './sqlSchemaParser.js';
 
 function bareColsEnabled() {
   try {
@@ -56,7 +56,7 @@ function allColumnOptions(context) {
 }
 
 function tableByName(name) {
-  return state.tables.find(t => t.name === name);
+  return state.tables.find(t => t.name.toLowerCase() === name.toLowerCase());
 }
 
 /**
@@ -103,7 +103,7 @@ function columnOptsForTables(context, tableNames) {
 function detectContext(text) {
   let m;
 
-  m = text.match(/INSERT\s+INTO\s+([\w\u00C0-\u024f]+)\s*\(\s*$/i);
+  m = text.match(/INSERT\s+INTO\s+([\w\u00C0-\u024f]+)\s*\(\s*\)?\s*$/i);
   if (m) return { type: 'insert-paren', table: m[1] };
 
   m = text.match(/INSERT\s+INTO\s+([\w\u00C0-\u024f]+)\s*$/i);
@@ -158,8 +158,8 @@ export function sqlAutoTriggerSource(context) {
 
   // Dot-completion — must run before detectContext so something like
   // "SELECT col1, t." is not swallowed by the select-col context.
-  // Uses state._mergedSchema (built from full doc) for case-insensitive
-  // lookup against real tables, CTEs, and aliases.
+  // Tries: state._mergedSchema (full-doc, includes aliases), then
+  // direct tableByName / CTE fallback so it never leaks keywords.
   const dotPos = textBefore.lastIndexOf('.');
   if (dotPos > 0) {
     const afterDot = textBefore.slice(dotPos + 1).trim();
@@ -168,10 +168,26 @@ export function sqlAutoTriggerSource(context) {
       const parts = beforeDot.split(/[\s,()]+/);
       const name = parts[parts.length - 1];
       const merged = state._mergedSchema;
-      if (merged) {
-        const key = Object.keys(merged).find(k => k.toLowerCase() === name.toLowerCase());
-        if (key) {
-          const opts = merged[key].map(col => ({ label: col, type: 'property', detail: key }));
+      const key = merged && Object.keys(merged).find(k => k.toLowerCase() === name.toLowerCase());
+      if (key) {
+        const opts = merged[key].map(col => ({ label: col, type: 'property' }));
+        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
+      const t = tableByName(name);
+      if (t) {
+        const opts = t.columns.map(c => ({ label: c.name, type: 'property' }));
+        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
+      if (state._ctes && state._ctes[name]) {
+        const opts = state._ctes[name].map(col => ({ label: col, type: 'property' }));
+        return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      }
+      const aliases = parseAliases(edState.sliceDoc(0, edState.doc.length));
+      const realTable = aliases[name];
+      if (realTable) {
+        const tbl = tableByName(realTable);
+        if (tbl) {
+          const opts = tbl.columns.map(c => ({ label: c.name, type: 'property' }));
           return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
         }
       }
@@ -197,12 +213,29 @@ export function sqlAutoTriggerSource(context) {
     case 'insert-paren': {
       const t = tableByName(ctx.table);
       if (!t) return null;
-      const opts = t.columns.filter(c => !c.pk).map(c => ({
-        label: `${c.name}`,
-        type: 'property',
-        detail: t.name,
-      }));
-      return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+      const nonPk = t.columns.filter(c => !c.pk);
+      if (!nonPk.length) return null;
+      const colList = nonPk.map(c => c.name).join(', ');
+      const insertText = `(${colList})\nVALUES ()`;
+      const parenOff = pos - textBefore.lastIndexOf('(');
+      return {
+        from: pos,
+        options: [{
+          label: insertText,
+          type: 'keyword',
+          detail: `INSERT ${ctx.table}`,
+          apply(view) {
+            const head = view.state.selection.main.head;
+            const rf = head - parenOff;
+            const rt = view.state.doc.sliceString(rf + 1, rf + 2) === ')' ? rf + 2 : head;
+            view.dispatch({
+              changes: { from: rf, to: rt, insert: insertText },
+              selection: { anchor: rf + insertText.length - 1, head: rf + insertText.length - 1 },
+            });
+          },
+        }],
+        validFor: /^.*$/,
+      };
     }
 
     case 'insert': {
@@ -213,11 +246,11 @@ export function sqlAutoTriggerSource(context) {
       const colList = nonPk.map(c => c.name).join(', ');
       const insertText = `(${colList})\nVALUES ()`;
       return {
-        from,
+        from: pos,
         options: [{
-          label: `(${colList}) VALUES ()`,
+          label: insertText,
           type: 'keyword',
-          detail: 'INSERT with columns',
+          detail: `INSERT ${ctx.table}`,
           apply(view, _completion, from, to) {
             view.dispatch({
               changes: { from, to, insert: insertText },

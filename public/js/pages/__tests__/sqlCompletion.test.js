@@ -69,16 +69,16 @@ describe('sqlAutoTriggerSource - INSERT', () => {
     const result = sqlAutoTriggerSource(ctx);
     expect(result).not.toBeNull();
     expect(result.options).toHaveLength(1);
-    expect(result.options[0].label).toBe('(name, email) VALUES ()');
+    expect(result.options[0].label).toBe('(name, email)\nVALUES ()');
   });
 
-  it('shows columns excluding PK after paren', () => {
+  it('shows column template excluding PK after paren', () => {
     const ctx = mockContext('INSERT INTO users (');
     const result = sqlAutoTriggerSource(ctx);
     expect(result).not.toBeNull();
-    expect(result.options).toHaveLength(2);
-    expect(result.options[0].label).toBe('name');
-    expect(result.options[1].label).toBe('email');
+    expect(result.options).toHaveLength(1);
+    expect(result.options[0].label).toBe('(name, email)\nVALUES ()');
+    expect(result.options[0].detail).toBe('INSERT users');
   });
 
   it('returns null for unknown table', () => {

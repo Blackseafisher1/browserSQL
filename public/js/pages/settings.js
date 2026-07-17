@@ -7,7 +7,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: true, cursorSubtle: true, floatingTabs: false, floatingBottom: false, cursorColorText: DEFAULT_CURSOR_COLOR, cursorColorSpace: DEFAULT_CURSOR_COLOR, cursorNormalColor: DEFAULT_CURSOR_COLOR, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: true, cursorUnderline: true, cursorOutline: false, floatingTabs: false, floatingBottom: false, cursorColor: DEFAULT_CURSOR_COLOR, cursorOpacity: 40, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
 }
 
 let settings = loadSettings();
@@ -73,13 +73,25 @@ export function applySettings() {
   const kwCb = $('#setting-keyword-case');
   if (kwCb) kwCb.checked = settings.keywordUpper === true;
   document.body.classList.toggle('block-cursor', settings.blockCursor === true);
-  document.body.classList.toggle('cursor-subtle', settings.cursorSubtle === true);
+  document.body.classList.toggle('cursor-underline', settings.cursorUnderline === true);
+  document.body.classList.toggle('cursor-outline', settings.cursorOutline === true);
   const bcCb = $('#setting-block-cursor');
   if (bcCb) bcCb.checked = settings.blockCursor === true;
-  const csRow = $('#setting-cursor-subtle-row');
-  if (csRow) csRow.style.display = settings.blockCursor ? '' : 'none';
-  const csCb = $('#setting-cursor-subtle');
-  if (csCb) csCb.checked = settings.cursorSubtle === true;
+  const cuRow = $('#setting-cursor-underline-row');
+  if (cuRow) cuRow.style.display = settings.blockCursor ? '' : 'none';
+  const cuCb = $('#setting-cursor-underline');
+  if (cuCb) cuCb.checked = settings.cursorUnderline === true;
+  const coRow = $('#setting-cursor-outline-row');
+  if (coRow) coRow.style.display = settings.blockCursor ? '' : 'none';
+  const coCb = $('#setting-cursor-outline');
+  if (coCb) coCb.checked = settings.cursorOutline === true;
+  document.documentElement.style.setProperty('--cursor-opacity', settings.cursorOpacity ?? 40);
+  const cc = $('#setting-cursor-color');
+  if (cc) cc.value = settings.cursorColor || DEFAULT_CURSOR_COLOR;
+  const coSlider = $('#setting-cursor-opacity');
+  if (coSlider) coSlider.value = settings.cursorOpacity ?? 40;
+  const coValue = $('#setting-cursor-opacity-value');
+  if (coValue) coValue.textContent = settings.cursorOpacity ?? 40;
   document.body.classList.toggle('editor-bg-img', settings.editorBgImg === true);
   const ebgCb = $('#setting-editor-bg');
   if (ebgCb) ebgCb.checked = settings.editorBgImg === true;
@@ -99,15 +111,9 @@ export function applySettings() {
   if (fb) fb.style.display = settings.showFormatBtn !== false ? '' : 'none';
   const acCb = $('#setting-autocomplete-bare');
   if (acCb) acCb.checked = settings.autoCompleteBareCols === true;
-  document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColorText || DEFAULT_CURSOR_COLOR);
-  document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColorSpace || DEFAULT_CURSOR_COLOR);
-  document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorNormalColor || DEFAULT_CURSOR_COLOR);
-  const cct = $('#setting-cursor-color-text');
-  if (cct) cct.value = settings.cursorColorText || DEFAULT_CURSOR_COLOR;
-  const ccs = $('#setting-cursor-color-space');
-  if (ccs) ccs.value = settings.cursorColorSpace || DEFAULT_CURSOR_COLOR;
-  const cnc = $('#setting-cursor-color-normal');
-  if (cnc) cnc.value = settings.cursorNormalColor || '#0056d9';
+  document.documentElement.style.setProperty('--cursor-color-text', settings.cursorColor || DEFAULT_CURSOR_COLOR);
+  document.documentElement.style.setProperty('--cursor-color-space', settings.cursorColor || DEFAULT_CURSOR_COLOR);
+  document.documentElement.style.setProperty('--cursor-normal-color', settings.cursorColor || DEFAULT_CURSOR_COLOR);
   const kdSlider = $('#setting-kbdoffset');
   if (kdSlider) kdSlider.value = settings.kbdOffset;
   const kdDisplay = $('#setting-kbdoffset-value');
@@ -254,8 +260,14 @@ export function initSettings() {
     applySettings();
   });
 
-  $('#setting-cursor-subtle')?.addEventListener('change', (e) => {
-    settings.cursorSubtle = e.target.checked;
+  $('#setting-cursor-underline')?.addEventListener('change', (e) => {
+    settings.cursorUnderline = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-outline')?.addEventListener('change', (e) => {
+    settings.cursorOutline = e.target.checked;
     saveSettings();
     applySettings();
   });
@@ -299,28 +311,21 @@ export function initSettings() {
     saveSettings();
   });
 
-  $('#setting-cursor-color-text')?.addEventListener('input', (e) => {
-    settings.cursorColorText = e.target.value;
-    saveSettings();
-    applySettings();
-  });
-
-  $('#setting-cursor-color-space')?.addEventListener('input', (e) => {
-    settings.cursorColorSpace = e.target.value;
-    saveSettings();
-    applySettings();
-  });
-
-  $('#setting-cursor-color-normal')?.addEventListener('input', (e) => {
-    settings.cursorNormalColor = e.target.value;
+  $('#setting-cursor-color')?.addEventListener('input', (e) => {
+    settings.cursorColor = e.target.value;
     saveSettings();
     applySettings();
   });
 
   $('#setting-cursor-colors-reset')?.addEventListener('click', () => {
-    settings.cursorColorText = DEFAULT_CURSOR_COLOR;
-    settings.cursorColorSpace = DEFAULT_CURSOR_COLOR;
-    settings.cursorNormalColor = DEFAULT_CURSOR_COLOR;
+    settings.cursorColor = DEFAULT_CURSOR_COLOR;
+    settings.cursorOpacity = 40;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-cursor-opacity')?.addEventListener('input', (e) => {
+    settings.cursorOpacity = parseInt(e.target.value);
     saveSettings();
     applySettings();
   });

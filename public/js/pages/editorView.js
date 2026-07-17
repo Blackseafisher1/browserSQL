@@ -88,7 +88,7 @@ function updateCursorTextState(view) {
 function debounceUpdate(update) {
   if (update.docChanged) {
     const head = update.view.state.selection.main.head;
-    if (head > 0 && !/[\w\u00C0-\u024f.]/.test(update.view.state.sliceDoc(head - 1, head))) {
+    if (head > 0 && !/[\w\u00C0-\u024f.()]/.test(update.view.state.sliceDoc(head - 1, head))) {
       closeCompletion(update.view);
     }
 
@@ -124,8 +124,9 @@ function makeSql(schema) {
  * Build the autocompletion config.
  * Order of `override` sources matters — first to return non-null wins.
  * 1. sqlAutoTriggerSource — our custom context-aware source (INSERT template, aliases, dot)
- * 2. keywordCompletionSource — SQL keywords from @codemirror/lang-sql
- * 3. schemaCompletionSource — table/column names from the database schema
+ * 2. schemaCompletionSource — table/column names (runs before keywords so dot
+ *    resolution via AST always wins over generic keywords)
+ * 3. keywordCompletionSource — SQL keywords (last resort)
  *
  * activateOnTyping: only trigger completion when typing chars that can start/continue
  * an identifier: letters (incl. umlauts), digits, underscore, and dot (for table.column).
@@ -138,13 +139,22 @@ function makeAutocomplete(merged) {
     const aliases = parseAliases(doc);
     merged = mergeSchema(currentSchema, aliases, ctes);
   }
+  state._mergedSchema = merged;
+  const kwSource = keywordCompletionSource(SQLite, getSettings().keywordUpper);
+  const scSource = schemaCompletionSource({ dialect: SQLite, schema: merged });
+  const dotGuard = (src) => (ctx) => {
+    const tb = ctx.state.sliceDoc(0, ctx.pos);
+    const dp = tb.lastIndexOf('.');
+    if (dp > 0 && /^\w*$/.test(tb.slice(dp + 1).trim())) return null;
+    return src(ctx);
+  };
   return autocompletion({
-    activateOnTyping: (state) => /[\w\u00C0-\u024f.]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
+    activateOnTyping: (state) => /[\w\u00C0-\u024f.()]/.test(state.sliceDoc(state.selection.main.head - 1, state.selection.main.head)),
     tooltipClass: () => 'notranslate',
     override: [
       sqlAutoTriggerSource,
-      keywordCompletionSource(SQLite, getSettings().keywordUpper),
-      schemaCompletionSource({ dialect: SQLite, schema: merged }),
+      dotGuard(kwSource),
+      dotGuard(scSource),
     ],
   });
 }

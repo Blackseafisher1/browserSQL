@@ -438,14 +438,6 @@
           <input type="checkbox" id="setting-keyword-case">
         </label>
         <label class="settings-row">
-          <span data-i18n="set.blockCursor">Block cursor (overtype)</span>
-          <input type="checkbox" id="setting-block-cursor">
-        </label>
-        <label class="settings-row" id="setting-cursor-subtle-row" style="margin-left:22px;font-size:var(--size-fluid-1);color:var(--color-text-muted);display:none">
-          <span data-i18n="set.cursorSubtle">Subtle cursor (outline + tint)</span>
-          <input type="checkbox" id="setting-cursor-subtle">
-        </label>
-        <label class="settings-row">
           <span data-i18n="set.editorBgImg">Editor background image</span>
           <input type="checkbox" id="setting-editor-bg">
         </label>
@@ -462,6 +454,33 @@
           <input type="range" id="setting-topmargin" min="0" max="100" step="1">
           <span id="setting-topmargin-value" class="settings-value">0</span>
         </label>
+
+        <div class="settings-category" data-i18n="cat.cursor">Cursor</div>
+        <label class="settings-row">
+          <span data-i18n="set.blockCursor">Block cursor (overtype)</span>
+          <input type="checkbox" id="setting-block-cursor">
+        </label>
+        <label class="settings-row" id="setting-cursor-underline-row" style="margin-left:22px;font-size:var(--size-fluid-1);color:var(--color-text-muted);display:none">
+          <span data-i18n="set.cursorUnderline">Underline</span>
+          <input type="checkbox" id="setting-cursor-underline">
+        </label>
+        <label class="settings-row" id="setting-cursor-outline-row" style="margin-left:22px;font-size:var(--size-fluid-1);color:var(--color-text-muted);display:none">
+          <span data-i18n="set.cursorOutline">Outline</span>
+          <input type="checkbox" id="setting-cursor-outline">
+        </label>
+        <label class="settings-row">
+          <span data-i18n="set.cursorColor">Color</span>
+          <input type="color" id="setting-cursor-color" style="width:36px;height:24px;padding:0;border:none;cursor:pointer">
+        </label>
+        <label class="settings-row">
+          <span data-i18n="set.cursorOpacity">Opacity</span>
+          <input type="range" id="setting-cursor-opacity" min="5" max="95" step="1" style="flex:1">
+          <span id="setting-cursor-opacity-value" class="settings-value">40</span>
+        </label>
+        <div class="settings-row">
+          <span></span>
+          <button id="setting-cursor-colors-reset" class="btn-sm" data-i18n="set.cursorReset">Reset</button>
+        </div>
 
         <div class="settings-category" data-i18n="cat.formatting">SQL Formatting</div>
         <label class="settings-row">
@@ -498,25 +517,6 @@
           <input type="range" id="setting-kbdoffset" min="-200" max="200" step="5">
           <span id="setting-kbdoffset-value" class="settings-value">0</span>
         </label>
-
-        <div class="settings-category" data-i18n="cat.cursor">Cursor Colors</div>
-        <label class="settings-row">
-          <span data-i18n="set.cursorText">Over text</span>
-          <input type="color" id="setting-cursor-color-text">
-        </label>
-        <label class="settings-row">
-          <span data-i18n="set.cursorSpace">Over space</span>
-          <input type="color" id="setting-cursor-color-space">
-        </label>
-        <label class="settings-row">
-          <span data-i18n="set.cursorNormal">Normal</span>
-          <input type="color" id="setting-cursor-color-normal">
-          <span class="settings-value" style="font-size:11px;min-width:auto" data-i18n="set.cursorTheme">(theme)</span>
-        </label>
-        <div class="settings-row">
-          <span></span>
-          <button id="setting-cursor-colors-reset" class="btn-sm" data-i18n="set.cursorReset">Reset cursor colors</button>
-        </div>
 
         <div class="settings-category" data-i18n="cat.advanced">Advanced</div>
         <label class="settings-row">

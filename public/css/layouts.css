@@ -112,12 +112,10 @@
     transition: background .15s;
   }
 
-
-
-
-  .schema-resize-handle:hover::after,
-  .schema-resize-handle:active::after {
-    background: var(--color-accent);
+  @media (max-width: 768px) {
+    .schema-resize-handle {
+      display: none;
+    }
   }
 
   .schema-toggle {

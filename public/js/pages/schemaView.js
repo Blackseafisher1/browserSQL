@@ -417,19 +417,25 @@ function handleContextMenuClick(e) {
   const action = item.dataset.action;
   const tableName = contextMenu.dataset.contextTable;
   if (!tableName) return;
-  const safe = escId(tableName);
   let sql = '';
   switch (action) {
-    case 'select': sql = `SELECT * FROM ${safe} WHERE `; break;
-    case 'insert': sql = `INSERT INTO ${safe} (col1, col2) VALUES (val1, val2);`; break;
-    case 'update': sql = `UPDATE ${safe} SET col1 = val1 WHERE `; break;
-    case 'delete': sql = `DELETE FROM ${safe} WHERE `; break;
+    case 'select': sql = `SELECT * FROM ${tableName} WHERE `; break;
+    case 'insert': {
+      const tbl = state.tables.find(t2 => t2.name === tableName);
+      const cols = tbl ? tbl.columns.filter(c => !c.pk).map(c => c.name) : [];
+      const colList = cols.length ? cols.join(', ') : 'col1, col2';
+      sql = `INSERT INTO ${tableName}(${colList})\nVALUES ();`;
+      break;
+    }
+    case 'update': sql = `UPDATE ${tableName} SET col1 = val1 WHERE `; break;
+    case 'delete': sql = `DELETE FROM ${tableName} WHERE `; break;
   }
   if (state.editorView) {
     const sel = state.editorView.state.selection.main;
+    const pos = sel.from + sql.length - (action === 'insert' ? 2 : 0);
     state.editorView.dispatch({
       changes: { from: sel.from, to: sel.to, insert: sql },
-      selection: { anchor: sel.from + sql.length },
+      selection: { anchor: pos, head: pos },
     });
     state.editorView.focus();
   }

@@ -257,23 +257,27 @@
 body.block-cursor .cm-editor .cm-cursor,
 body.block-cursor .cm-editor .cm-cursor::after {
   border-left: none !important;
+  transition: none !important;
+  animation: none !important;
 }
 body.block-cursor .cm-editor .cm-cursor {
   width: 1ch !important;
   margin-left: 0 !important;
-  background: transparent !important;
-  border-bottom: 2px solid var(--cursor-color-text, #0056d9) !important;
+  background: color-mix(in srgb, var(--cursor-color-text, #0056d9) calc(var(--cursor-opacity, 40) * 1%), transparent) !important;
 }
 body.block-cursor.cursor-on-space .cm-editor .cm-cursor {
   background: var(--cursor-color-space, #0056d9) !important;
+}
+body.block-cursor.cursor-underline .cm-editor .cm-cursor {
+  border-bottom: 2px solid var(--cursor-color-text, #0056d9) !important;
+}
+body.block-cursor.cursor-underline.cursor-on-space .cm-editor .cm-cursor {
   border-bottom: none !important;
 }
-body.block-cursor.cursor-subtle .cm-editor .cm-cursor {
-  background: color-mix(in srgb, var(--cursor-color-text, #0056d9) 15%, transparent) !important;
+body.block-cursor.cursor-outline .cm-editor .cm-cursor {
   box-shadow: 0 0 0 1px var(--cursor-color-text, #0056d9) !important;
 }
-body.block-cursor.cursor-subtle.cursor-on-space .cm-editor .cm-cursor {
-  background: var(--cursor-color-space, #0056d9) !important;
+body.block-cursor.cursor-outline.cursor-on-space .cm-editor .cm-cursor {
   box-shadow: none !important;
 }
 
