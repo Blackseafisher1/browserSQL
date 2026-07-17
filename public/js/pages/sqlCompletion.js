@@ -190,6 +190,10 @@ export function sqlAutoTriggerSource(context) {
           const opts = tbl.columns.map(c => ({ label: c.name, type: 'property' }));
           return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
         }
+        if (state._ctes && state._ctes[realTable]) {
+          const opts = state._ctes[realTable].map(col => ({ label: col, type: 'property' }));
+          return { from, options: opts, validFor: /^[\w\u00C0-\u024f]+$/ };
+        }
       }
       return null;
     }

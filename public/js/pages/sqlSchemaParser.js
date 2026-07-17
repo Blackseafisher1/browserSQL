@@ -152,6 +152,8 @@ export function mergeSchema(baseSchema, aliases, ctes) {
   for (const [alias, tableName] of Object.entries(aliases)) {
     if (baseSchema[tableName]) {
       merged[alias] = baseSchema[tableName];
+    } else if (ctes[tableName]) {
+      merged[alias] = ctes[tableName];
     }
   }
   return merged;
