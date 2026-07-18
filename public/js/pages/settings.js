@@ -7,7 +7,7 @@ const STORAGE_KEY = 'browsersql-settings';
 const DEFAULT_CURSOR_COLOR = '#0056d9';
 
 export function defaultSettings() {
-  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: true, cursorUnderline: true, cursorOutline: false, floatingTabs: false, floatingBottom: false, cursorColor: DEFAULT_CURSOR_COLOR, cursorOpacity: 40, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
+  return { fontSize: 14, kbdEnabled: true, kbdHeight: 40, kbdOffset: 0, topMargin: 0, hideHeader: false, showTutorial: true, showChallenges: true, showFiles: true, showSchema: true, skipEnabled: false, keywordUpper: false, blockCursor: true, cursorUnderline: true, cursorOutline: false, floatingTabs: false, floatingBottom: false, cursorColor: DEFAULT_CURSOR_COLOR, cursorOpacity: 40, contextMenu: true, formatCols: false, showFormatBtn: true, formatOnNewline: false, autoCompleteBareCols: false, editorBgImg: false };
 }
 
 let settings = loadSettings();
@@ -95,6 +95,8 @@ export function applySettings() {
   document.body.classList.toggle('editor-bg-img', settings.editorBgImg === true);
   const ebgCb = $('#setting-editor-bg');
   if (ebgCb) ebgCb.checked = settings.editorBgImg === true;
+  const cmCb = $('#setting-context-menu');
+  if (cmCb) cmCb.checked = settings.contextMenu !== false;
   document.body.classList.toggle('floating-tabs', settings.floatingTabs === true);
   const ftCb = $('#setting-floating-tabs');
   if (ftCb) ftCb.checked = settings.floatingTabs === true;
@@ -286,6 +288,12 @@ export function initSettings() {
 
   $('#setting-floating-bottom')?.addEventListener('change', (e) => {
     settings.floatingBottom = e.target.checked;
+    saveSettings();
+    applySettings();
+  });
+
+  $('#setting-context-menu')?.addEventListener('change', (e) => {
+    settings.contextMenu = e.target.checked;
     saveSettings();
     applySettings();
   });

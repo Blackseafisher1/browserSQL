@@ -281,6 +281,48 @@ body.block-cursor.cursor-outline.cursor-on-space .cm-editor .cm-cursor {
   box-shadow: none !important;
 }
 
+/* search panel */
+.cm-panel.cm-search {
+  background: var(--color-bg-surface);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+.cm-panel.cm-search label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 4px;
+}
+.cm-panel.cm-search .cm-textfield {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+}
+.cm-panel.cm-search .cm-textfield:focus {
+  border-color: var(--color-accent);
+}
+.cm-panel.cm-search .cm-button {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cm-panel.cm-search .cm-button:hover {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
 .theme-toggle {
   display: inline-flex;
   align-items: center;

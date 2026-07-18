@@ -96,6 +96,7 @@ describe('defaultSettings', () => {
     expect(s).toHaveProperty('cursorColor');
     expect(s).toHaveProperty('cursorUnderline');
     expect(s).toHaveProperty('cursorOpacity');
+    expect(s).toHaveProperty('contextMenu');
     expect(s).toHaveProperty('showChallenges');
     expect(s.fontSize).toBe(14);
     expect(s.keywordUpper).toBe(false);

@@ -426,6 +426,7 @@ function setupEditorContextMenu() {
     if (!cm) return;
     if (state.activeFileIsJS || state.activeFileIsMD) return;
     if (state.tutorialActive && state.tutorialLessonType === 'theory') return;
+    if (getSettings().contextMenu === false) return;
     e.preventDefault();
     const menu = document.getElementById('context-menu');
     menu.innerHTML = `<button class="context-menu-item" data-action="generate-sql">${t('editor.context.generateSQL')}</button>`;
