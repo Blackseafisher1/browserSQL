@@ -45,6 +45,9 @@ function allColumnOptions(context) {
     detail: tables.join(', '),
   }));
   if (state._ctes) {
+    for (const cteName of Object.keys(state._ctes)) {
+      opts.push({ label: cteName, type: 'class', detail: 'CTE' });
+    }
     for (const [cteName, cols] of Object.entries(state._ctes)) {
       for (const col of cols) {
         opts.push({ label: col, type: 'property', detail: cteName });
@@ -155,11 +158,12 @@ export function sqlAutoTriggerSource(context) {
   const textBefore = edState.sliceDoc(0, pos);
   if (!textBefore.trim()) return null;
   const from = wordStart(textBefore, pos);
-
-  // Dot-completion — must run before detectContext so something like
-  // "SELECT col1, t." is not swallowed by the select-col context.
-  // Tries: state._mergedSchema (full-doc, includes aliases), then
-  // direct tableByName / CTE fallback so it never leaks keywords.
+/*
+   Dot-completion — must run before detectContext so something like
+   "SELECT col1, t." is not swallowed by the select-col context.
+  Tries: state._mergedSchema (full-doc, includes aliases), then
+  direct tableByName / CTE fallback so it never leaks keywords.
+  */
   const dotPos = textBefore.lastIndexOf('.');
   if (dotPos > 0) {
     const afterDot = textBefore.slice(dotPos + 1).trim();

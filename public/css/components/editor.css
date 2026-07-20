@@ -154,17 +154,23 @@
     -webkit-user-modify: read-write-plaintext-only;
   }
 
-  body.editor-bg-img .cm-editor .cm-scroller {
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+  body.editor-bg-img .cm-editor .cm-scroller,
+  body.editor-bg-img .cm-editor .cm-gutters {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
   }
-  [data-theme="light"] body.editor-bg-img .cm-editor .cm-scroller {
-    background-image: url('/white.jpg');
+  [data-theme="light"] body.editor-bg-img .cm-editor .cm-scroller,
+  [data-theme="light"] body.editor-bg-img .cm-editor .cm-gutters {
+    background-image: url('/white.jpg') !important;
   }
-  [data-theme="dark"] body.editor-bg-img .cm-editor .cm-scroller {
-    background-image: url('/bg-blue-gray.webp');
+  [data-theme="dark"] body.editor-bg-img .cm-editor .cm-scroller,
+  [data-theme="dark"] body.editor-bg-img .cm-editor .cm-gutters {
+    background-image: url('/bg-blue-gray.webp') !important;
+  }
+  body.editor-bg-img .cm-editor .cm-gutters {
+    background-color: transparent !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
